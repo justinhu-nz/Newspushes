@@ -11,7 +11,7 @@ It has four parts, and none of them is a server you run:
 1. **The phone** has the news apps installed. MacroDroid copies every notification they send to a Google Form.
 2. **The Google Form** turns each copy into a new row in a private Google Sheet.
 3. **The Sheet** has a "Latest" tab that always holds the newest 150 notifications. Only that tab is published to the web, as a CSV file.
-4. **The website** is one page, `index.html`, plus an `icons/` folder of app icons and an `images/` folder holding the wallpaper, hosted on GitHub Pages. Each visitor's browser downloads the CSV every 60 seconds and shows it as a feed.
+4. **The website** is one page, `index.html`, plus an `icons/` folder of app icons and an `images/wallpapers/` folder of background wallpapers, hosted on GitHub Pages. Each visitor's browser downloads the CSV every 60 seconds and shows it as a feed.
 
 Everything runs on free tiers. The only code in the system is the web page.
 
@@ -95,7 +95,7 @@ To stop the website, unpublish: File → Share → Publish to web → Stop publi
 
 ## 4. The website (index.html)
 
-The whole site is one page plus its app icons and wallpaper. It downloads the CSV, turns it into cards, and repeats every 60 seconds, all inside the visitor's browser.
+The whole site is one page plus its app icons and wallpapers. It downloads the CSV, turns it into cards, and repeats every 60 seconds, all inside the visitor's browser.
 
 **What it does, in order** (each step is a labelled section in the file's comments):
 
@@ -106,7 +106,7 @@ The whole site is one page plus its app icons and wallpaper. It downloads the CS
 5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser or server can serve an old copy.
 6. **Removes repeats.** The same app sending the same headline again within 30 minutes is shown once: the first copy. Headlines are compared ignoring capitals, spacing and curly versus straight quotes. A genuine re-push after 30 minutes is kept, so the push history stays honest. The Sheet itself still keeps every row.
 7. **Splits the feed into tabs.** News is the main tab. AT Mobile goes on its own tab, because its service alerts aren't news. Link straight to it with `#side` on the end of the address.
-8. **Draws the feed** in the style of iOS dark-mode notifications: dark frosted-glass cards over a wallpaper (`images/wallpaper.jpg`, Apple's WWDC 2022 dark wallpaper, dimmed), the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "2h ago", then the clock time such as "14:43"; the day heading above says which day). The tabs and search bar stay pinned to the top while scrolling and get a frosted backing once pinned. The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
+8. **Draws the feed** in the style of iOS dark-mode notifications: dark frosted-glass cards over a wallpaper picked at random on each visit from `images/wallpapers/` (classic macOS and Windows wallpapers plus Apple's WWDC 2022 one, all dimmed), the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "2h ago", then the clock time such as "14:43"; the day heading above says which day). The tabs and search bar stay pinned to the top while scrolling and get a frosted backing once pinned. The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
    - The bold title is the alert's own title (AT Mobile) or author (The Spinoff), otherwise the app's name.
    - Long alerts are cut to four lines; tap a card to show the rest.
    - When repeats were hidden, the card shows as a stack with a red count badge on its icon.
@@ -127,7 +127,13 @@ The whole site is one page plus its app icons and wallpaper. It downloads the CS
 | `IGNORE_APPS` | heartbeat, test | App names never shown |
 | `SIDE_TAB` | AT Mobile | Apps moved off the news feed onto their own tab; `null` for one feed |
 | `DEDUPE_WINDOW_MINUTES` | 30 | How close together two identical alerts must be to count as a repeat |
+| `SLIDESHOW_SECONDS` | 20 | How long each wallpaper stays when the slideshow is on |
+| `SLIDESHOW_FADE_SECONDS` | 4 | How long the crossfade between wallpapers takes |
 | `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
+
+**Wallpapers** are 2000 px JPEGs in `images/wallpapers/`, made from the full-size originals in `wallpapers/`. A small script in the page's `<head>` lists them as `WALLPAPERS` and picks one at random before the page is drawn, so only that one downloads.
+
+The round button next to the status pill turns on a **wallpaper slideshow**: every 20 seconds a different random wallpaper is downloaded and crossfaded in over 4 seconds. It pauses while the tab is hidden, and each visitor's on/off choice is remembered in their own browser. To add a wallpaper: save a JPEG of about 2000 px wide in `images/wallpapers/` and add its file name to the list. The full-size originals are 5–17 MB each, so keep them out of the GitHub repository.
 
 **App icons** are 120 px PNGs in `icons/`, made from the originals in `app icons/`. Each one should fill its square edge to edge, because the page rounds the corners itself. Two needed touching up: AT Mobile came with its own transparent rounded corners (filled in), and the RNZ swirl ran to the edges (given some margin). To add one: save a square image as `icons/<name>.png` and add a line to `ICONS` with the app's name exactly as it appears in the Sheet's App column (capitals don't matter).
 
@@ -137,12 +143,12 @@ The whole site is one page plus its app icons and wallpaper. It downloads the CS
 
 ## Hosting on GitHub Pages
 
-GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page, icons and wallpaper (about 340 KB, plus about 130 KB of fonts) once and every refresh after that goes to Google.
+GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page, icons and one wallpaper (roughly 250–500 KB depending on the wallpaper, plus about 160 KB of fonts) once and every refresh after that goes to Google.
 
 **Setup (about 10 minutes):**
 
 1. Create a free GitHub account and a **public** repository, for example `push-feed`. Free accounts can only publish public repositories.
-2. Upload `index.html` and the `icons` and `images` folders by dragging them onto the repository page, then commit.
+2. Upload `index.html` and the `icons` and `images` folders (not `wallpapers`, which holds the large originals) by dragging them onto the repository page, then commit.
 3. Settings → Pages → Source: deploy from the `main` branch, root folder → Save.
 4. About a minute later the site is live at `https://<your-username>.github.io/push-feed/`.
 5. Optional: connect your own domain under Settings → Pages → Custom domain. HTTPS is free.

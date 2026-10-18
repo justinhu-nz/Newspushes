@@ -51,6 +51,27 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://applesocial.s3.amazonaws.com" crossorigin>
 
+  <!-- A different wallpaper on each visit. This runs before the page is
+       drawn, so the chosen one is the only one downloaded and nothing
+       flashes. EDIT ME: add or remove file names to change the rotation. -->
+  <script>
+    (function () {
+      var WALLPAPERS = [
+        'wwdc-2022.jpg',
+        'macos-10-0.jpg',
+        'macos-10-2.jpg',
+        'macos-10-4.jpg',
+        'macos-mojave-night.jpg',
+        'windows-10.jpg',
+        'windows-xp-bliss.jpg',
+      ];
+      var pick = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
+      document.documentElement.style.setProperty('--wallpaper', 'url("images/wallpapers/' + pick + '")');
+      // Shared with the slideshow code further down the page.
+      window.PUSH_FEED_WALLPAPERS = { folder: 'images/wallpapers/', list: WALLPAPERS, current: pick };
+    })();
+  </script>
+
   <style>
     /* ════════════════════════════════════════════════════════════════════
        1. COLOURS AND SIZES ("design tokens")
@@ -76,7 +97,8 @@
 
     :root {
       --bg:        #0b1a3a;                  /* behind the wallpaper while it loads */
-      --wallpaper: url("images/wallpaper.jpg");
+      /* --wallpaper is set by the small script in <head>, which picks one
+         of images/wallpapers/ at random on each visit. */
       --wall-dim:  rgba(4, 8, 20, 0.42);     /* darkens the wallpaper, as iOS does behind notifications */
 
       /* Frosted glass: a dark tint plus a blur of whatever's behind it. */
@@ -128,17 +150,28 @@
       -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
     }
 
-    /* The wallpaper, pinned behind the page so cards scroll over it. (A
-       fixed layer rather than background-attachment: fixed, which iPhones
-       ignore.) */
+    /* The wallpaper, pinned behind the page so cards scroll over it. (Fixed
+       layers rather than background-attachment: fixed, which iPhones
+       ignore.) There are two layers so the slideshow can crossfade: the
+       new wallpaper goes on the hidden layer, which then fades in. */
+    .wall {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: var(--bg) center / cover no-repeat;
+      opacity: 0;
+      transition: opacity var(--wall-fade, 4s) ease-in-out;
+    }
+    .wall.is-showing { opacity: 1; }
+    #wall-a { background-image: var(--wallpaper, none); }
+
+    /* The dimming over the wallpaper, so text on top stays readable. */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       z-index: -1;
-      background: linear-gradient(var(--wall-dim), var(--wall-dim)),
-                  var(--wallpaper) center / cover no-repeat,
-                  var(--bg);
+      background: var(--wall-dim);
     }
 
     /* The centred column everything sits in. */
@@ -196,6 +229,34 @@
       text-shadow: none;
       font-variant-numeric: tabular-nums;
     }
+
+    .header-tools {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Small round icon button (the wallpaper slideshow toggle). Lights up
+       while switched on. */
+    .round-button {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      color: rgba(255, 255, 255, 0.85);
+      background: var(--control);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .round-button[aria-pressed="true"] { background: #ffffff; color: #000000; }
+    .round-button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
     /* The coloured dot. Its colour is switched by adding a class in JS. */
     .dot {
@@ -544,6 +605,9 @@
 </head>
 
 <body>
+  <!-- The two wallpaper layers (see .wall in the styles). -->
+  <div class="wall is-showing" id="wall-a" aria-hidden="true"></div>
+  <div class="wall" id="wall-b" aria-hidden="true"></div>
   <!-- ══════════════════════════════════════════════════════════════════════
        PAGE STRUCTURE
        The feed itself starts empty: the JavaScript at the bottom fills
@@ -557,10 +621,23 @@
 
         <!-- Feed health. role="status" lets screen readers announce changes
              politely, without interrupting whatever they're reading. -->
-        <p class="status" role="status" aria-live="polite">
-          <span class="dot" id="status-dot"></span>
-          <span id="status-text">Loading…</span>
-        </p>
+        <div class="header-tools">
+          <p class="status" role="status" aria-live="polite">
+            <span class="dot" id="status-dot"></span>
+            <span id="status-text">Loading…</span>
+          </p>
+
+          <!-- Wallpaper slideshow on/off. -->
+          <button type="button" class="round-button" id="slideshow-toggle"
+                  aria-pressed="false" aria-label="Wallpaper slideshow" title="Wallpaper slideshow">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="1.5" y="3.5" width="10" height="9" rx="2"/>
+              <path d="M4.5 1.5h8a2 2 0 0 1 2 2v7"/>
+              <path d="m1.5 10.5 3-3 3 3 1.5-1.5 2.5 2.5"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- EDIT ME: one line describing your feed. -->
@@ -651,6 +728,12 @@
       // minutes counts as a repeat: only the first one is shown. A genuine
       // re-push later than this is kept, so the push history stays honest.
       DEDUPE_WINDOW_MINUTES: 30,
+
+      // Wallpaper slideshow (the round button in the header): how long each
+      // wallpaper stays, and how long the crossfade to the next one takes.
+      // The visitor's on/off choice is remembered in their browser.
+      SLIDESHOW_SECONDS: 20,
+      SLIDESHOW_FADE_SECONDS: 4,
 
       // App icons, by app name (as it appears in the App column, ignoring
       // capitals). Files live in the icons/ folder next to this page; any
@@ -1234,6 +1317,61 @@
       for (const ch of key) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
       return `hsl(${hash % 360} 52% 42%)`;
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+       WALLPAPER SLIDESHOW
+       When switched on, every SLIDESHOW_SECONDS a different random
+       wallpaper is downloaded, put on the hidden layer and faded in. It
+       pauses while the tab is hidden, and the on/off choice is saved in
+       this browser only (if the browser allows saving).
+       ════════════════════════════════════════════════════════════════════ */
+    const slideshow = {
+      walls: window.PUSH_FEED_WALLPAPERS || { folder: '', list: [], current: '' },
+      layers: [document.getElementById('wall-a'), document.getElementById('wall-b')],
+      showing: 0,          // which layer is currently visible
+      timer: null,
+      button: document.getElementById('slideshow-toggle'),
+    };
+    document.documentElement.style.setProperty('--wall-fade', CONFIG.SLIDESHOW_FADE_SECONDS + 's');
+
+    function slideshowOn() { return slideshow.button.getAttribute('aria-pressed') === 'true'; }
+
+    function setSlideshow(on) {
+      slideshow.button.setAttribute('aria-pressed', String(on));
+      try { localStorage.setItem('pushFeedSlideshow', on ? 'on' : 'off'); } catch (e) { /* not saved; fine */ }
+      scheduleWallpaper();
+    }
+
+    function scheduleWallpaper() {
+      clearTimeout(slideshow.timer);
+      if (!slideshowOn() || document.hidden || slideshow.walls.list.length < 2) return;
+      slideshow.timer = setTimeout(nextWallpaper, CONFIG.SLIDESHOW_SECONDS * 1000);
+    }
+
+    function nextWallpaper() {
+      const others = slideshow.walls.list.filter(name => name !== slideshow.walls.current);
+      const name = others[Math.floor(Math.random() * others.length)];
+      const url = slideshow.walls.folder + name;
+
+      // Download it first, so the fade never shows a half-loaded image.
+      const img = new Image();
+      img.onload = () => {
+        const incoming = slideshow.layers[1 - slideshow.showing];
+        const outgoing = slideshow.layers[slideshow.showing];
+        incoming.style.backgroundImage = `url("${url}")`;
+        incoming.classList.add('is-showing');
+        outgoing.classList.remove('is-showing');
+        slideshow.showing = 1 - slideshow.showing;
+        slideshow.walls.current = name;
+        scheduleWallpaper();
+      };
+      img.onerror = scheduleWallpaper; // skip a missing file, try another next time
+      img.src = url;
+    }
+
+    slideshow.button.addEventListener('click', () => setSlideshow(!slideshowOn()));
+    document.addEventListener('visibilitychange', scheduleWallpaper);
+    try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
 
     /* ════════════════════════════════════════════════════════════════════
        START
