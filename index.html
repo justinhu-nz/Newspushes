@@ -68,16 +68,18 @@
     :root {
       --bg:        #0b1a3a;                  /* behind the wallpaper while it loads */
       --wallpaper: url("images/wallpaper.jpg");
-      --wall-dim:  rgba(0, 0, 0, 0.28);      /* darkens the wallpaper a touch, as iOS does behind notifications */
+      --wall-dim:  rgba(4, 8, 20, 0.42);     /* darkens the wallpaper, as iOS does behind notifications */
 
       /* Frosted glass: a dark tint plus a blur of whatever's behind it. */
-      --glass-blur: blur(28px) saturate(170%);
-      --card:      rgba(28, 28, 32, 0.58);   /* notification cards */
-      --card-stack:rgba(28, 28, 32, 0.40);   /* the card peeking out underneath a stack */
-      --control:   rgba(28, 28, 32, 0.55);   /* search box, dropdown, tab bar */
-      --control-on:rgba(120, 120, 128, 0.42);/* the selected tab */
+      --glass-blur: blur(24px) saturate(110%);
+      --card:      rgba(22, 22, 26, 0.84);   /* notification cards: mostly solid, for crisp contrast */
+      --card-stack:rgba(22, 22, 26, 0.62);   /* the card peeking out underneath a stack */
+      --control:   rgba(118, 118, 128, 0.24);/* search box, dropdown, tab bar (iOS "fill" grey) */
+      --control-on:rgba(118, 118, 128, 0.42);/* the selected tab */
+      --edge:      rgba(255, 255, 255, 0.10);/* faint light rim along the top of glass */
+      --on-wall-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); /* keeps text sitting on the wallpaper legible */
       --text:      #ffffff;
-      --text-soft: rgba(235, 235, 245, 0.6); /* times, secondary text */
+      --text-soft: rgba(235, 235, 245, 0.66); /* times, secondary text */
       --hairline:  rgba(255, 255, 255, 0.08);
 
       --badge:  #ff453a;   /* iOS red: icon badges */
@@ -109,8 +111,8 @@
       margin: 0;
       min-height: 100vh;
       color: var(--text);
-      font: 15px/1.33 var(--font);
-      letter-spacing: 0.01em;          /* the SF files are the "Display" cut, drawn tight for big sizes; this opens small text up */
+      font: 15px/1.25 var(--font);
+      letter-spacing: -0.012em;        /* iOS sets body text slightly tight */
       -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
     }
@@ -138,35 +140,49 @@
     /* ════════════════════════════════════════════════════════════════════
        3. HEADER: name, feed health, then tabs and search.
        ════════════════════════════════════════════════════════════════════ */
-    .site-header { padding: 22px 0 6px; }
+    .site-header {
+      padding: 28px 0 4px;
+      text-shadow: var(--on-wall-shadow);
+    }
 
     .brand-row {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      flex-wrap: wrap;
     }
     .brand {
       margin: 0;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
     }
     .tagline {
-      margin: 3px 0 0;
-      font-size: 13px;
-      color: var(--text-soft);
+      margin: 6px 0 0;
+      max-width: 34em;
+      font-size: 14px;
+      line-height: 1.25;
+      color: rgba(255, 255, 255, 0.72);
     }
 
-    /* The "● Last alert 3m ago" line. */
+    /* The "● Last alert 3m ago" pill. */
     .status {
+      flex: none;
       margin: 0;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      color: var(--text-soft);
+      padding: 5px 10px 5px 9px;
+      border-radius: 999px;
+      background: var(--control);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.85);
+      text-shadow: none;
+      font-variant-numeric: tabular-nums;
     }
 
     /* The coloured dot. Its colour is switched by adding a class in JS. */
@@ -177,28 +193,42 @@
       background: var(--text-soft);
       flex: none;
     }
-    .dot.is-ok   { background: var(--ok); }
+    .dot.is-ok   { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
     .dot.is-warn { background: var(--warn); }
     .dot.is-bad  { background: var(--bad); }
 
-    /* The bar holding tabs + search pins to the top while scrolling,
-       slightly see-through so cards blur as they pass underneath. */
+    /* The bar holding tabs + search pins to the top while scrolling. Its
+       frosted backing only appears once it's pinned (the JavaScript adds
+       .is-stuck), and fades out at the bottom, so there's no hard line
+       where cards slide underneath. */
     .toolbar {
       position: sticky;
       top: 0;
       z-index: 10;
-      padding: 10px 0;
+      padding: 12px 0 18px;
+      margin-bottom: -8px;     /* the faded part overlaps the feed */
+    }
+    .toolbar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: rgba(6, 10, 22, 0.72);
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
-      background: rgba(0, 0, 0, 0.25);
+      -webkit-mask-image: linear-gradient(#000 80%, transparent);
+      mask-image: linear-gradient(#000 80%, transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
     }
+    .toolbar.is-stuck::before { opacity: 1; }
 
     /* "News | AT Mobile": an iOS segmented control. */
     .tabs {
       display: flex;
       padding: 2px;
-      margin-bottom: 8px;
-      border-radius: 9px;
+      margin-bottom: 10px;
+      border-radius: 10px;
       background: var(--control);
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
@@ -207,24 +237,28 @@
     .tabs button {
       flex: 1;
       font: inherit;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
-      color: var(--text);
+      color: rgba(255, 255, 255, 0.82);
       background: none;
       border: 0;
-      border-radius: 7px;
-      padding: 6px 10px;
+      border-radius: 8px;
+      padding: 7px 10px;
       cursor: pointer;
+      transition: background 0.15s;
     }
     .tabs button[aria-selected="true"] {
       font-weight: 600;
+      color: var(--text);
       background: var(--control-on);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: inset 0 0.5px 0 var(--edge), 0 2px 8px rgba(0, 0, 0, 0.18);
     }
     .tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
     .tabs .count { font-weight: 400; color: var(--text-soft); margin-left: 5px; }
 
-    /* Search box + publisher dropdown, side by side. */
+    /* Search box + publisher dropdown, side by side even on phones. Both
+       are iOS-style grey fills; the search box gets a magnifying glass and
+       the dropdown a small chevron, drawn as inline SVG. */
     .controls {
       display: flex;
       gap: 8px;
@@ -234,17 +268,34 @@
       font: inherit;
       font-size: 16px;         /* 16px+ stops iPhones zooming in on tap */
       color: var(--text);
-      background: var(--control);
+      background-color: var(--control);
+      background-repeat: no-repeat;
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
       border: 0;
       border-radius: 10px;
-      padding: 8px 12px;
+      height: 38px;
       min-width: 0;            /* lets them shrink on narrow phones */
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .controls input {
+      flex: 1 1 auto;
+      padding: 0 12px 0 34px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='rgba(235,235,245,0.6)' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E");
+      background-position: 11px center;
     }
     .controls input::placeholder { color: var(--text-soft); }
-    .controls input  { flex: 1 1 auto; }
-    .controls select { flex: 0 1 170px; }
+    .controls input::-webkit-search-cancel-button { filter: invert(1) opacity(0.6); }
+    .controls select {
+      flex: 0 1 150px;
+      padding: 0 30px 0 12px;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='rgba(235,235,245,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E");
+      background-position: right 11px center;
+    }
+    .controls select option { background: #1c1c1e; color: #fff; }
     .controls input:focus,
     .controls select:focus {
       outline: 2px solid var(--focus);
@@ -258,12 +309,14 @@
 
     /* "Notification Centre"-style headings: Today, Yesterday, Sat 17 Oct. */
     .day-heading {
-      margin: 20px 6px 10px;
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
+      margin: 22px 4px 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       color: var(--text);
+      text-shadow: var(--on-wall-shadow);
     }
+    main > .day-heading:first-child { margin-top: 14px; }
 
     /* One notification. A "stack" wraps it so that hidden repeats can show
        as the card peeking out underneath, like grouped iOS notifications. */
@@ -271,15 +324,16 @@
       position: relative;
       margin-bottom: 8px;
     }
-    .stack.has-repeats { margin-bottom: 17px; }
+    .stack.has-repeats { margin-bottom: 16px; }
     .stack.has-repeats::after {
       content: '';
       position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: -9px;
+      left: 10px;
+      right: 10px;
+      bottom: -8px;
       height: 30px;
       border-radius: 0 0 18px 18px;
+      box-shadow: inset 0 -0.5px 0 var(--hairline);
       background: var(--card-stack);
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
@@ -290,14 +344,17 @@
       z-index: 1;              /* above the stack layer */
       display: flex;
       align-items: center;     /* iOS centres the icon against the text */
-      gap: 11px;
-      min-height: 66px;        /* a one-line alert is as tall as a two-line one, like iOS */
-      padding: 12px 15px 13px 13px;
+      gap: 12px;
+      min-height: 64px;        /* a one-line alert is as tall as a two-line one, like iOS */
+      padding: 12px 16px 13px 14px;
       border-radius: var(--radius);
       background: var(--card);
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
-      box-shadow: inset 0 0 0 0.5px var(--hairline);
+      /* a faint light rim on top, a hairline all round, and a soft shadow */
+      box-shadow: inset 0 0.5px 0 var(--edge),
+                  inset 0 0 0 0.5px var(--hairline),
+                  0 6px 24px rgba(0, 0, 0, 0.16);
       cursor: default;
     }
     /* Lift the card being looked at, so its exact-time label sits above
@@ -327,6 +384,7 @@
       height: 100%;
       border-radius: 9px;      /* iOS icon corners are about 23% of the size */
       object-fit: cover;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     }
     /* Apps with no icon file get their initials on a steady colour. */
     .icon .initials {
@@ -340,15 +398,17 @@
       position: absolute;
       top: -6px;
       right: -6px;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
+      min-width: 19px;
+      height: 19px;
+      padding: 0 5px;
       border-radius: 10px;
       background: var(--badge);
       color: #fff;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
-      line-height: 20px;
+      line-height: 19px;
+      letter-spacing: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       text-align: center;
       font-variant-numeric: tabular-nums;
     }
@@ -358,6 +418,7 @@
     /* Top line: bold title on the left, time on the right. */
     .card-top {
       position: relative;      /* the exact-time label hangs from here */
+      line-height: 1.15;
       display: flex;
       align-items: baseline;
       gap: 10px;
@@ -366,16 +427,18 @@
       flex: 1;
       min-width: 0;
       font-weight: 600;
+      letter-spacing: -0.016em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* The time ("now", "12m ago", "14:43", "Fri 16:04"). Hover it, tap it
+    /* The time ("now", "12m ago", "14:43"). Hover it, tap it
        or tab to it to see the exact moment in a small label below. */
     .when {
       flex: none;
-      font-size: 13.5px;
+      font-size: 13px;
+      letter-spacing: 0;
       color: var(--text-soft);
       font-variant-numeric: tabular-nums;
       cursor: help;
@@ -413,8 +476,9 @@
        clicking or tapping the notification shows the rest. "pre-line"
        keeps the line breaks some apps send (e.g. AT Mobile's bullets). */
     .headline {
-      margin: 2px 0 0;
-      line-height: 1.34;
+      margin: 0;
+      line-height: 1.15;
+      color: #ffffff;
       white-space: pre-line;
       overflow-wrap: anywhere;
       display: -webkit-box;
@@ -450,14 +514,13 @@
        ════════════════════════════════════════════════════════════════════ */
     /* On narrow phones, stack the search box above the dropdown. */
     @media (max-width: 420px) {
-      .controls { flex-direction: column; }
-      .controls select { flex-basis: auto; }
+      .controls select { flex-basis: 128px; }
     }
 
     /* Browsers without the frosted-glass effect get nearly solid cards,
        so text never sits on a busy wallpaper. */
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      :root { --card: rgba(28, 28, 32, 0.92); --card-stack: rgba(28, 28, 32, 0.7); --control: rgba(28, 28, 32, 0.9); }
+      :root { --card: rgba(30, 30, 34, 0.93); --card-stack: rgba(30, 30, 34, 0.75); --control: rgba(58, 58, 62, 0.9); }
     }
 
     /* Visitors who've asked their device for less motion get no animation. */
@@ -492,7 +555,8 @@
     </div>
   </header>
 
-  <div class="toolbar">
+  <div id="toolbar-sentinel" aria-hidden="true"></div>
+  <div class="toolbar" id="toolbar">
     <div class="wrap">
       <!-- News / side tab (e.g. AT Mobile). Labels and counts are filled in
            by the JavaScript; the bar hides itself if CONFIG.SIDE_TAB is null. -->
@@ -505,7 +569,7 @@
         <input type="search" id="search" placeholder="Search alerts…" aria-label="Search alerts" autocomplete="off">
         <!-- The publisher list is filled in automatically from the data. -->
         <select id="app-filter" aria-label="Filter by publisher">
-          <option value="">All publishers</option>
+          <option value="">All apps</option>
         </select>
       </div>
     </div>
@@ -1029,7 +1093,7 @@
       const chosen = el.appFilter.value;
       const names = [...counts.keys()].sort((a, b) => a.localeCompare(b));
 
-      el.appFilter.replaceChildren(new Option('All publishers', ''));
+      el.appFilter.replaceChildren(new Option('All apps', ''));
       for (const name of names) el.appFilter.append(new Option(`${name} (${counts.get(name)})`, name));
 
       // If their chosen publisher has dropped out of the latest 150, reset.
@@ -1091,21 +1155,15 @@
     const tz = CONFIG.TIME_ZONE ? { timeZone: CONFIG.TIME_ZONE } : {};
 
     // A notification's time, the way iOS writes it:
-    //   now · 12m ago · 2h ago · 14:43 (earlier today) · Yesterday 16:04
-    //   · Fri 16:04 (this week) · 12 Oct (older)
+    //   now · 12m ago · 2h ago · then the clock time, e.g. 14:43
+    // (The day heading above the card already says which day.)
     const hhmm = new Intl.DateTimeFormat('en-NZ', { ...tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-    const weekdayFormat = new Intl.DateTimeFormat('en-NZ', { ...tz, weekday: 'short' });
-    const shortDateFormat = new Intl.DateTimeFormat('en-NZ', { ...tz, day: 'numeric', month: 'short' });
     function notificationTime(ms) {
       const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
       if (mins < 1)  return 'now';
       if (mins < 60) return mins + 'm ago';
       if (mins < 4 * 60) return Math.floor(mins / 60) + 'h ago';
-      const key = dayKey(ms);
-      if (key === dayKey(Date.now()))            return hhmm.format(ms);
-      if (key === dayKey(Date.now() - 86400000)) return 'Yesterday ' + hhmm.format(ms);
-      if (Date.now() - ms < 6 * 86400000)        return weekdayFormat.format(ms) + ' ' + hhmm.format(ms);
-      return shortDateFormat.format(ms);
+      return hhmm.format(ms);
     }
 
     // "8:32 am" (or "8:32:40 am" with seconds)
@@ -1172,6 +1230,12 @@
     el.appFilter.addEventListener('change', render);
     el.tabNews.addEventListener('click', () => switchTab(false));
     el.tabSide.addEventListener('click', () => switchTab(true));
+
+    // Give the toolbar its frosted backing only while it's pinned to the
+    // top: an invisible marker just above it scrolls out of view exactly then.
+    new IntersectionObserver(([entry]) => {
+      document.getElementById('toolbar').classList.toggle('is-stuck', !entry.isIntersecting);
+    }).observe(document.getElementById('toolbar-sentinel'));
     window.addEventListener('hashchange', () => switchTab(!!CONFIG.SIDE_TAB && location.hash === '#side'));
 
     if (!CONFIG.SIDE_TAB) onSideTab = false;
