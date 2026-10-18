@@ -104,10 +104,13 @@ The whole site is one file. It downloads the CSV, turns it into cards, and repea
 3. **Picks the time** from "Posted at", the phone's exact timestamp. The Form's Timestamp column is only a fallback, because its day/month/year format has no time zone.
 4. **Picks the headline.** Text is always the headline. Title shows as a small line above it only when it adds something: AT Mobile's alert title or The Spinoff's author, but not NZ Herald's repeated "NZ Herald".
 5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser or server can serve an old copy.
-6. **Draws the feed** grouped under Today, Yesterday and dated headings, in NZ time for every visitor. Alerts new since the last check flash red for a few seconds.
-7. **Shows feed health** in the header: green "Last alert 3 min ago", amber "Quiet for 4 h" after 3 hours with nothing new, red "Can't reach the feed" if a download fails. On a failure it keeps showing the last good alerts and retries next minute.
+6. **Removes repeats.** The same app sending the same headline again within 30 minutes is shown once: the first copy. Headlines are compared ignoring capitals, spacing and curly versus straight quotes. A genuine re-push after 30 minutes is kept, so the push history stays honest. The Sheet itself still keeps every row.
+7. **Splits the feed into tabs.** News is the main tab. AT Mobile goes on its own tab, because its service alerts aren't news. Link straight to it with `#side` on the end of the address.
+8. **Draws the feed** grouped under Today, Yesterday and dated headings, in NZ time for every visitor. Alerts new since the last check flash red for a few seconds.
+9. **Shows the exact time on hover.** Hovering, tapping or tabbing to a card's time shows the full date and time to the millisecond with its time zone, for example `Mon, 19 Oct 2026, 8:48:26.600 am NZDT`. If repeats were hidden, it also says how many and when the last one came.
+10. **Shows feed health** in the header: green "Last alert 3 min ago", amber "Quiet for 4 h" after 3 hours with nothing new, red "Can't reach the feed" if a download fails. On a failure it keeps showing the last good alerts and retries next minute.
 
-**Settings** live in the `CONFIG` block near the bottom of the file:
+**Settings** live in the `CONFIG` block at the top of the `<script>` section:
 
 | Setting | Current value | What it controls |
 | --- | --- | --- |
@@ -117,6 +120,8 @@ The whole site is one file. It downloads the CSV, turns it into cards, and repea
 | `QUIET_AFTER_MINUTES` | 180 | When the dot turns amber |
 | `TIME_ZONE` | `Pacific/Auckland` | Clock shown to visitors; `null` uses their own |
 | `IGNORE_APPS` | heartbeat, test | App names never shown |
+| `SIDE_TAB` | AT Mobile | Apps moved off the news feed onto their own tab; `null` for one feed |
+| `DEDUPE_WINDOW_MINUTES` | 30 | How close together two identical alerts must be to count as a repeat |
 
 **Built-in protections:** headlines are always inserted as plain text, so a headline containing code is displayed, never run. Refreshes pause while the tab is hidden and catch up when it's visible again, which saves visitors' data and Google's servers.
 
@@ -206,7 +211,7 @@ Work from the phone outward: check the Sheet first, because it tells you which h
 | Site red: "Can't reach the feed" | CSV link wrong or unpublished, or the network is down | Open the CSV link directly; if that works, compare it with `CSV_URL` in `index.html` |
 | Site red, CSV link opens fine in a tab | The browser is blocking the cross-site download | Press F12 → Console; a "CORS" error confirms it. Tell me and we'll route it through a small proxy |
 | Headline cut off at an `&` | MacroDroid didn't encode the text | Switch to a form-encoded body (ask for the steps) |
-| Same alert appears twice | App re-posted it | Usually harmless; check "Prevent multiple triggers" is on |
+| Same alert appears twice | App re-posted it more than 30 minutes later, or changed the wording | Usually a real re-push. Hover the time to compare; raise `DEDUPE_WINDOW_MINUTES` if it's noise |
 | Site shows a junk row | Someone found the Form address | Delete the row in the Sheet; replace the Form if it recurs |
 
 **First-time check after uploading:** open the live site and press F12 → Console. No red errors and a green dot means everything works end to end. This is the one step that couldn't be tested before going live, because the test machine couldn't reach Google.
@@ -219,7 +224,8 @@ The system has three small known quirks, and a clear next step if it outgrows Go
 
 - **A leading apostrophe disappears.** Sheets treats a `'` at the very start of a cell as a hidden "text" marker, so 1News's `'Clinical': …` arrives as `Clinical': …`. Only headlines starting with a straight apostrophe are affected.
 - **The Form's Timestamp column has no time zone.** The website uses "Posted at" instead, so this only matters if you read the Sheet directly.
-- **Duplicates aren't removed.** The Form accepts everything. In practice "Prevent multiple triggers" on the phone stops nearly all repeats.
+- **Duplicates are removed only on the website.** The Form and Sheet keep every row, repeats included. The page hides repeats (see section 4), and "Prevent multiple triggers" on the phone stops most of them before they're sent. Repeats still use up places in the Latest tab's 150 rows.
+- **The 150-row window can split a repeat pair.** If the first copy of an alert drops out of the newest 150 while a repeat is still inside, the repeat shows on its own. This only happens at the very bottom of the feed.
 
 **When to upgrade,** and to what:
 

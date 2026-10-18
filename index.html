@@ -158,6 +158,31 @@
     .dot.is-warn { background: var(--warn); }
     .dot.is-bad  { background: var(--accent); }
 
+    /* "News | AT Mobile" switch. */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .tabs button {
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-soft);
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] {
+      color: var(--text);
+      background: var(--surface);
+      border-color: var(--line);
+    }
+    .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .tabs .count { font-weight: 400; color: var(--text-soft); margin-left: 4px; }
+
     /* Search box + publisher dropdown, side by side. */
     .controls {
       display: flex;
@@ -243,6 +268,40 @@
     }
     .meta .app { color: var(--text); font-weight: 600; }
 
+    /* "8:32 am · 3 min ago": hover, tap or focus it to see the exact time
+       (to the millisecond, with time zone) in a small dark label below. */
+    .meta { position: relative; } /* the label hangs from the start of this line */
+    .when {
+      cursor: help;
+      border-radius: 4px;
+    }
+    .when:hover, .when:focus { color: var(--text); outline: none; }
+    .when:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .when::after {
+      content: attr(data-full);
+      position: absolute;
+      left: 0;
+      top: calc(100% + 4px);
+      z-index: 5;
+      white-space: pre-line;
+      width: max-content;
+      max-width: calc(100vw - 2 * var(--gutter) - 70px); /* never off-screen on phones */
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.45;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.12s;
+    }
+    .when:hover::after,
+    .when:focus::after { opacity: 1; visibility: visible; }
+
     /* Optional second line: an alert title or an author's name. */
     .byline {
       margin-top: 2px;
@@ -317,6 +376,13 @@
       <!-- EDIT ME: one line describing your feed. -->
       <p class="tagline">News alerts from New Zealand publishers, the moment they hit our phone.</p>
 
+      <!-- News / side tab (e.g. AT Mobile). Labels and counts are filled in
+           by the JavaScript; the bar hides itself if CONFIG.SIDE_TAB is null. -->
+      <div class="tabs" role="tablist" aria-label="Feeds" id="tabs">
+        <button type="button" role="tab" id="tab-news" aria-selected="true">News</button>
+        <button type="button" role="tab" id="tab-side" aria-selected="false"></button>
+      </div>
+
       <div class="controls">
         <input type="search" id="search" placeholder="Search alerts…" aria-label="Search alerts" autocomplete="off">
         <!-- The publisher list is filled in automatically from the data. -->
@@ -380,6 +446,16 @@
       // Rows to ignore even if they sneak into the CSV (matched against the
       // App column, ignoring capitals).
       IGNORE_APPS: ['heartbeat', 'test'],
+
+      // Apps that aren't news. They're kept off the main feed and shown on
+      // their own tab instead (matched against the App column, ignoring
+      // capitals). Set to null to put everything on one feed.
+      SIDE_TAB: { label: 'AT Mobile', apps: ['at mobile'] },
+
+      // The same app sending the same headline again within this many
+      // minutes counts as a repeat: only the first one is shown. A genuine
+      // re-push later than this is kept, so the push history stays honest.
+      DEDUPE_WINDOW_MINUTES: 30,
     };
 
     /* ════════════════════════════════════════════════════════════════════
@@ -392,9 +468,13 @@
     let lastCheckedAt = null;     // when we last downloaded successfully
     let lastFetchStartedAt = 0;   // used to decide when to refresh next
     let refreshTimer = null;      // the pending "refresh again soon" timer
+    let onSideTab = location.hash === '#side'; // which tab is showing; #side links straight to it
 
     // Shortcuts to the page elements we update.
     const el = {
+      tabs:       document.getElementById('tabs'),
+      tabNews:    document.getElementById('tab-news'),
+      tabSide:    document.getElementById('tab-side'),
       feed:       document.getElementById('feed'),
       search:     document.getElementById('search'),
       appFilter:  document.getElementById('app-filter'),
@@ -515,12 +595,55 @@
           byline: showTitle ? title : '',
           headline,
           time,
+          side: isSideApp(app),  // belongs on the side tab, not the news feed
+          repeats: [],           // times of hidden repeats (see dedupe below)
         });
       }
 
       // Newest first. (The Sheet already sorts this way; this makes sure.)
-      out.sort((a, b) => b.time - a.time);
-      return out;
+      return dedupe(out).sort((a, b) => b.time - a.time);
+    }
+
+    /* ── Removing repeats ──
+       Apps sometimes post the same alert twice: an update to the same
+       notification, a retry, or a phone hiccup that submits the Form twice.
+       Two alerts are "the same" when they come from the same app and their
+       headlines match after ignoring capitals, spacing and quote styles.
+       Walking oldest → newest, the first copy is kept and any copy within
+       DEDUPE_WINDOW_MINUTES of the last kept one is folded into it (its time
+       is remembered, so the hover can say it was repeated). */
+    function dedupe(list) {
+      const windowMs = CONFIG.DEDUPE_WINDOW_MINUTES * 60000;
+      const lastKept = new Map();  // sameness key → the kept alert
+      const kept = [];
+
+      for (const item of [...list].sort((a, b) => a.time - b.time)) {
+        const key = (item.pkg || item.app).toLowerCase() + '|' + normalise(item.headline);
+        const prev = lastKept.get(key);
+        if (prev && item.time - prev.time <= windowMs) {
+          prev.repeats.push(item.time);
+          continue;
+        }
+        lastKept.set(key, item);
+        kept.push(item);
+      }
+      return kept;
+    }
+
+    // "  ‘Clinical’:  Hospital…" and "'clinical': hospital…" → same text.
+    // Sheets also drops a leading straight apostrophe, so leading quotes go too.
+    function normalise(s) {
+      return s.normalize('NFKC')
+              .toLowerCase()
+              .replace(/[‘’‛′]/g, "'")
+              .replace(/[“”„″]/g, '"')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .replace(/^['"]+/, '');
+    }
+
+    function isSideApp(app) {
+      return !!CONFIG.SIDE_TAB && CONFIG.SIDE_TAB.apps.includes(app.toLowerCase());
     }
 
     // Reads the Form's "19/10/2026 08:32:13" (day/month/year) format.
@@ -589,6 +712,7 @@
         lastCheckOk = true;
         lastCheckedAt = Date.now();
 
+        updateTabs();
         updateAppFilter();
         render();
       } catch (err) {
@@ -628,8 +752,8 @@
       const query = el.search.value.trim().toLowerCase();
       const app = el.appFilter.value;
 
-      // Apply the search box and the publisher dropdown.
-      const visible = items.filter(item =>
+      // Apply the tab, the search box and the publisher dropdown.
+      const visible = tabItems().filter(item =>
         (!app || item.app === app) &&
         (!query || (item.app + ' ' + item.byline + ' ' + item.headline).toLowerCase().includes(query))
       );
@@ -638,7 +762,8 @@
 
       if (!visible.length) {
         const p = make('p', 'empty',
-          items.length ? 'No alerts match your search.' :
+          (query || app) ? 'No alerts match your search.' :
+          items.length ? 'Nothing on this tab yet.' :
           lastCheckOk === false ? 'Couldn’t load the feed. Retrying every minute…' :
           'No alerts yet.');
         el.feed.append(p);
@@ -669,19 +794,22 @@
 
       const body = make('div', 'card-body');
 
-      const meta = make('div', 'meta');
-      meta.append(
-        make('span', 'app', item.app),
-        make('span', '', '·'),
-        make('time', '', clockTime(item.time)),
-        make('span', '', '·'),
-      );
+      // "8:32 am · 3 min ago", which expands to the exact moment on hover
+      // (or tap / keyboard focus, so it works on phones too).
+      const when = make('span', 'when');
+      when.tabIndex = 0;
+      when.dataset.full = fullTime(item);
+      when.setAttribute('aria-label', when.dataset.full);
+      const clock = make('time', '', clockTime(item.time));
+      clock.dateTime = new Date(item.time).toISOString();
       // The "3 min ago" part is updated every 30 seconds by tickClock(),
       // which finds it by its data-time attribute.
       const ago = make('span', 'ago', timeAgo(item.time));
       ago.dataset.time = item.time;
-      meta.append(ago);
-      meta.querySelector('time').dateTime = new Date(item.time).toISOString();
+      when.append(clock, make('span', '', ' · '), ago);
+
+      const meta = make('div', 'meta');
+      meta.append(make('span', 'app', item.app), make('span', '', '·'), when);
 
       body.append(meta);
       if (item.byline) body.append(make('div', 'byline', item.byline));
@@ -699,11 +827,39 @@
       return node;
     }
 
-    // Fills the publisher dropdown with every app in the data, plus counts,
+    // The alerts belonging to the tab that's showing.
+    function tabItems() {
+      return items.filter(item => item.side === onSideTab);
+    }
+
+    // Labels the tabs with counts, e.g. "News 142" / "AT Mobile 8", and
+    // marks the selected one.
+    function updateTabs() {
+      if (!CONFIG.SIDE_TAB) { el.tabs.hidden = true; return; }
+      const sideCount = items.filter(item => item.side).length;
+      const label = (button, text, n) => {
+        button.replaceChildren(text, make('span', 'count', String(n)));
+      };
+      label(el.tabNews, 'News', items.length - sideCount);
+      label(el.tabSide, CONFIG.SIDE_TAB.label, sideCount);
+      el.tabNews.setAttribute('aria-selected', String(!onSideTab));
+      el.tabSide.setAttribute('aria-selected', String(onSideTab));
+    }
+
+    function switchTab(side) {
+      if (side === onSideTab) return;
+      onSideTab = side;
+      history.replaceState(null, '', side ? '#side' : location.pathname + location.search);
+      updateTabs();
+      updateAppFilter();
+      render();
+    }
+
+    // Fills the publisher dropdown with every app on this tab, plus counts,
     // e.g. "RNZ (12)". Keeps whatever the visitor had selected.
     function updateAppFilter() {
       const counts = new Map();
-      for (const item of items) counts.set(item.app, (counts.get(item.app) || 0) + 1);
+      for (const item of tabItems()) counts.set(item.app, (counts.get(item.app) || 0) + 1);
 
       const chosen = el.appFilter.value;
       const names = [...counts.keys()].sort((a, b) => a.localeCompare(b));
@@ -776,6 +932,24 @@
       });
     }
 
+    // The hover text for a card, for comparing who pushed first:
+    //   Mon 19 Oct 2026, 8:32:13.482 am NZDT
+    //   Repeated 2× (last at 8:35:01 am)
+    // (en-NZ so the zone reads "NZDT" rather than "GMT+13".)
+    const fullFormat = new Intl.DateTimeFormat('en-NZ', {
+      ...tz, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', second: '2-digit',
+      fractionalSecondDigits: 3, timeZoneName: 'short',
+    });
+    function fullTime(item) {
+      let s = fullFormat.format(item.time);
+      if (item.repeats.length) {
+        const last = item.repeats[item.repeats.length - 1];
+        s += `\nRepeated ${item.repeats.length}× (last at ${clockTime(last, true)}), hidden`;
+      }
+      return s;
+    }
+
     // "2026-10-19": which calendar day a moment falls on, in the chosen time
     // zone. Used to group cards under day headings.
     const dayKeyFormat = new Intl.DateTimeFormat('en-CA', { ...tz, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -812,6 +986,12 @@
     // Re-draw as the visitor types or picks a publisher (no download needed).
     el.search.addEventListener('input', render);
     el.appFilter.addEventListener('change', render);
+    el.tabNews.addEventListener('click', () => switchTab(false));
+    el.tabSide.addEventListener('click', () => switchTab(true));
+    window.addEventListener('hashchange', () => switchTab(!!CONFIG.SIDE_TAB && location.hash === '#side'));
+
+    if (!CONFIG.SIDE_TAB) onSideTab = false;
+    updateTabs();
 
     setInterval(tickClock, 30000);
     refresh(); // first download straight away
