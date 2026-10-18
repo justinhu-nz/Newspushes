@@ -69,6 +69,12 @@
       document.documentElement.style.setProperty('--wallpaper', 'url("images/wallpapers/' + pick + '")');
       // Shared with the slideshow code further down the page.
       window.PUSH_FEED_WALLPAPERS = { folder: 'images/wallpapers/', list: WALLPAPERS, current: pick };
+
+      // ?display on the address turns on the wall-screen layout (see
+      // "DISPLAY MODE" in the styles). Set here so it's right from the start.
+      if (new URLSearchParams(location.search).has('display')) {
+        document.documentElement.classList.add('display-mode');
+      }
     })();
   </script>
 
@@ -597,9 +603,171 @@
       :root { --card: rgba(30, 30, 34, 0.93); --card-stack: rgba(30, 30, 34, 0.75); --control: rgba(58, 58, 62, 0.9); }
     }
 
+    /* ════════════════════════════════════════════════════════════════════
+       7. DISPLAY MODE (?display): for a 16:9 screen on a newsroom wall.
+       No scrolling, no controls, news only, and everything sized from the
+       screen's height (1rem = 1/54 of it: 20px on 1080p, 40px on 4K), so
+       it reads from across the room on any size of screen.
+         Simple: the feed, bigger, in two columns (newest top-left).
+         Hero:   the two newest alerts large on the left, the rest beside them.
+       ════════════════════════════════════════════════════════════════════ */
+    .mode-toggle { display: none; }
+
+    html.display-mode { font-size: calc(100vh / 54); }
+    .display-mode body {
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .display-mode .brand,
+    .display-mode .tagline,
+    .display-mode #slideshow-toggle,
+    .display-mode #toolbar-sentinel,
+    .display-mode .toolbar,
+    .display-mode footer { display: none; }
+    .display-mode .wrap { max-width: none; padding: 0 2.4rem; }
+    .display-mode .site-header { padding: 2rem 0 1.6rem; }
+    .display-mode .header-tools { flex: 1; justify-content: space-between; }
+    .display-mode .status { font-size: 1.15rem; gap: 0.6rem; padding: 0.5rem 1.1rem 0.5rem 0.9rem; }
+    .display-mode .dot { width: 0.7rem; height: 0.7rem; }
+    .display-mode main { flex: 1; min-height: 0; padding-bottom: 2.4rem; }
+    .display-mode .empty { font-size: 1.6rem; }
+
+    /* The Simple / Hero switch stays almost invisible until the mouse is
+       over it, so it doesn't distract on the wall. */
+    .display-mode .mode-toggle {
+      display: flex;
+      padding: 0.2rem;
+      border-radius: 999px;
+      background: var(--control);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      opacity: 0.1;
+      transition: opacity 0.3s;
+    }
+    .display-mode .mode-toggle:hover,
+    .display-mode .mode-toggle:focus-within { opacity: 1; }
+    .mode-toggle button {
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.82);
+      background: none;
+      border: 0;
+      padding: 0.45rem 1.2rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .mode-toggle button[aria-pressed="true"] { background: #fff; color: #000; font-weight: 600; }
+    .mode-toggle button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+    /* The mouse pointer hides itself after a few still seconds. */
+    .display-mode body.hide-cursor,
+    .display-mode body.hide-cursor * { cursor: none !important; }
+
+    /* Cards, scaled up. */
+    .display-mode .stack { margin-bottom: 0.9rem; }
+    .display-mode .stack.has-repeats { margin-bottom: 1.7rem; }
+    .display-mode .stack.has-repeats::after {
+      left: 1rem; right: 1rem; bottom: -0.75rem; height: 2rem;
+      border-radius: 0 0 1.4rem 1.4rem;
+    }
+    .display-mode .card {
+      gap: 1rem;
+      min-height: 0;
+      padding: 1rem 1.3rem 1.05rem 1.1rem;
+      border-radius: 1.6rem;
+      font-size: 1.45rem;
+    }
+    .display-mode .card-top,
+    .display-mode .headline { line-height: 1.33; }
+    .display-mode .when { font-size: 0.9em; }
+    .display-mode .headline { -webkit-line-clamp: 2; line-clamp: 2; }
+    .display-mode .icon { width: 3.6rem; height: 3.6rem; }
+    .display-mode .icon img,
+    .display-mode .icon .initials { border-radius: 0.85rem; font-size: 1.3rem; }
+    .display-mode .badge {
+      top: -0.5rem; right: -0.5rem;
+      min-width: 1.5rem; height: 1.5rem; padding: 0 0.4rem;
+      border-radius: 0.75rem;
+      font-size: 0.95rem; line-height: 1.5rem;
+    }
+    /* A new alert also glows briefly, so heads turn. */
+    .display-mode .stack.is-new .card { animation: glow 6s ease-out; }
+    @keyframes glow {
+      0%, 40% { box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.7), 0 6px 24px rgba(0, 0, 0, 0.16); }
+    }
+
+    /* Simple layout: two columns, filling the left one first. */
+    .display-simple {
+      height: 100%;
+      columns: 2;
+      column-gap: 1.6rem;
+      column-fill: auto;
+      overflow: hidden;
+    }
+    .display-simple .stack { break-inside: avoid; }
+
+    /* Hero layout. */
+    .display-hero {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 1.6rem;
+    }
+    .display-hero .heroes {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 1.6rem;
+      min-height: 0;
+    }
+    .display-hero .heroes .stack { margin: 0; min-height: 0; }
+    .display-hero .heroes .stack::after { display: none; }   /* no stack peek under a hero */
+    .display-hero .heroes .card {
+      height: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 1.2rem;
+      padding: 2rem 2.4rem 2.2rem;
+      border-radius: 2.2rem;
+      overflow: hidden;
+    }
+    .display-hero .heroes .icon { width: 4.6rem; height: 4.6rem; }
+    .display-hero .heroes .icon img,
+    .display-hero .heroes .icon .initials { border-radius: 1.05rem; }
+    .display-hero .heroes .card-body { width: 100%; }
+    .display-hero .heroes .card-top { font-size: 1.55rem; }
+    .display-hero .heroes .headline {
+      margin-top: 0.5rem;
+      font-size: 2.7rem;
+      line-height: 1.17;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+    .display-hero .exact {
+      margin-top: 0.8rem;
+      font-size: 1.15rem;
+      color: var(--text-soft);
+      font-variant-numeric: tabular-nums;
+    }
+    .display-hero .stream {
+      min-height: 0;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(#000 88%, transparent);
+      mask-image: linear-gradient(#000 88%, transparent);
+    }
+    .display-hero .stream .card { font-size: 1.3rem; }
+    .display-hero .stream .icon { width: 3.4rem; height: 3.4rem; }
+
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
-      .stack.is-new { animation: none; }
+      .stack.is-new,
+      .display-mode .stack.is-new .card { animation: none; }
     }
   </style>
 </head>
@@ -637,6 +805,12 @@
               <path d="m1.5 10.5 3-3 3 3 1.5-1.5 2.5 2.5"/>
             </svg>
           </button>
+
+          <!-- Simple / Hero switch. Only shown in display mode (?display). -->
+          <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Display layout">
+            <button type="button" data-layout="simple" aria-pressed="true">Simple</button>
+            <button type="button" data-layout="hero" aria-pressed="false">Hero</button>
+          </div>
         </div>
       </div>
 
@@ -1043,6 +1217,7 @@
        is always shown as harmless text, never run.
        ════════════════════════════════════════════════════════════════════ */
     function render() {
+      if (displayMode) return renderDisplay();
       const query = el.search.value.trim().toLowerCase();
       const app = el.appFilter.value;
 
@@ -1074,6 +1249,51 @@
         }
         el.feed.append(buildCard(item));
       }
+    }
+
+    /* ── Display mode (?display) ──
+       News only, no day headings, no scrolling: just as many as fit. */
+    const displayMode = document.documentElement.classList.contains('display-mode');
+    let displayLayout = 'simple';
+
+    function renderDisplay() {
+      const news = items.filter(item => !item.side);
+      el.feed.replaceChildren();
+      if (!news.length) {
+        el.feed.append(make('p', 'empty',
+          lastCheckOk === false ? 'Couldn’t load the feed. Retrying every minute…' : 'No alerts yet.'));
+        return;
+      }
+
+      if (displayLayout === 'hero') {
+        const root = make('div', 'display-hero');
+        const heroes = make('div', 'heroes');
+        for (const item of news.slice(0, 2)) {
+          const stack = buildCard(item);
+          stack.querySelector('.card-body').append(make('div', 'exact', 'Pushed at ' + clockTime(item.time, true)));
+          heroes.append(stack);
+        }
+        const stream = make('div', 'stream');
+        for (const item of news.slice(2, 14)) stream.append(buildCard(item));
+        root.append(heroes, stream);
+        el.feed.append(root);
+      } else {
+        const root = make('div', 'display-simple');
+        for (const item of news.slice(0, 24)) root.append(buildCard(item));
+        el.feed.append(root);
+      }
+    }
+
+    function setDisplayLayout(layout) {
+      displayLayout = layout === 'hero' ? 'hero' : 'simple';
+      for (const button of document.querySelectorAll('#mode-toggle button')) {
+        button.setAttribute('aria-pressed', String(button.dataset.layout === displayLayout));
+      }
+      // Remember it in the address (so a bookmark opens the same way) and
+      // in this browser.
+      history.replaceState(null, '', '?display=' + displayLayout);
+      try { localStorage.setItem('pushFeedDisplay', displayLayout); } catch (e) { /* fine */ }
+      render();
     }
 
     // Builds one iOS-style notification:
@@ -1391,6 +1611,28 @@
 
     if (!CONFIG.SIDE_TAB) onSideTab = false;
     updateTabs();
+
+    if (displayMode) {
+      onSideTab = false;
+      for (const button of document.querySelectorAll('#mode-toggle button')) {
+        button.addEventListener('click', () => setDisplayLayout(button.dataset.layout));
+      }
+      // ?display=hero picks the layout; plain ?display uses the last one
+      // chosen on this screen.
+      let saved = null;
+      try { saved = localStorage.getItem('pushFeedDisplay'); } catch (e) { /* fine */ }
+      setDisplayLayout(new URLSearchParams(location.search).get('display') || saved || 'simple');
+
+      // Hide the mouse pointer after 3 still seconds; moving it brings it back.
+      let cursorTimer;
+      const showCursor = () => {
+        document.body.classList.remove('hide-cursor');
+        clearTimeout(cursorTimer);
+        cursorTimer = setTimeout(() => document.body.classList.add('hide-cursor'), 3000);
+      };
+      document.addEventListener('mousemove', showCursor);
+      showCursor();
+    }
 
     setInterval(tickClock, 30000);
     refresh(); // first download straight away

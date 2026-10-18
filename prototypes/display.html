@@ -1,0 +1,337 @@
+<!doctype html>
+<!--
+  PROTOTYPE: newsroom wall-display layouts for Push Feed, with dummy data.
+  Two modes, switched with the toggle in the top-right corner (or keys
+  1 / 2, or ?layout=simple|hero in the address):
+    Simple  the normal feed, scaled up, in two columns
+    Hero    the two newest alerts big on the left, the rest on the right
+  A fake new alert arrives every 15 seconds so the animation can be judged.
+  Sized for a 16:9 screen; everything scales with the screen height.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Push Feed display prototype</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    @font-face { font-family: "SF Pro Text"; font-weight: 400; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-regular-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 500; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-medium-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 600; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-semibold-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Display"; font-weight: 700; font-display: swap;
+      src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-bold-webfont.woff") format("woff"); }
+
+    :root {
+      /* 1rem = 1/54 of the screen height: 20px on a 1080p screen, 40px on 4K. */
+      font-size: calc(100vh / 54);
+      --bg: #0b1a3a;
+      --wall-dim: rgba(4, 8, 20, 0.5);
+      --card: rgba(22, 22, 26, 0.84);
+      --control: rgba(118, 118, 128, 0.24);
+      --text: #fff;
+      --text-soft: rgba(235, 235, 245, 0.66);
+      --hairline: rgba(255, 255, 255, 0.08);
+      --edge: rgba(255, 255, 255, 0.10);
+      --ok: #30d158;
+      --glass: blur(24px) saturate(110%);
+      --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
+      --font-display: "SF Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", sans-serif;
+      --pad: 2.4rem;   /* space around the screen edge */
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+      font: 1rem/1.33 var(--font);
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* The mouse pointer hides itself after a few still seconds. */
+    body.hide-cursor, body.hide-cursor * { cursor: none !important; }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background: linear-gradient(var(--wall-dim), var(--wall-dim)),
+                  url("../images/wallpapers/wwdc-2022.jpg") center / cover;
+    }
+
+    /* ── Frame: header bar on top, layout below ── */
+    .screen {
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 1.6rem;
+      padding: var(--pad);
+    }
+    #stage { min-height: 0; overflow: hidden; }
+    #stage > * { height: 100%; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.5rem 1.1rem 0.5rem 0.9rem;
+      border-radius: 999px;
+      background: var(--control);
+      -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+      font-size: 1.15rem; font-weight: 500;
+      color: rgba(255, 255, 255, 0.88);
+    }
+    .dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0.6rem var(--ok); }
+
+    /* ── The shared notification card ── */
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.3rem 1.05rem 1.1rem;
+      border-radius: 1.6rem;
+      background: var(--card);
+      -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+      box-shadow: inset 0 0.5px 0 var(--edge), inset 0 0 0 0.5px var(--hairline), 0 0.4rem 1.6rem rgba(0, 0, 0, 0.18);
+      min-width: 0;
+    }
+    .icon {
+      flex: none;
+      width: 3rem; height: 3rem;
+      border-radius: 0.7rem;
+      object-fit: cover;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+    .body { flex: 1; min-width: 0; }
+    .top { display: flex; align-items: baseline; gap: 0.8rem; line-height: 1.4rem; }
+    .title { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .when { flex: none; font-size: 0.9em; color: var(--text-soft); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+    .headline {
+      margin: 0.1rem 0 0;
+      line-height: 1.33;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    }
+
+    /* A new alert drops in and its card glows briefly, so heads turn. */
+    .is-new { animation: arrive 0.7s cubic-bezier(.2, .9, .3, 1.15), glow 6s ease-out; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(-1.2rem) scale(0.97); } }
+    @keyframes glow   { 0%, 40% { box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.7), 0 0.4rem 1.6rem rgba(0, 0, 0, 0.18); } }
+
+    /* ════════════════════════ HERO: two big alerts + stream ════════════════════════ */
+    .layout-a {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 1.6rem;
+      min-height: 0;
+    }
+    .layout-a .heroes {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 1.6rem;
+      min-height: 0;
+    }
+    .layout-a .hero {
+      min-height: 0;
+      overflow: hidden;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 1.2rem;
+      padding: 2rem 2.4rem 2.2rem;
+      border-radius: 2.2rem;
+    }
+    .layout-a .hero .icon { width: 4.6rem; height: 4.6rem; border-radius: 1.05rem; }
+    .layout-a .hero .body { width: 100%; }
+    .layout-a .hero .top { font-size: 1.55rem; line-height: 1.9rem; }
+    .layout-a .hero .headline {
+      font-size: 2.7rem; line-height: 1.17; font-weight: 600; letter-spacing: -0.02em;
+      -webkit-line-clamp: 3; margin-top: 0.5rem;
+    }
+    .layout-a .hero .exact { margin-top: 0.8rem; font-size: 1.15rem; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+    .layout-a .stream {
+      display: flex; flex-direction: column; gap: 0.8rem;
+      min-height: 0; overflow: hidden;
+      -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent);
+    }
+    .layout-a .stream .card { font-size: 1.3rem; }
+    .layout-a .stream .top { line-height: 1.7rem; }
+    .layout-a .stream .icon { width: 3.4rem; height: 3.4rem; border-radius: 0.8rem; }
+
+
+    /* ════════════════════════ SIMPLE: the feed, bigger, in two columns ════════════════════════ */
+    .layout-simple {
+      columns: 2;
+      column-gap: 1.6rem;
+      column-fill: auto;          /* fill the left column first, then the right */
+      min-height: 0;
+      overflow: hidden;
+    }
+    .layout-simple .card {
+      break-inside: avoid;
+      margin-bottom: 0.9rem;
+      font-size: 1.45rem;
+    }
+    .layout-simple .icon { width: 3.6rem; height: 3.6rem; border-radius: 0.85rem; }
+    .layout-simple .top { line-height: 1.9rem; }
+
+    /* Simple / Hero toggle: a segmented control in the top bar. */
+    .mode-toggle {
+      display: flex; padding: 0.2rem;
+      border-radius: 999px;
+      background: var(--control);
+      -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+    }
+    .mode-toggle button {
+      font: 500 1.05rem var(--font); letter-spacing: -0.01em;
+      color: rgba(255, 255, 255, 0.82); background: none; border: 0;
+      padding: 0.45rem 1.2rem; border-radius: 999px; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .mode-toggle button[aria-pressed="true"] { background: #fff; color: #000; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <div class="status"><span class="dot"></span><span id="status">Last alert just now</span></div>
+      <div class="mode-toggle" role="group" aria-label="Display mode">
+        <button type="button" data-layout="simple">Simple</button>
+        <button type="button" data-layout="hero">Hero</button>
+      </div>
+    </header>
+    <main id="stage"></main>
+  </div>
+
+
+  <script>
+  (function () {
+    'use strict';
+
+    const ICONS = {
+      'NZ Herald': '../icons/nz-herald.png', 'RNZ': '../icons/rnz.png', 'Stuff': '../icons/stuff.png',
+      '1News': '../icons/1news.png', 'The Spinoff': '../icons/the-spinoff.png', 'The Post': '../icons/the-post.png',
+      'Te Ao Māori News': '../icons/te-ao-news.png',
+    };
+
+    // Dummy alerts: [minutes ago, app, title (or ''), text]
+    const MIN = 60000;
+    const SEED = [
+      [2,   'RNZ',              '', 'Heavy rain warning upgraded to red for Coromandel; residents told to prepare to evacuate'],
+      [4,   'NZ Herald',        '', 'Breaking: Red heavy rain warning for Coromandel as rivers rise overnight'],
+      [9,   '1News',            '', 'Coromandel red warning: Civil Defence opens evacuation centres in Thames and Whitianga'],
+      [17,  'Stuff',            '', 'Official Cash Rate held at 3.25% as Reserve Bank signals cuts are over'],
+      [18,  'NZ Herald',        '', 'OCR decision: Reserve Bank holds rate, says inflation back inside target band'],
+      [26,  'The Post',         '', 'Wellington Water confirms second major pipe failure in Kelburn this week'],
+      [41,  'The Spinoff',      'Toby Manhire', 'The five things that actually matter in today’s Budget speech'],
+      [55,  'RNZ',              '', 'All Blacks name uncapped halfback in squad for northern tour'],
+      [63,  'Te Ao Māori News', '', 'Kīngitanga hui draws thousands to Tūrangawaewae for coronation anniversary'],
+      [80,  '1News',            '', 'Auckland Harbour Bridge: two northbound lanes closed after truck breakdown'],
+      [96,  'Stuff',            '', 'Petrol prices hit 18-month low as global oil slides'],
+      [120, 'NZ Herald',        '', 'Interislander ferry cancelled again due to mechanical fault'],
+      [140, 'The Post',         '', 'Capital’s council votes to delay rates rise decision'],
+      [170, 'RNZ',              '', 'Magnitude 5.1 earthquake felt across lower North Island, no damage reported'],
+      [200, 'The Spinoff',      'Madeleine Chapman', 'We ranked every Auckland bus route by vibes'],
+      [230, 'Te Ao Māori News', '', 'Kapa haka festival breaks attendance record in Ōtautahi'],
+      [260, '1News',            '', 'Black Ferns win series opener in Brisbane'],
+    ];
+    const INCOMING = [
+      ['Stuff',     '', 'Coromandel: State Highway 25 closed at Tairua as slips block road'],
+      ['RNZ',       '', 'Prime Minister to front press conference on Coromandel flooding at 2pm'],
+      ['NZ Herald', '', 'Live: Coromandel flooding – Thames residents told to leave now'],
+      ['The Post',  '', 'Wellington region also under orange heavy rain watch from tonight'],
+      ['1News',     '', 'Coromandel: Defence Force helicopters on standby'],
+    ];
+
+    let alerts = SEED.map(([m, app, title, text], i) => ({ id: 's' + i, time: Date.now() - m * MIN, app, title, text }));
+    let layout = new URLSearchParams(location.search).get('layout') === 'hero' ? 'hero' : 'simple';
+    let newestId = null;
+
+    const stage = document.getElementById('stage');
+    const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const hhmm = new Intl.DateTimeFormat('en-NZ', { timeZone: 'Pacific/Auckland', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const hhmmss = new Intl.DateTimeFormat('en-NZ', { timeZone: 'Pacific/Auckland', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+    function ago(ms) {
+      const m = Math.floor((Date.now() - ms) / MIN);
+      if (m < 1) return 'now';
+      if (m < 60) return m + 'm ago';
+      if (m < 240) return Math.floor(m / 60) + 'h ago';
+      return hhmm.format(ms);
+    }
+    const icon = app => { const i = make('img', 'icon'); i.src = ICONS[app]; i.alt = ''; return i; };
+
+    function card(a, opts = {}) {
+      const c = make('article', 'card' + (a.id === newestId ? ' is-new' : ''));
+      const body = make('div', 'body');
+      const top = make('div', 'top');
+      top.append(make('span', 'title', a.title || a.app), make('span', 'when', ago(a.time)));
+      body.append(top, make('p', 'headline', a.text));
+      if (opts.icon !== false) c.append(icon(a.app));
+      c.append(body);
+      return c;
+    }
+
+    function renderA() {
+      const root = make('div', 'layout-a');
+      const heroes = make('div', 'heroes');
+      for (const a of alerts.slice(0, 2)) {
+        const hero = card(a);
+        hero.classList.add('hero');
+        hero.querySelector('.body').append(make('div', 'exact', 'Pushed at ' + hhmmss.format(a.time) + (a.title ? ' · ' + a.app : '')));
+        heroes.append(hero);
+      }
+      const stream = make('div', 'stream');
+      alerts.slice(2, 12).forEach(a => stream.append(card(a)));
+      root.append(heroes, stream);
+      return root;
+    }
+
+    function renderSimple() {
+      const root = make('div', 'layout-simple');
+      alerts.slice(0, 16).forEach(a => root.append(card(a)));
+      return root;
+    }
+
+    function render() {
+      stage.replaceChildren(layout === 'hero' ? renderA() : renderSimple());
+      stage.style.minHeight = '0';
+      document.querySelectorAll('.mode-toggle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layout === layout)));
+      document.getElementById('status').textContent = 'Last alert ' + ago(alerts[0].time).replace('now', 'just now');
+    }
+
+    function setLayout(l) { layout = l; newestId = null; history.replaceState(null, '', '?layout=' + l); render(); }
+    document.querySelectorAll('.mode-toggle button').forEach(b => b.addEventListener('click', () => setLayout(b.dataset.layout)));
+    document.addEventListener('keydown', e => { const l = { 1: 'simple', 2: 'hero' }[e.key]; if (l) setLayout(l); });
+
+    // Hide the mouse pointer after 3 still seconds; moving it brings it back.
+    let cursorTimer;
+    const wake = () => {
+      document.body.classList.remove('hide-cursor');
+      clearTimeout(cursorTimer);
+      cursorTimer = setTimeout(() => document.body.classList.add('hide-cursor'), 3000);
+    };
+    document.addEventListener('mousemove', wake);
+    wake();
+
+    // A fake new alert every 15 seconds.
+    let n = 0;
+    setInterval(() => {
+      const [app, title, text] = INCOMING[n++ % INCOMING.length];
+      const a = { id: 'n' + n, time: Date.now(), app, title, text };
+      alerts = [a, ...alerts];
+      newestId = a.id;
+      render();
+      setTimeout(() => { if (newestId === a.id) newestId = null; }, 6000); // animate once only
+    }, 15000);
+    setInterval(render, 30000); // keep "Xm ago" current
+
+    render();
+  })();
+  </script>
+</body>
+</html>

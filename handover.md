@@ -141,6 +141,27 @@ The round button next to the status pill turns on a **wallpaper slideshow**: eve
 
 **Tested 19 Oct 2026** in a headless browser against your real alerts plus deliberately awkward ones: 21 of 21 checks passed, covering parsing, bylines, filters, the 60-second refresh, new-alert highlighting, an outage and recovery.
 
+## Display mode (newsroom wall screen)
+
+Add `?display` to the site's address to show the feed on a 16:9 screen viewed from across a room, for example `https://<your-username>.github.io/push-feed/?display`.
+
+- **News only, no scrolling.** Tabs, search, the footer and AT Mobile are hidden, and the page shows as many alerts as fit.
+- **Scales to the screen.** All sizes follow the screen's height, so it looks the same on a 1080p TV and a 4K panel.
+- **Two layouts**, switched with the small toggle in the top-right corner. The toggle is faded to 10% until the mouse is over it.
+  - **Simple:** the normal cards, bigger, in two columns, newest at the top of the left column.
+  - **Hero:** the two newest alerts large on the left, each with its exact push time, and the rest in a column on the right.
+- **Remembers the layout.** `?display=simple` or `?display=hero` opens a specific layout; plain `?display` uses whichever was last chosen on that screen.
+- **Hides the mouse pointer** after 3 seconds without movement.
+- **New alerts** drop in with a brief white glow so people glance up.
+
+To run it full-screen on a dedicated computer, open Chrome in kiosk mode:
+
+```
+chrome --kiosk "https://<your-username>.github.io/push-feed/?display=hero"
+```
+
+`prototypes/display.html` is the throwaway mock-up the layouts were chosen from, with dummy data. It isn't part of the site.
+
 ## Hosting on GitHub Pages
 
 GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page, icons and one wallpaper (roughly 250–500 KB depending on the wallpaper, plus about 160 KB of fonts) once and every refresh after that goes to Google.
