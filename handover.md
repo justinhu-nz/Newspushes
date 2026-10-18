@@ -111,7 +111,7 @@ The whole site is one page plus its app icons. It downloads the CSV, turns it in
    - Long alerts are cut to four lines; tap a card to show the rest.
    - When repeats were hidden, the card shows as a stack with a red count badge on its icon.
    - Alerts new since the last check drop in with a short animation.
-   - Fonts: iPhones and Macs use their built-in San Francisco font; other devices get Inter, a free look-alike from Google Fonts. Apple's own font files aren't loaded, because their licence only covers Apple devices.
+   - Font: San Francisco (Apple's iOS font), loaded on every device from the web-font files listed in [this gist](https://gist.github.com/mfd/614e2e80a22b878bde63cb471cbe677e). They're hosted on someone else's Amazon S3 bucket, so they could disappear without warning; the page then falls back to the device's own system font. Apple's font licence only covers Apple devices, which is fine for a personal hobby page but worth revisiting if the site ever goes commercial.
 9. **Shows the exact time on hover.** Hovering, tapping or tabbing to a card's time shows the app's name and the full date and time to the millisecond with its time zone, for example `Mon, 19 Oct 2026, 8:48:26.600 am NZDT`. If repeats were hidden, it also says how many and when the last one came.
 10. **Shows feed health** in the header: green "Last alert 3 min ago", amber "Quiet for 4 h" after 3 hours with nothing new, red "Can't reach the feed" if a download fails. On a failure it keeps showing the last good alerts and retries next minute.
 
@@ -137,7 +137,7 @@ The whole site is one page plus its app icons. It downloads the CSV, turns it in
 
 ## Hosting on GitHub Pages
 
-GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page and icons (about 140 KB) once and every refresh after that goes to Google.
+GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page and icons (about 140 KB, plus about 130 KB of fonts) once and every refresh after that goes to Google.
 
 **Setup (about 10 minutes):**
 
