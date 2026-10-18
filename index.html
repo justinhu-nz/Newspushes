@@ -43,9 +43,12 @@
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
 
-  <!-- San Francisco, Apple's iOS font, as web fonts (from
-       https://gist.github.com/mfd/614e2e80a22b878bde63cb471cbe677e), so every
-       device sees the same type. Only the four weights the page uses. -->
+  <!-- San Francisco, Apple's iOS font, as web fonts, so every device sees
+       the same type. SF Pro Text (body) comes from
+       https://github.com/a1exalexander/Tokenplace via the jsDelivr CDN;
+       SF Display (big headings) from
+       https://gist.github.com/mfd/614e2e80a22b878bde63cb471cbe677e. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://applesocial.s3.amazonaws.com" crossorigin>
 
   <style>
@@ -56,13 +59,19 @@
        the right. It's always dark, whatever the visitor's device is set to.
        Every colour comes from this list.
        ════════════════════════════════════════════════════════════════════ */
-    @font-face { font-family: "San Francisco"; font-weight: 400; font-display: swap;
-      src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-regular-webfont.woff") format("woff"); }
-    @font-face { font-family: "San Francisco"; font-weight: 500; font-display: swap;
-      src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-medium-webfont.woff") format("woff"); }
-    @font-face { font-family: "San Francisco"; font-weight: 600; font-display: swap;
-      src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-semibold-webfont.woff") format("woff"); }
-    @font-face { font-family: "San Francisco"; font-weight: 700; font-display: swap;
+    /* SF Pro Text: the cut Apple draws for small sizes. Used for nearly
+       everything on the page. */
+    @font-face { font-family: "SF Pro Text"; font-weight: 400; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-regular-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 500; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-medium-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 600; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-semibold-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 700; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-bold-webfont.woff2") format("woff2"); }
+
+    /* SF Display: the cut for big sizes, used only for the large headings. */
+    @font-face { font-family: "SF Display"; font-weight: 700; font-display: swap;
       src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-bold-webfont.woff") format("woff"); }
 
     :root {
@@ -94,9 +103,11 @@
       --gutter: 10px;      /* space at the left/right edge on phones */
       --max:    600px;     /* widest the feed column gets on big screens */
 
-      /* San Francisco (loaded above) everywhere; if it can't download, the
-         device's own system font stands in. */
-      --font: "San Francisco", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      /* San Francisco (loaded above) everywhere: Text for body sizes,
+         Display for the big headings. If they can't download, the device's
+         own system font stands in. */
+      --font:         "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
+      --font-display: "SF Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -112,7 +123,7 @@
       min-height: 100vh;
       color: var(--text);
       font: 15px/1.25 var(--font);
-      letter-spacing: -0.012em;        /* iOS sets body text slightly tight */
+      letter-spacing: -0.01em;         /* iOS sets body text slightly tight */
       -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
     }
@@ -153,6 +164,7 @@
     }
     .brand {
       margin: 0;
+      font-family: var(--font-display);
       font-size: 32px;
       font-weight: 700;
       line-height: 1.1;
@@ -310,6 +322,7 @@
     /* "Notification Centre"-style headings: Today, Yesterday, Sat 17 Oct. */
     .day-heading {
       margin: 22px 4px 10px;
+      font-family: var(--font-display);
       font-size: 20px;
       font-weight: 700;
       letter-spacing: -0.02em;
