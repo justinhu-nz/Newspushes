@@ -1,0 +1,821 @@
+<!doctype html>
+<!--
+╔══════════════════════════════════════════════════════════════════════════╗
+║  PUSH FEED — a live feed of news push notifications                      ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║                                                                          ║
+║  WHAT THIS FILE IS                                                       ║
+║  The whole website. One file: page structure (HTML), look (CSS) and      ║
+║  behaviour (JavaScript). Upload it to GitHub Pages as-is.                ║
+║                                                                          ║
+║  HOW THE SYSTEM WORKS (the short version)                                ║
+║    1. A spare Android phone receives news push notifications.            ║
+║    2. MacroDroid on the phone submits each one to a Google Form.         ║
+║    3. The Form adds a row to a Google Sheet.                             ║
+║    4. A "Latest" tab in that Sheet keeps the newest 150 rows, and is     ║
+║       published to the web as a CSV file (a plain-text table).           ║
+║    5. THIS PAGE downloads that CSV every 60 seconds and draws the feed.  ║
+║                                                                          ║
+║  The page does all its work inside each visitor's browser. GitHub only   ║
+║  hands out this file once per visit; the minute-by-minute refreshes go   ║
+║  straight from the visitor's browser to Google.                          ║
+║                                                                          ║
+║  WHAT YOU'LL MOST LIKELY WANT TO EDIT                                    ║
+║    • The CONFIG block at the top of the <script> section (near the       ║
+║      bottom of this file): the CSV link, refresh speed, time zone.       ║
+║    • The tagline and footer text in the <body> section.                  ║
+║    • The colours in the :root block at the top of the <style> section.   ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+-->
+<html lang="en">
+<head>
+  <!-- Basic page setup: text encoding, and "scale properly on phones". -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- The name shown in the browser tab and in search results. -->
+  <title>Push Feed</title>
+  <meta name="description" content="A live feed of news push notifications, updated every minute.">
+
+  <!-- Colours the phone's browser bar to match the page (light / dark). -->
+  <meta name="theme-color" content="#f5f3ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+
+  <style>
+    /* ════════════════════════════════════════════════════════════════════
+       1. COLOURS AND SIZES ("design tokens")
+       Every colour on the page comes from this list, so changing one line
+       here changes it everywhere. The second block is the dark-mode version,
+       used automatically when the visitor's device is set to dark mode.
+       ════════════════════════════════════════════════════════════════════ */
+    :root {
+      --bg:          #f5f3ef;  /* page background: warm off-white, like newsprint */
+      --surface:     #ffffff;  /* cards */
+      --text:        #16181c;  /* main text */
+      --text-soft:   #5d636e;  /* secondary text: times, app names */
+      --line:        #e2ded6;  /* thin borders and dividers */
+      --accent:      #c8341f;  /* "breaking news" red: the live dot, new items */
+      --accent-soft: rgba(200, 52, 31, 0.08); /* faint red wash behind new items */
+      --ok:          #1f8a4c;  /* green: feed is healthy */
+      --warn:        #b7791f;  /* amber: feed has gone quiet */
+
+      --radius: 12px;          /* corner roundness for cards and inputs */
+      --gutter: 16px;          /* space at the left/right edge on phones */
+      --max:    720px;         /* widest the feed column gets on big screens */
+
+      /* Fonts: the device's own built-in fonts, so nothing extra downloads.
+         Headlines use a serif to feel like a newspaper. */
+      --font-ui:   system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --font-news: Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:          #121417;
+        --surface:     #1b1e23;
+        --text:        #eceae6;
+        --text-soft:   #9aa1ac;
+        --line:        #2a2e35;
+        --accent:      #ff6a4d;
+        --accent-soft: rgba(255, 106, 77, 0.10);
+        --ok:          #3fbf75;
+        --warn:        #e0a43a;
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       2. PAGE BASICS
+       ════════════════════════════════════════════════════════════════════ */
+    * { box-sizing: border-box; }   /* widths include padding: simpler maths */
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 var(--font-ui);
+      -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
+    }
+
+    /* The centred column everything sits in. */
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 var(--gutter);
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       3. HEADER (stays pinned to the top while you scroll)
+       ════════════════════════════════════════════════════════════════════ */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 0 12px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      margin: 0;
+      font: 700 22px/1.2 var(--font-news);
+      letter-spacing: -0.01em;
+    }
+
+    .tagline {
+      margin: 2px 0 12px;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    /* The "● Last alert 3 min ago" line. */
+    .status {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    /* The coloured dot. Its colour is switched by adding a class in JS. */
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-soft);
+      flex: none;
+    }
+    .dot.is-ok   { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 20%, transparent); }
+    .dot.is-warn { background: var(--warn); }
+    .dot.is-bad  { background: var(--accent); }
+
+    /* Search box + publisher dropdown, side by side. */
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+    .controls input,
+    .controls select {
+      font: inherit;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px;
+      min-width: 0;            /* lets them shrink on narrow phones */
+    }
+    .controls input  { flex: 1 1 auto; }
+    .controls select { flex: 0 1 190px; }
+    .controls input:focus,
+    .controls select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       4. THE FEED
+       ════════════════════════════════════════════════════════════════════ */
+    main { padding-top: 8px; padding-bottom: 48px; }
+
+    /* "Today", "Yesterday", "Sat 17 Oct" headings between groups of cards. */
+    .day-heading {
+      margin: 22px 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    /* One notification. */
+    .card {
+      display: flex;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 13px 14px;
+      margin-bottom: 8px;
+    }
+
+    /* A card that arrived since the last refresh: briefly washed red,
+       with a red edge that fades out over a few seconds. */
+    .card.is-new {
+      animation: arrive 6s ease-out;
+    }
+    @keyframes arrive {
+      0%, 30% { background: var(--accent-soft); border-color: var(--accent); }
+      100%    { background: var(--surface);     border-color: var(--line); }
+    }
+
+    /* The coloured square with the publisher's initials. */
+    .avatar {
+      flex: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    .card-body { min-width: 0; }  /* lets long words wrap instead of overflowing */
+
+    /* "NZ Herald · 8:32 am · 3 min ago" */
+    .meta {
+      font-size: 13px;
+      color: var(--text-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 6px;
+    }
+    .meta .app { color: var(--text); font-weight: 600; }
+
+    /* Optional second line: an alert title or an author's name. */
+    .byline {
+      margin-top: 2px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    /* The headline itself. "pre-line" keeps the line breaks some apps
+       send (for example AT Mobile's bulleted service updates). */
+    .headline {
+      margin: 3px 0 0;
+      font: 500 17px/1.38 var(--font-news);
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+
+    /* Shown when there's nothing to show (no data yet, or no search match). */
+    .empty {
+      text-align: center;
+      color: var(--text-soft);
+      padding: 56px 0;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       5. FOOTER
+       ════════════════════════════════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 20px 0 36px;
+      font-size: 12.5px;
+      color: var(--text-soft);
+    }
+    footer p { margin: 0 0 6px; }
+
+    /* ════════════════════════════════════════════════════════════════════
+       6. SMALL SCREENS AND ACCESSIBILITY
+       ════════════════════════════════════════════════════════════════════ */
+    /* On narrow phones, stack the search box above the dropdown. */
+    @media (max-width: 460px) {
+      .controls { flex-direction: column; }
+      .controls select { flex-basis: auto; }
+    }
+
+    /* Visitors who've asked their device for less motion get no animation. */
+    @media (prefers-reduced-motion: reduce) {
+      .card.is-new { animation: none; border-color: var(--accent); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PAGE STRUCTURE
+       The feed itself starts empty: the JavaScript at the bottom fills
+       <main id="feed"> once the CSV has downloaded.
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand-row">
+        <h1 class="brand">Push Feed</h1>
+
+        <!-- Feed health. role="status" lets screen readers announce changes
+             politely, without interrupting whatever they're reading. -->
+        <p class="status" role="status" aria-live="polite">
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text">Loading…</span>
+        </p>
+      </div>
+
+      <!-- EDIT ME: one line describing your feed. -->
+      <p class="tagline">News alerts from New Zealand publishers, the moment they hit our phone.</p>
+
+      <div class="controls">
+        <input type="search" id="search" placeholder="Search alerts…" aria-label="Search alerts" autocomplete="off">
+        <!-- The publisher list is filled in automatically from the data. -->
+        <select id="app-filter" aria-label="Filter by publisher">
+          <option value="">All publishers</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" id="feed" aria-label="Notifications">
+    <p class="empty">Loading the latest alerts…</p>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <!-- EDIT ME: keep the "not affiliated" line. GitHub Pages' rules ask
+           for it on sites inspired by an existing website. -->
+      <p>Independent hobby project. Not affiliated with Project Push or with any publisher shown here.</p>
+      <p>Headlines and alerts belong to their publishers. This page refreshes every minute.</p>
+    </div>
+  </footer>
+
+  <!-- Shown only if the visitor's browser has JavaScript turned off. -->
+  <noscript>
+    <p class="wrap empty">This feed needs JavaScript to load.</p>
+  </noscript>
+
+  <script>
+  // Wrapping everything in this function keeps our variables private, so
+  // they can't clash with anything else (like a browser extension).
+  (function () {
+    'use strict'; // makes the browser warn about common mistakes
+
+    /* ════════════════════════════════════════════════════════════════════
+       CONFIG — the settings you might want to change.
+       ════════════════════════════════════════════════════════════════════ */
+    const CONFIG = {
+      // The published CSV link of your Sheet's "Latest" tab
+      // (File → Share → Publish to web → Latest → CSV).
+      CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeR3fuA85VYkk9nKiFzluKcxM86cBwqAgl85NQZkL3pX6NxhC_lZ1ODq8MKp7giwG4HvcKiLrIr36i/pub?gid=1296297111&single=true&output=csv',
+
+      // How often to check for new alerts, in seconds. 60 is a good balance:
+      // fast enough for "breaking news", gentle on Google's servers.
+      REFRESH_SECONDS: 60,
+
+      // Give up on a download that takes longer than this (seconds), and try
+      // again at the next refresh.
+      FETCH_TIMEOUT_SECONDS: 15,
+
+      // If no new alert has arrived for this many minutes, the status dot turns
+      // amber ("gone quiet"). Overnight quiet spells are normal; a quiet
+      // weekday afternoon might mean the phone needs a look.
+      QUIET_AFTER_MINUTES: 180,
+
+      // Which clock to show times in. 'Pacific/Auckland' shows NZ time to every
+      // visitor wherever they are. Set it to null to use each visitor's own
+      // local time instead.
+      TIME_ZONE: 'Pacific/Auckland',
+
+      // Rows to ignore even if they sneak into the CSV (matched against the
+      // App column, ignoring capitals).
+      IGNORE_APPS: ['heartbeat', 'test'],
+    };
+
+    /* ════════════════════════════════════════════════════════════════════
+       STATE — what the page remembers between refreshes.
+       ════════════════════════════════════════════════════════════════════ */
+    let items = [];               // every alert from the latest download
+    let seenIds = new Set();      // IDs we've already shown, to spot new arrivals
+    let firstLoad = true;         // no "new" highlight on the very first load
+    let lastCheckOk = null;       // true/false: did the last download work?
+    let lastCheckedAt = null;     // when we last downloaded successfully
+    let lastFetchStartedAt = 0;   // used to decide when to refresh next
+    let refreshTimer = null;      // the pending "refresh again soon" timer
+
+    // Shortcuts to the page elements we update.
+    const el = {
+      feed:       document.getElementById('feed'),
+      search:     document.getElementById('search'),
+      appFilter:  document.getElementById('app-filter'),
+      statusDot:  document.getElementById('status-dot'),
+      statusText: document.getElementById('status-text'),
+    };
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 1 — READING THE CSV
+       A CSV is a table written as plain text: one line per row, commas
+       between cells. Cells that themselves contain commas, quote marks or
+       line breaks are wrapped in "double quotes", and a quote mark inside
+       a cell is written twice (""). This little parser walks through the
+       text one character at a time and follows exactly those rules, so
+       headlines like  "Doesn't even friggin' live here": Politics…  and
+       multi-line AT Mobile alerts come through intact.
+       ════════════════════════════════════════════════════════════════════ */
+    function parseCSV(text) {
+      // Some files start with an invisible "byte order mark"; drop it.
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+      const rows = [];
+      let row = [];          // cells of the row we're building
+      let cell = '';         // characters of the cell we're building
+      let inQuotes = false;  // are we inside a "quoted" cell?
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { cell += '"'; i++; } // "" means a literal "
+            else inQuotes = false;                         // closing quote
+          } else {
+            cell += ch;                                    // anything else, even line breaks
+          }
+        } else if (ch === '"') {
+          inQuotes = true;                                 // opening quote
+        } else if (ch === ',') {
+          row.push(cell); cell = '';                       // end of a cell
+        } else if (ch === '\n' || ch === '\r') {
+          if (ch === '\r' && text[i + 1] === '\n') i++;    // Windows-style line ending
+          row.push(cell); rows.push(row);                  // end of a row
+          row = []; cell = '';
+        } else {
+          cell += ch;
+        }
+      }
+      // The last row may not end with a line break.
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 2 — TURNING ROWS INTO ALERTS
+       Columns are found by their header names (Timestamp, App, Package,
+       Title, Text, Posted at), so reordering the Sheet's columns won't
+       break the page. The extra "Last notification" column is ignored:
+       the newest row already tells us that.
+       ════════════════════════════════════════════════════════════════════ */
+    function rowsToItems(rows) {
+      if (!rows.length) return [];
+
+      // Find each column's position from the header row.
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const col = {
+        timestamp: header.indexOf('timestamp'),
+        app:       header.indexOf('app'),
+        pkg:       header.indexOf('package'),
+        title:     header.indexOf('title'),
+        text:      header.indexOf('text'),
+        postedAt:  header.indexOf('posted at'),
+      };
+      if (col.text === -1 && col.title === -1) {
+        throw new Error('The CSV has no Title or Text column. Is CSV_URL pointing at the "Latest" tab?');
+      }
+
+      // Safely read a cell: missing columns or short rows give ''.
+      const get = (row, i) => (i >= 0 && i < row.length ? row[i].trim() : '');
+
+      const out = [];
+      for (const row of rows.slice(1)) {          // slice(1) skips the header row
+        const app   = get(row, col.app);
+        const pkg   = get(row, col.pkg);
+        const title = get(row, col.title);
+        const text  = get(row, col.text);
+
+        if (!title && !text) continue;                                   // blank row
+        if (CONFIG.IGNORE_APPS.includes(app.toLowerCase())) continue;    // heartbeat/test rows
+
+        // ── When was it posted? ──
+        // "Posted at" is the exact moment the phone received it, as a Unix
+        // timestamp in milliseconds. Every browser reads that the same way,
+        // so we prefer it. If it's missing, fall back to the Form's
+        // Timestamp column (day/month/year, no time zone, so less exact).
+        let time = Number(get(row, col.postedAt));
+        if (!Number.isFinite(time) || time <= 0) time = parseSheetTimestamp(get(row, col.timestamp));
+        if (!time) continue;                                             // can't place it in time
+
+        // ── What's the headline? ──
+        // Publishers fill Title and Text differently:
+        //   NZ Herald:  Title = "NZ Herald" (just the app name), Text = headline
+        //   Stuff, RNZ: Title = empty,                          Text = headline
+        //   Spinoff:    Title = the author's name,              Text = headline
+        //   AT Mobile:  Title = a real alert title,             Text = details
+        // So: Text is the headline. Title becomes a small "byline" above it,
+        // unless it's empty, just repeats the app name, or repeats the text.
+        const headline = text || title;
+        const showTitle = title && text &&
+                          title.toLowerCase() !== app.toLowerCase() &&
+                          title !== text;
+
+        out.push({
+          // A stable ID for spotting new arrivals between refreshes.
+          id: pkg + '|' + time + '|' + headline.slice(0, 40),
+          app: app || pkg || 'Unknown app',
+          pkg,
+          byline: showTitle ? title : '',
+          headline,
+          time,
+        });
+      }
+
+      // Newest first. (The Sheet already sorts this way; this makes sure.)
+      out.sort((a, b) => b.time - a.time);
+      return out;
+    }
+
+    // Reads the Form's "19/10/2026 08:32:13" (day/month/year) format.
+    // Only a fallback: it assumes the visitor's own time zone.
+    function parseSheetTimestamp(s) {
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (!m) return 0;
+      const [, d, mo, y, h, mi, sec] = m.map(Number);
+      return new Date(y, mo - 1, d, h, mi, sec || 0).getTime();
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 3 — DOWNLOADING THE CSV
+       ════════════════════════════════════════════════════════════════════ */
+    async function fetchFeed() {
+      // "Cache buster": a different number on the end of the link every time,
+      // so neither the browser nor Google can hand back an old saved copy.
+      const sep = CONFIG.CSV_URL.includes('?') ? '&' : '?';
+      const url = CONFIG.CSV_URL + sep + 'cb=' + Date.now();
+
+      // Give up if Google takes too long; we'll simply try again next time.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), CONFIG.FETCH_TIMEOUT_SECONDS * 1000);
+
+      try {
+        const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+        if (!res.ok) throw new Error('Google replied with error ' + res.status);
+        const text = await res.text();
+
+        // If the Sheet stops being published, Google sends a web page
+        // instead of a CSV. Catch that rather than showing gibberish.
+        if (/^\s*</.test(text)) throw new Error('Got a web page instead of a CSV. Is the tab still published?');
+
+        return rowsToItems(parseCSV(text));
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 4 — THE REFRESH LOOP
+       Download → draw → wait → repeat. A new wait only starts after the
+       previous download finishes, so slow downloads can never pile up.
+       While the tab is hidden (another tab open, phone locked) we pause,
+       which saves the visitor's data and Google's servers; we catch up
+       the moment the tab is visible again.
+       ════════════════════════════════════════════════════════════════════ */
+    async function refresh() {
+      clearTimeout(refreshTimer);
+      lastFetchStartedAt = Date.now();
+
+      try {
+        const fresh = await fetchFeed();
+
+        // Mark anything we haven't seen before as new (but not on the very
+        // first load, or the whole page would flash).
+        for (const item of fresh) {
+          item.isNew = !firstLoad && !seenIds.has(item.id);
+          seenIds.add(item.id);
+        }
+        // Keep the "seen" list from growing forever: remember only current IDs.
+        seenIds = new Set(fresh.map(i => i.id));
+
+        items = fresh;
+        firstLoad = false;
+        lastCheckOk = true;
+        lastCheckedAt = Date.now();
+
+        updateAppFilter();
+        render();
+      } catch (err) {
+        // Keep showing the last good data; just flag the problem.
+        console.warn('Push Feed: refresh failed —', err.message);
+        lastCheckOk = false;
+      }
+
+      updateStatus();
+      scheduleNext();
+    }
+
+    function scheduleNext() {
+      clearTimeout(refreshTimer);
+      if (document.hidden) return; // paused; the visibility listener restarts us
+      refreshTimer = setTimeout(refresh, CONFIG.REFRESH_SECONDS * 1000);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearTimeout(refreshTimer);
+      } else if (Date.now() - lastFetchStartedAt > CONFIG.REFRESH_SECONDS * 1000) {
+        refresh();          // been away a while: fetch right now
+      } else {
+        scheduleNext();     // just glanced away: carry on the normal rhythm
+      }
+    });
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 5 — DRAWING THE FEED
+       Every element is built with createElement + textContent, never by
+       pasting text into HTML. That matters: headlines come from outside
+       sources, and this way a headline containing <script> or other code
+       is always shown as harmless text, never run.
+       ════════════════════════════════════════════════════════════════════ */
+    function render() {
+      const query = el.search.value.trim().toLowerCase();
+      const app = el.appFilter.value;
+
+      // Apply the search box and the publisher dropdown.
+      const visible = items.filter(item =>
+        (!app || item.app === app) &&
+        (!query || (item.app + ' ' + item.byline + ' ' + item.headline).toLowerCase().includes(query))
+      );
+
+      el.feed.replaceChildren(); // clear the old feed
+
+      if (!visible.length) {
+        const p = make('p', 'empty',
+          items.length ? 'No alerts match your search.' :
+          lastCheckOk === false ? 'Couldn’t load the feed. Retrying every minute…' :
+          'No alerts yet.');
+        el.feed.append(p);
+        return;
+      }
+
+      // Insert a "Today" / "Yesterday" / date heading whenever the day changes.
+      let currentDay = null;
+      for (const item of visible) {
+        const day = dayKey(item.time);
+        if (day !== currentDay) {
+          currentDay = day;
+          el.feed.append(make('h2', 'day-heading', dayLabel(item.time)));
+        }
+        el.feed.append(buildCard(item));
+      }
+    }
+
+    // Builds one card:  [NH]  NZ Herald · 8:32 am · 3 min ago
+    //                         (byline, if any)
+    //                         The headline in larger serif type
+    function buildCard(item) {
+      const card = make('article', 'card' + (item.isNew ? ' is-new' : ''));
+
+      const avatar = make('div', 'avatar', initials(item.app));
+      avatar.style.background = colourFor(item.pkg || item.app);
+      avatar.setAttribute('aria-hidden', 'true'); // decorative; the name is in text below
+
+      const body = make('div', 'card-body');
+
+      const meta = make('div', 'meta');
+      meta.append(
+        make('span', 'app', item.app),
+        make('span', '', '·'),
+        make('time', '', clockTime(item.time)),
+        make('span', '', '·'),
+      );
+      // The "3 min ago" part is updated every 30 seconds by tickClock(),
+      // which finds it by its data-time attribute.
+      const ago = make('span', 'ago', timeAgo(item.time));
+      ago.dataset.time = item.time;
+      meta.append(ago);
+      meta.querySelector('time').dateTime = new Date(item.time).toISOString();
+
+      body.append(meta);
+      if (item.byline) body.append(make('div', 'byline', item.byline));
+      body.append(make('p', 'headline', item.headline));
+
+      card.append(avatar, body);
+      return card;
+    }
+
+    // Small helper: create an element with a class and some text.
+    function make(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    // Fills the publisher dropdown with every app in the data, plus counts,
+    // e.g. "RNZ (12)". Keeps whatever the visitor had selected.
+    function updateAppFilter() {
+      const counts = new Map();
+      for (const item of items) counts.set(item.app, (counts.get(item.app) || 0) + 1);
+
+      const chosen = el.appFilter.value;
+      const names = [...counts.keys()].sort((a, b) => a.localeCompare(b));
+
+      el.appFilter.replaceChildren(new Option('All publishers', ''));
+      for (const name of names) el.appFilter.append(new Option(`${name} (${counts.get(name)})`, name));
+
+      // If their chosen publisher has dropped out of the latest 150, reset.
+      el.appFilter.value = counts.has(chosen) ? chosen : '';
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       STEP 6 — THE STATUS LINE
+         green  ● Last alert 3 min ago      everything's flowing
+         amber  ● Quiet for 4 h             no alerts for a while (normal overnight)
+         red    ● Can't reach the feed      download failed; showing older data
+       ════════════════════════════════════════════════════════════════════ */
+    function updateStatus() {
+      const newest = items.length ? items[0].time : null;
+      let state, text;
+
+      if (lastCheckOk === false) {
+        state = 'is-bad';
+        text = items.length ? 'Can’t reach the feed · showing older alerts' : 'Can’t reach the feed';
+      } else if (!newest) {
+        state = '';
+        text = 'Waiting for the first alert';
+      } else if (Date.now() - newest > CONFIG.QUIET_AFTER_MINUTES * 60000) {
+        state = 'is-warn';
+        text = 'Quiet for ' + timeAgo(newest).replace(' ago', '');
+      } else {
+        state = 'is-ok';
+        text = 'Last alert ' + timeAgo(newest);
+      }
+
+      el.statusDot.className = 'dot ' + state;
+      el.statusText.textContent = text;
+      // Hovering the status shows exactly when we last checked.
+      el.statusText.title = lastCheckedAt ? 'Checked at ' + clockTime(lastCheckedAt, true) : '';
+    }
+
+    // Every 30 seconds, update the "3 min ago" labels and the status line
+    // without downloading anything.
+    function tickClock() {
+      for (const node of el.feed.querySelectorAll('.ago')) {
+        node.textContent = timeAgo(Number(node.dataset.time));
+      }
+      updateStatus();
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       TIME HELPERS
+       ════════════════════════════════════════════════════════════════════ */
+    // "just now", "3 min ago", "2 h ago", "4 d ago"
+    function timeAgo(ms) {
+      const s = Math.max(0, (Date.now() - ms) / 1000);
+      if (s < 45)    return 'just now';
+      if (s < 3600)  return Math.max(1, Math.round(s / 60)) + ' min ago';
+      if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+      return Math.floor(s / 86400) + ' d ago';
+    }
+
+    // Formatting options that respect CONFIG.TIME_ZONE.
+    const tz = CONFIG.TIME_ZONE ? { timeZone: CONFIG.TIME_ZONE } : {};
+
+    // "8:32 am" (or "8:32:40 am" with seconds)
+    function clockTime(ms, withSeconds) {
+      return new Date(ms).toLocaleTimeString(undefined, {
+        ...tz, hour: 'numeric', minute: '2-digit', ...(withSeconds ? { second: '2-digit' } : {}),
+      });
+    }
+
+    // "2026-10-19": which calendar day a moment falls on, in the chosen time
+    // zone. Used to group cards under day headings.
+    const dayKeyFormat = new Intl.DateTimeFormat('en-CA', { ...tz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    function dayKey(ms) { return dayKeyFormat.format(ms); }
+
+    // "Today", "Yesterday", or "Sat 17 Oct"
+    function dayLabel(ms) {
+      const key = dayKey(ms);
+      if (key === dayKey(Date.now())) return 'Today';
+      if (key === dayKey(Date.now() - 86400000)) return 'Yesterday';
+      return new Date(ms).toLocaleDateString(undefined, { ...tz, weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       LOOK HELPERS
+       ════════════════════════════════════════════════════════════════════ */
+    // "NZ Herald" → "NH", "RNZ" → "R", "1News" → "1"
+    function initials(name) {
+      return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    }
+
+    // Gives each app its own steady colour: the app's name is turned into a
+    // number, and that number picks a hue on the colour wheel. Same app →
+    // same colour, every visit, with no list to maintain.
+    function colourFor(key) {
+      let hash = 0;
+      for (const ch of key) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+      return `hsl(${hash % 360} 52% 42%)`;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       START
+       ════════════════════════════════════════════════════════════════════ */
+    // Re-draw as the visitor types or picks a publisher (no download needed).
+    el.search.addEventListener('input', render);
+    el.appFilter.addEventListener('change', render);
+
+    setInterval(tickClock, 30000);
+    refresh(); // first download straight away
+  })();
+  </script>
+</body>
+</html>
