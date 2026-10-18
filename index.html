@@ -431,7 +431,7 @@
     /* Top line: bold title on the left, time on the right. */
     .card-top {
       position: relative;      /* the exact-time label hangs from here */
-      line-height: 1.15;
+      line-height: 20px;       /* iOS: 15pt text on 20pt lines */
       display: flex;
       align-items: baseline;
       gap: 10px;
@@ -490,7 +490,7 @@
        keeps the line breaks some apps send (e.g. AT Mobile's bullets). */
     .headline {
       margin: 0;
-      line-height: 1.15;
+      line-height: 20px;       /* iOS: 15pt text on 20pt lines */
       color: #ffffff;
       white-space: pre-line;
       overflow-wrap: anywhere;
