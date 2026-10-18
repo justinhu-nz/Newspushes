@@ -1004,10 +1004,10 @@
       // wallpaper stays, and how long the crossfade to the next one takes.
       // The visitor's on/off choice is remembered in their browser.
       // Display mode, Hero layout: these big publishers get a fair look-in.
-      // When the newest alert is already "Xh ago" and one of these has no
-      // alert on screen without scrolling, its latest alert from that same
-      // "Xh ago" is lifted to the top of the right-hand list. (Matched
-      // against the App column, ignoring capitals.)
+      // If one of them has nothing on screen without scrolling, at most one
+      // of its alerts is moved up within its own "Xh ago" group so that it
+      // lands on screen. (Matched against the App column, ignoring
+      // capitals. An empty list turns this off.)
       FAIR_SHARE_APPS: ['1news', 'rnz', 'stuff', 'nz herald'],
 
       SLIDESHOW_SECONDS: 20,
@@ -1387,7 +1387,7 @@
         for (const item of news.slice(2)) stream.append(buildCard(item));
         root.append(heroes, stream);
         el.feed.replaceChildren(root);
-        liftQuietPublishers(stream, news[0]);
+        liftOneBuriedPublisher(stream);
         stream.scrollTop = scrolled;
         const markScrolled = () => stream.classList.toggle('is-scrolled', stream.scrollTop > 4);
         stream.addEventListener('scroll', markScrolled, { passive: true });
@@ -1439,33 +1439,47 @@
 
     /* ── Fair share for the big publishers (Hero layout) ──
        One publisher pushing a lot can fill the whole screen, burying the
-       others. So when the newest alert already reads "Xh ago" (nothing new
-       for an hour or more), any FAIR_SHARE_APPS publisher with nothing
-       visible without scrolling gets its latest alert from that same
-       "Xh ago" moved to the top of the list. Those cards all show the same
-       "Xh ago" label as the hero, so the order on screen still reads
-       truthfully at the precision it's shown. Order resets on every redraw. */
-    function liftQuietPublishers(stream, newest) {
-      const label = notificationTime(newest.time);
-      if (!/h ago$/.test(label)) return;
+       others. So if a FAIR_SHARE_APPS publisher has nothing visible without
+       scrolling, ONE card is lifted: that publisher's most recent card
+       that can be brought on screen by moving it to the top of its own
+       group of cards sharing an "Xh ago" label ("1h ago", "2h ago"...).
+       Every card in that group shows the same label, so the screen never
+       contradicts itself. Cards marked "Xm ago" or with a clock time never
+       move, the heroes always stay the newest, and order resets to strict
+       time order on every redraw. */
+    function liftOneBuriedPublisher(stream) {
+      if (!CONFIG.FAIR_SHARE_APPS.length) return;
+      const cards = [...stream.children];
+      const fold = stream.clientHeight - 48;          // above the faded bottom edge
+      const aboveFold = card => card.offsetTop + card.offsetHeight <= fold;
+      const label = card => notificationTime(Number(card.dataset.time));
 
-      // Which publishers can be seen right now: the two heroes, plus list
-      // cards that sit wholly above the list's faded bottom edge.
-      const fold = stream.clientHeight - 48;
+      // Publishers already on screen: the heroes, plus list cards above the fold.
       const onScreen = new Set([...el.feed.querySelectorAll('.heroes .stack')].map(s => s.dataset.app));
-      for (const s of stream.children) {
-        if (s.offsetTop + s.offsetHeight <= fold) onScreen.add(s.dataset.app);
+      for (const card of cards) if (aboveFold(card)) onScreen.add(card.dataset.app);
+
+      // The first card of each "Xh ago" group, but only groups that start
+      // on screen (lifting into a group that starts below the fold wouldn't
+      // bring anything into view).
+      const groupStart = new Map();
+      for (const card of cards) {
+        const l = label(card);
+        if (/h ago$/.test(l) && !groupStart.has(l)) groupStart.set(l, card);
       }
 
-      const lift = [];
-      for (const app of CONFIG.FAIR_SHARE_APPS) {
-        if (onScreen.has(app)) continue;
-        const latest = [...stream.children].find(s =>
-          s.dataset.app === app && notificationTime(Number(s.dataset.time)) === label);
-        if (latest) lift.push(latest);
+      // Candidates: buried big publishers' cards in such a group, newest first.
+      const pick = cards.find(card =>
+        CONFIG.FAIR_SHARE_APPS.includes(card.dataset.app) &&
+        !onScreen.has(card.dataset.app) &&
+        !aboveFold(card) &&
+        groupStart.has(label(card)) &&
+        aboveFold(groupStart.get(label(card))));
+      if (!pick) return;
+      const home = pick.nextElementSibling;           // to put it back if needed
+      groupStart.get(label(pick)).before(pick);
+      if (!aboveFold(pick)) {                         // taller card still didn't fit: undo
+        if (home) home.before(pick); else stream.append(pick);
       }
-      lift.sort((a, b) => b.dataset.time - a.dataset.time);
-      stream.prepend(...lift);
     }
 
     function setDisplayLayout(layout) {
