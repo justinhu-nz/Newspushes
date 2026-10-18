@@ -626,11 +626,83 @@
     html.display-mode { --edge-gap: 2.4rem; --block-gap: 1.6rem; }
     .display-mode .wrap { max-width: none; padding-left: var(--edge-gap); padding-right: var(--edge-gap); }
     .display-mode .site-header { padding: var(--edge-gap) 0 var(--block-gap); }
-    .display-mode .header-tools { flex: 1; justify-content: space-between; }
+    .display-mode .header-tools { flex: 1; justify-content: flex-start; gap: 1.6rem; }
+    .display-mode .mode-toggle { margin-left: auto; }   /* pushed to the far right */
     .display-mode .status { font-size: 1.15rem; gap: 0.6rem; padding: 0.5rem 1.1rem 0.5rem 0.9rem; }
     .display-mode .dot { width: 0.7rem; height: 0.7rem; }
     .display-mode main.wrap { flex: 1; min-height: 0; padding-top: 0; padding-bottom: var(--edge-gap); }
     .display-mode .empty { font-size: 1.6rem; }
+
+    /* ── Top-left: LIVE bug + clock ──
+       The bug is a little broadcast "on air" badge: its dot blinks and a
+       soft red halo breathes around it. If the feed goes quiet or can't be
+       reached, it turns amber ("Quiet") or grey ("Offline") instead, so
+       the screen never claims to be live when it isn't. */
+    .live-cluster { display: none; }
+    .display-mode .live-cluster { display: flex; align-items: center; gap: 1.3rem; }
+
+    .live-bug {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.6rem 1.05rem 0.6rem 0.9rem;
+      border-radius: 0.7rem;
+      background: linear-gradient(180deg, #ff5a4e, #e0201a);
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      line-height: 1;
+      box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.55), 0 0.3rem 1rem rgba(224, 32, 26, 0.35);
+      animation: on-air 2.4s ease-in-out infinite;
+    }
+    .live-dot {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0.5rem rgba(255, 255, 255, 0.9);
+      animation: blink 1.2s steps(1, end) infinite;
+    }
+    @keyframes blink   { 50% { opacity: 0.15; } }
+    @keyframes on-air  {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.55), 0 0.3rem 1rem rgba(224, 32, 26, 0.35); }
+      50%      { box-shadow: 0 0 0 0.55rem rgba(255, 69, 58, 0), 0 0.3rem 1.4rem rgba(224, 32, 26, 0.55); }
+    }
+    .live-bug[data-state="is-warn"] { background: linear-gradient(180deg, #ffb340, #e08600); animation: none; }
+    .live-bug[data-state="is-bad"]  { background: linear-gradient(180deg, #8e8e93, #636366); animation: none; }
+    .live-bug[data-state="is-warn"] .live-dot,
+    .live-bug[data-state="is-bad"] .live-dot { animation: none; opacity: 0.6; box-shadow: none; }
+
+    /* The clock: hours and minutes bright, seconds softer. Each digit is
+       its own little box, and a digit that changes rolls in from above. */
+    .live-clock { line-height: 1; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); }
+    .clock {
+      display: flex;
+      font-size: 2.9rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .clock .digit {
+      display: inline-block;
+      width: 0.62em;
+      text-align: center;
+      overflow: hidden;          /* hides the digit as it rolls in */
+    }
+    .clock .digit > span { display: inline-block; }
+    .clock .digit.roll > span { animation: roll-in 0.45s cubic-bezier(.2, .9, .3, 1.2); }
+    @keyframes roll-in { from { transform: translateY(-75%); opacity: 0; } }
+    .clock .colon { display: inline-block; width: 0.3em; text-align: center; opacity: 0.55; transform: translateY(-0.06em); }
+    .clock .secs { color: rgba(255, 255, 255, 0.55); }
+    .clock-date {
+      margin-top: 0.35rem;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      letter-spacing: 0.01em;
+    }
 
     /* The Simple / Hero switch stays almost invisible until the mouse is
        over it, so it doesn't distract on the wall. */
@@ -763,23 +835,30 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* The stream: only whole cards (the JavaScript drops any that don't
-       fit), spread so the last one's bottom lines up with the heroes. */
+    /* The stream: everything older, piled up naturally with the usual gap
+       between cards, in a list that scrolls (mouse wheel or touch) with no
+       visible scrollbar. The bottom fades out to hint there's more. */
     .display-hero .stream {
       min-height: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 0.9rem;
-      overflow: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+      padding-bottom: 3rem;      /* so the last card can scroll clear of the fade */
+      -webkit-mask-image: linear-gradient(#000 calc(100% - 5rem), transparent);
+      mask-image: linear-gradient(#000 calc(100% - 5rem), transparent);
     }
-    .display-hero .stream .stack { margin: 0; flex: none; }
-    .display-hero .stream .stack.has-repeats { margin-bottom: 0.8rem; }
+    .display-hero .stream::-webkit-scrollbar { display: none; }
+    /* Once scrolled, the top edge fades too, instead of slicing a card. */
+    .display-hero .stream.is-scrolled {
+      -webkit-mask-image: linear-gradient(transparent, #000 3rem, #000 calc(100% - 5rem), transparent);
+      mask-image: linear-gradient(transparent, #000 3rem, #000 calc(100% - 5rem), transparent);
+    }
     .display-hero .stream .card { font-size: 1.3rem; }
     .display-hero .stream .icon { width: 3.4rem; height: 3.4rem; }
 
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
+      .live-bug, .live-dot, .clock .digit.roll > span,
       .stack.is-new,
       .display-mode .stack.is-new .card { animation: none; }
     }
@@ -804,6 +883,16 @@
         <!-- Feed health. role="status" lets screen readers announce changes
              politely, without interrupting whatever they're reading. -->
         <div class="header-tools">
+          <!-- Display mode only: a broadcast-style LIVE bug and a ticking NZ
+               clock. Decorative, so screen readers skip them. -->
+          <div class="live-cluster" aria-hidden="true">
+            <span class="live-bug" id="live-bug"><span class="live-dot"></span><span id="live-label">Live</span></span>
+            <div class="live-clock">
+              <div class="clock" id="clock"></div>
+              <div class="clock-date" id="clock-date"></div>
+            </div>
+          </div>
+
           <p class="status" role="status" aria-live="polite">
             <span class="dot" id="status-dot"></span>
             <span id="status-text">Loading…</span>
@@ -962,6 +1051,8 @@
       appFilter:  document.getElementById('app-filter'),
       statusDot:  document.getElementById('status-dot'),
       statusText: document.getElementById('status-text'),
+      liveBug:    document.getElementById('live-bug'),
+      liveLabel:  document.getElementById('live-label'),
     };
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1272,8 +1363,8 @@
 
     function renderDisplay() {
       const news = items.filter(item => !item.side);
-      el.feed.replaceChildren();
       if (!news.length) {
+        el.feed.replaceChildren();
         el.feed.append(make('p', 'empty',
           lastCheckOk === false ? 'Couldn’t load the feed. Retrying every minute…' : 'No alerts yet.'));
         return;
@@ -1287,25 +1378,61 @@
           stack.querySelector('.card-body').append(make('div', 'exact', 'Pushed at ' + clockTime(item.time, true)));
           heroes.append(stack);
         }
-        const stream = make('div', 'stream');
-        for (const item of news.slice(2, 14)) stream.append(buildCard(item));
-        root.append(heroes, stream);
-        el.feed.append(root);
+        // Keep the list where someone scrolled it when the feed redraws.
+        const oldStream = el.feed.querySelector('.stream');
+        const scrolled = oldStream ? oldStream.scrollTop : 0;
 
-        // Drop stream cards that would be cut off at the bottom, so the
-        // column ends on a whole card, level with the heroes.
-        stream.style.justifyContent = 'flex-start';
-        const bottom = stream.getBoundingClientRect().bottom;
-        for (const stack of [...stream.children].reverse()) {
-          if (stack.getBoundingClientRect().bottom <= bottom + 1) break;
-          stack.remove();
-        }
-        stream.style.justifyContent = '';
+        const stream = make('div', 'stream');
+        for (const item of news.slice(2)) stream.append(buildCard(item));
+        root.append(heroes, stream);
+        el.feed.replaceChildren(root);
+        stream.scrollTop = scrolled;
+        const markScrolled = () => stream.classList.toggle('is-scrolled', stream.scrollTop > 4);
+        stream.addEventListener('scroll', markScrolled, { passive: true });
+        markScrolled();
       } else {
         const root = make('div', 'display-simple');
         for (const item of news.slice(0, 24)) root.append(buildCard(item));
-        el.feed.append(root);
+        el.feed.replaceChildren(root);
       }
+    }
+
+    /* ── The display-mode clock ──
+       Ticks on the second. Only digits that changed are replaced, and a
+       replaced digit rolls in (see .roll in the styles). */
+    let clockShown = '', clockFormat, clockDateFormat;
+
+    function tickDisplayClock() {
+      // Made on first use, once the time-zone setting (tz, further down) exists.
+      clockFormat = clockFormat || new Intl.DateTimeFormat('en-NZ', { ...tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+      clockDateFormat = clockDateFormat || new Intl.DateTimeFormat('en-NZ', { ...tz, weekday: 'long', day: 'numeric', month: 'long' });
+      const now = Date.now();
+      const text = clockFormat.format(now);            // "14:32:07"
+      const clock = document.getElementById('clock');
+
+      if (!clockShown) {
+        // First run: build one box per character; the last three (":07")
+        // are the softer seconds.
+        clock.replaceChildren();
+        const hm = make('span', ''), secs = make('span', 'secs');
+        [...text].forEach((ch, i) => (i >= 5 ? secs : hm).append(make('span', ch === ':' ? 'colon' : 'digit')));
+        clock.append(hm, secs);
+      }
+      const boxes = clock.querySelectorAll('.digit, .colon');
+      [...text].forEach((ch, i) => {
+        if (ch === clockShown[i]) return;
+        const box = boxes[i];
+        if (box.classList.contains('colon')) { box.textContent = ch; return; }
+        box.classList.toggle('roll', !!clockShown);   // no roll on the very first draw
+        box.replaceChildren(make('span', '', ch));
+      });
+      clockShown = text;
+
+      const date = clockDateFormat.format(now).replace(',', '');
+      const dateEl = document.getElementById('clock-date');
+      if (dateEl.textContent !== date) dateEl.textContent = date;
+
+      setTimeout(tickDisplayClock, 1000 - (Date.now() % 1000) + 5); // land just after each new second
     }
 
     function setDisplayLayout(layout) {
@@ -1465,6 +1592,9 @@
       }
 
       el.statusDot.className = 'dot ' + state;
+      // The display-mode LIVE bug follows the same health.
+      el.liveBug.dataset.state = state;
+      el.liveLabel.textContent = state === 'is-warn' ? 'Quiet' : state === 'is-bad' ? 'Offline' : 'Live';
       el.statusText.textContent = text;
       // Hovering the status shows exactly when we last checked.
       el.statusText.title = lastCheckedAt ? 'Checked at ' + clockTime(lastCheckedAt, true) : '';
@@ -1650,6 +1780,7 @@
       // Card heights change when the web fonts finish loading or the screen
       // size changes, so re-check what fits then.
       if (document.fonts) document.fonts.ready.then(render);
+      tickDisplayClock();
       window.addEventListener('resize', render);
 
       // Hide the mouse pointer after 3 still seconds; moving it brings it back.

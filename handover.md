@@ -106,7 +106,7 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser or server can serve an old copy.
 6. **Removes repeats.** The same app sending the same headline again within 30 minutes is shown once: the first copy. Headlines are compared ignoring capitals, spacing and curly versus straight quotes. A genuine re-push after 30 minutes is kept, so the push history stays honest. The Sheet itself still keeps every row.
 7. **Splits the feed into tabs.** News is the main tab. AT Mobile goes on its own tab, because its service alerts aren't news. Link straight to it with `#side` on the end of the address.
-8. **Draws the feed** in the style of iOS dark-mode notifications: dark frosted-glass cards over a wallpaper picked at random on each visit from `images/wallpapers/` (classic macOS and Windows wallpapers plus Apple's WWDC 2022 one, all dimmed), the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "2h ago", then the clock time such as "14:43"; the day heading above says which day). The tabs and search bar stay pinned to the top while scrolling and get a frosted backing once pinned. The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
+8. **Draws the feed** in the style of iOS dark-mode notifications: dark frosted-glass cards over a wallpaper picked at random on each visit from `images/wallpapers/` (currently Apple's WWDC 2022 and macOS Mojave Night wallpapers, dimmed), the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "2h ago", then the clock time such as "14:43"; the day heading above says which day). The tabs and search bar stay pinned to the top while scrolling and get a frosted backing once pinned. The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
    - The bold title is the alert's own title (AT Mobile) or author (The Spinoff), otherwise the app's name.
    - Long alerts are cut to four lines; tap a card to show the rest.
    - When repeats were hidden, the card shows as a stack with a red count badge on its icon.
@@ -131,7 +131,7 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 | `SLIDESHOW_FADE_SECONDS` | 4 | How long the crossfade between wallpapers takes |
 | `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
 
-**Wallpapers** are 2000 px JPEGs in `images/wallpapers/`, made from the full-size originals in `wallpapers/`. A small script in the page's `<head>` lists them as `WALLPAPERS` and picks one at random before the page is drawn, so only that one downloads.
+**Wallpapers** are 2000 px JPEGs in `images/wallpapers/`. A small script in the page's `<head>` lists them as `WALLPAPERS` and picks one at random before the page is drawn, so only that one downloads.
 
 The round button next to the status pill turns on a **wallpaper slideshow**: every 20 seconds a different random wallpaper is downloaded and crossfaded in over 4 seconds. It pauses while the tab is hidden, and each visitor's on/off choice is remembered in their own browser. To add a wallpaper: save a JPEG of about 2000 px wide in `images/wallpapers/` and add its file name to the list. The full-size originals are 5–17 MB each, so keep them out of the GitHub repository.
 
@@ -149,8 +149,9 @@ Add `?display` to the site's address to show the feed on a 16:9 screen viewed fr
 - **Scales to the screen.** All sizes follow the screen's height, so it looks the same on a 1080p TV and a 4K panel.
 - **Two layouts**, switched with the small toggle in the top-right corner. The toggle is faded to 10% until the mouse is over it.
   - **Simple:** the normal cards, bigger, in two columns, newest at the top of the left column.
-  - **Hero:** the two newest alerts large on the left, each with its exact push time, and the rest in a column on the right.
+  - **Hero:** the two newest alerts large on the left, each with its exact push time, and every older alert piled up in a scrollable list on the right (mouse wheel or touch; no visible scrollbar, and it keeps its place when new alerts arrive).
 - **Remembers the layout.** `?display=simple` or `?display=hero` opens a specific layout; plain `?display` uses whichever was last chosen on that screen.
+- **Top-left corner:** a broadcast-style **LIVE** bug with a blinking dot and a breathing red halo, a ticking NZ clock (seconds roll in digit by digit) with the date beneath, then the "Last alert" pill. If the feed goes quiet for 3 hours the bug turns amber and says **Quiet**; if the feed can't be reached it turns grey and says **Offline**, so the screen never claims to be live when it isn't.
 - **Hides the mouse pointer** after 3 seconds without movement.
 - **New alerts** drop in with a brief white glow so people glance up.
 
