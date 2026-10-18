@@ -58,12 +58,7 @@
     (function () {
       var WALLPAPERS = [
         'wwdc-2022.jpg',
-        'macos-10-0.jpg',
-        'macos-10-2.jpg',
-        'macos-10-4.jpg',
         'macos-mojave-night.jpg',
-        'windows-10.jpg',
-        'windows-xp-bliss.jpg',
       ];
       var pick = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
       document.documentElement.style.setProperty('--wallpaper', 'url("images/wallpapers/' + pick + '")');
@@ -626,12 +621,15 @@
     .display-mode #toolbar-sentinel,
     .display-mode .toolbar,
     .display-mode footer { display: none; }
-    .display-mode .wrap { max-width: none; padding: 0 2.4rem; }
-    .display-mode .site-header { padding: 2rem 0 1.6rem; }
+    /* One margin all round the screen (--edge-gap) and one gap between
+       every block (--block-gap), so the spacing reads as even. */
+    html.display-mode { --edge-gap: 2.4rem; --block-gap: 1.6rem; }
+    .display-mode .wrap { max-width: none; padding-left: var(--edge-gap); padding-right: var(--edge-gap); }
+    .display-mode .site-header { padding: var(--edge-gap) 0 var(--block-gap); }
     .display-mode .header-tools { flex: 1; justify-content: space-between; }
     .display-mode .status { font-size: 1.15rem; gap: 0.6rem; padding: 0.5rem 1.1rem 0.5rem 0.9rem; }
     .display-mode .dot { width: 0.7rem; height: 0.7rem; }
-    .display-mode main { flex: 1; min-height: 0; padding-bottom: 2.4rem; }
+    .display-mode main.wrap { flex: 1; min-height: 0; padding-top: 0; padding-bottom: var(--edge-gap); }
     .display-mode .empty { font-size: 1.6rem; }
 
     /* The Simple / Hero switch stays almost invisible until the mouse is
@@ -704,45 +702,53 @@
     .display-simple {
       height: 100%;
       columns: 2;
-      column-gap: 1.6rem;
+      column-gap: var(--block-gap);
       column-fill: auto;
       overflow: hidden;
     }
     .display-simple .stack { break-inside: avoid; }
 
-    /* Hero layout. */
+    /* Hero layout: two equal hero cards stacked on the left, a column of
+       ordinary cards on the right, all lined up top and bottom. */
     .display-hero {
       height: 100%;
       display: grid;
       grid-template-columns: 1.45fr 1fr;
-      gap: 1.6rem;
+      gap: var(--block-gap);
     }
     .display-hero .heroes {
       display: grid;
       grid-template-rows: 1fr 1fr;
-      gap: 1.6rem;
+      gap: var(--block-gap);
       min-height: 0;
     }
     .display-hero .heroes .stack { margin: 0; min-height: 0; }
     .display-hero .heroes .stack::after { display: none; }   /* no stack peek under a hero */
+
+    /* A hero card: icon, app name and time on one row (as on iOS), then
+       the headline, then the exact push time. Equal padding on all sides,
+       and the whole block sits in the vertical middle of the card. */
     .display-hero .heroes .card {
       height: 100%;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: center;
-      gap: 1.2rem;
-      padding: 2rem 2.4rem 2.2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-areas: "icon top" "headline headline" "exact exact";
+      align-content: center;
+      column-gap: 1.2rem;
+      row-gap: 1.2rem;
+      padding: 2rem 2.4rem;
       border-radius: 2.2rem;
       overflow: hidden;
     }
-    .display-hero .heroes .icon { width: 4.6rem; height: 4.6rem; }
+    .display-hero .heroes .card-body { display: contents; }   /* let its parts join the card's grid */
+    .display-hero .heroes .icon { grid-area: icon; width: 4rem; height: 4rem; }
     .display-hero .heroes .icon img,
-    .display-hero .heroes .icon .initials { border-radius: 1.05rem; }
-    .display-hero .heroes .card-body { width: 100%; }
-    .display-hero .heroes .card-top { font-size: 1.55rem; }
+    .display-hero .heroes .icon .initials { border-radius: 0.95rem; }
+    .display-hero .heroes .card-top { grid-area: top; align-self: center; font-size: 1.6rem; }
     .display-hero .heroes .headline {
-      margin-top: 0.5rem;
-      font-size: 2.7rem;
+      grid-area: headline;
+      margin: 0;
+      font-size: 2.5rem;
       line-height: 1.17;
       font-weight: 600;
       letter-spacing: -0.02em;
@@ -750,17 +756,25 @@
       line-clamp: 3;
     }
     .display-hero .exact {
-      margin-top: 0.8rem;
+      grid-area: exact;
+      margin-top: -0.4rem;       /* sits a little closer to its headline */
       font-size: 1.15rem;
       color: var(--text-soft);
       font-variant-numeric: tabular-nums;
     }
+
+    /* The stream: only whole cards (the JavaScript drops any that don't
+       fit), spread so the last one's bottom lines up with the heroes. */
     .display-hero .stream {
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.9rem;
       overflow: hidden;
-      -webkit-mask-image: linear-gradient(#000 88%, transparent);
-      mask-image: linear-gradient(#000 88%, transparent);
     }
+    .display-hero .stream .stack { margin: 0; flex: none; }
+    .display-hero .stream .stack.has-repeats { margin-bottom: 0.8rem; }
     .display-hero .stream .card { font-size: 1.3rem; }
     .display-hero .stream .icon { width: 3.4rem; height: 3.4rem; }
 
@@ -1277,6 +1291,16 @@
         for (const item of news.slice(2, 14)) stream.append(buildCard(item));
         root.append(heroes, stream);
         el.feed.append(root);
+
+        // Drop stream cards that would be cut off at the bottom, so the
+        // column ends on a whole card, level with the heroes.
+        stream.style.justifyContent = 'flex-start';
+        const bottom = stream.getBoundingClientRect().bottom;
+        for (const stack of [...stream.children].reverse()) {
+          if (stack.getBoundingClientRect().bottom <= bottom + 1) break;
+          stack.remove();
+        }
+        stream.style.justifyContent = '';
       } else {
         const root = make('div', 'display-simple');
         for (const item of news.slice(0, 24)) root.append(buildCard(item));
@@ -1622,6 +1646,11 @@
       let saved = null;
       try { saved = localStorage.getItem('pushFeedDisplay'); } catch (e) { /* fine */ }
       setDisplayLayout(new URLSearchParams(location.search).get('display') || saved || 'simple');
+
+      // Card heights change when the web fonts finish loading or the screen
+      // size changes, so re-check what fits then.
+      if (document.fonts) document.fonts.ready.then(render);
+      window.addEventListener('resize', render);
 
       // Hide the mouse pointer after 3 still seconds; moving it brings it back.
       let cursorTimer;
