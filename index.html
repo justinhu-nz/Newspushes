@@ -38,50 +38,50 @@
   <title>Push Feed</title>
   <meta name="description" content="A live feed of news push notifications, updated every minute.">
 
-  <!-- Colours the phone's browser bar to match the page (light / dark). -->
-  <meta name="theme-color" content="#f5f3ef" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+  <!-- Colours the phone's browser bar to match the page, and tells the
+       browser the page is always dark (so scrollbars and inputs match). -->
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Inter: a free look-alike of Apple's San Francisco font, only downloaded
+       by devices that don't already have San Francisco built in. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 
   <style>
     /* ════════════════════════════════════════════════════════════════════
        1. COLOURS AND SIZES ("design tokens")
-       Every colour on the page comes from this list, so changing one line
-       here changes it everywhere. The second block is the dark-mode version,
-       used automatically when the visitor's device is set to dark mode.
+       The feed borrows the look of iOS dark-mode notifications: dark grey
+       rounded cards on black, app icon on the left, bold title, time on
+       the right. It's always dark, whatever the visitor's device is set to.
+       Every colour comes from this list.
        ════════════════════════════════════════════════════════════════════ */
     :root {
-      --bg:          #f5f3ef;  /* page background: warm off-white, like newsprint */
-      --surface:     #ffffff;  /* cards */
-      --text:        #16181c;  /* main text */
-      --text-soft:   #5d636e;  /* secondary text: times, app names */
-      --line:        #e2ded6;  /* thin borders and dividers */
-      --accent:      #c8341f;  /* "breaking news" red: the live dot, new items */
-      --accent-soft: rgba(200, 52, 31, 0.08); /* faint red wash behind new items */
-      --ok:          #1f8a4c;  /* green: feed is healthy */
-      --warn:        #b7791f;  /* amber: feed has gone quiet */
+      --bg:        #000000;                  /* page background */
+      --card:      #1f1f22;                  /* notification cards */
+      --card-stack:#161618;                  /* the card peeking out underneath a stack */
+      --control:   #1c1c1e;                  /* search box, dropdown, tab bar */
+      --control-on:#3a3a3c;                  /* the selected tab */
+      --text:      #ffffff;
+      --text-soft: rgba(235, 235, 245, 0.6); /* times, secondary text */
+      --hairline:  rgba(255, 255, 255, 0.07);
 
-      --radius: 12px;          /* corner roundness for cards and inputs */
-      --gutter: 16px;          /* space at the left/right edge on phones */
-      --max:    720px;         /* widest the feed column gets on big screens */
+      --badge:  #ff453a;   /* iOS red: icon badges */
+      --ok:     #30d158;   /* iOS green: feed is healthy */
+      --warn:   #ff9f0a;   /* iOS orange: feed has gone quiet */
+      --bad:    #ff453a;   /* iOS red: can't reach the feed */
+      --focus:  #0a84ff;   /* iOS blue: keyboard focus rings */
+      --tooltip-bg:   #f2f2f7;
+      --tooltip-text: #000000;
 
-      /* Fonts: the device's own built-in fonts, so nothing extra downloads.
-         Headlines use a serif to feel like a newspaper. */
-      --font-ui:   system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      --font-news: Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
-    }
+      --radius: 20px;      /* notification corner roundness */
+      --gutter: 12px;      /* space at the left/right edge on phones */
+      --max:    600px;     /* widest the feed column gets on big screens */
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg:          #121417;
-        --surface:     #1b1e23;
-        --text:        #eceae6;
-        --text-soft:   #9aa1ac;
-        --line:        #2a2e35;
-        --accent:      #ff6a4d;
-        --accent-soft: rgba(255, 106, 77, 0.10);
-        --ok:          #3fbf75;
-        --warn:        #e0a43a;
-      }
+      /* iPhones and Macs use their real San Francisco font (-apple-system).
+         Everyone else gets Inter, which is drawn to look very similar. */
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, sans-serif;
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -93,7 +93,9 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font: 15px/1.5 var(--font-ui);
+      font: 15px/1.33 var(--font);
+      letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
     }
 
@@ -105,16 +107,9 @@
     }
 
     /* ════════════════════════════════════════════════════════════════════
-       3. HEADER (stays pinned to the top while you scroll)
+       3. HEADER: name, feed health, then tabs and search.
        ════════════════════════════════════════════════════════════════════ */
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--bg);
-      border-bottom: 1px solid var(--line);
-      padding: 14px 0 12px;
-    }
+    .site-header { padding: 20px 0 4px; }
 
     .brand-row {
       display: flex;
@@ -123,65 +118,80 @@
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .brand {
       margin: 0;
-      font: 700 22px/1.2 var(--font-news);
-      letter-spacing: -0.01em;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
-
     .tagline {
-      margin: 2px 0 12px;
-      color: var(--text-soft);
+      margin: 2px 0 0;
       font-size: 13px;
+      color: var(--text-soft);
     }
 
-    /* The "● Last alert 3 min ago" line. */
+    /* The "● Last alert 3m ago" line. */
     .status {
       margin: 0;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       font-size: 13px;
       color: var(--text-soft);
     }
 
     /* The coloured dot. Its colour is switched by adding a class in JS. */
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--text-soft);
       flex: none;
     }
-    .dot.is-ok   { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 20%, transparent); }
+    .dot.is-ok   { background: var(--ok); }
     .dot.is-warn { background: var(--warn); }
-    .dot.is-bad  { background: var(--accent); }
+    .dot.is-bad  { background: var(--bad); }
 
-    /* "News | AT Mobile" switch. */
+    /* The bar holding tabs + search pins to the top while scrolling,
+       slightly see-through so cards blur as they pass underneath. */
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 10px 0;
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
+      background: rgba(0, 0, 0, 0.72);
+    }
+
+    /* "News | AT Mobile": an iOS segmented control. */
     .tabs {
       display: flex;
-      gap: 4px;
-      margin-bottom: 10px;
+      padding: 2px;
+      margin-bottom: 8px;
+      border-radius: 9px;
+      background: var(--control);
     }
+    .tabs[hidden] { display: none; }
     .tabs button {
+      flex: 1;
       font: inherit;
       font-size: 13px;
-      font-weight: 600;
-      color: var(--text-soft);
+      font-weight: 500;
+      color: var(--text);
       background: none;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      padding: 5px 12px;
+      border: 0;
+      border-radius: 7px;
+      padding: 6px 10px;
       cursor: pointer;
     }
     .tabs button[aria-selected="true"] {
-      color: var(--text);
-      background: var(--surface);
-      border-color: var(--line);
+      font-weight: 600;
+      background: var(--control-on);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
-    .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-    .tabs .count { font-weight: 400; color: var(--text-soft); margin-left: 4px; }
+    .tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+    .tabs .count { font-weight: 400; color: var(--text-soft); margin-left: 5px; }
 
     /* Search box + publisher dropdown, side by side. */
     .controls {
@@ -191,109 +201,168 @@
     .controls input,
     .controls select {
       font: inherit;
+      font-size: 16px;         /* 16px+ stops iPhones zooming in on tap */
       color: var(--text);
-      background: var(--surface);
-      border: 1px solid var(--line);
+      background: var(--control);
+      border: 0;
       border-radius: 10px;
-      padding: 9px 12px;
+      padding: 8px 12px;
       min-width: 0;            /* lets them shrink on narrow phones */
     }
+    .controls input::placeholder { color: var(--text-soft); }
     .controls input  { flex: 1 1 auto; }
-    .controls select { flex: 0 1 190px; }
+    .controls select { flex: 0 1 170px; }
     .controls input:focus,
     .controls select:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 1px;
+      outline: 2px solid var(--focus);
+      outline-offset: 0;
     }
 
     /* ════════════════════════════════════════════════════════════════════
-       4. THE FEED
+       4. THE FEED: one iOS notification per alert.
        ════════════════════════════════════════════════════════════════════ */
-    main { padding-top: 8px; padding-bottom: 48px; }
+    main { padding-top: 4px; padding-bottom: 48px; }
 
-    /* "Today", "Yesterday", "Sat 17 Oct" headings between groups of cards. */
+    /* "Notification Centre"-style headings: Today, Yesterday, Sat 17 Oct. */
     .day-heading {
-      margin: 22px 0 10px;
-      font-size: 12px;
+      margin: 22px 4px 10px;
+      font-size: 22px;
       font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-soft);
+      letter-spacing: -0.01em;
+      color: var(--text);
     }
 
-    /* One notification. */
-    .card {
-      display: flex;
-      gap: 12px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 13px 14px;
+    /* One notification. A "stack" wraps it so that hidden repeats can show
+       as the card peeking out underneath, like grouped iOS notifications. */
+    .stack {
+      position: relative;
       margin-bottom: 8px;
     }
-
-    /* A card that arrived since the last refresh: briefly washed red,
-       with a red edge that fades out over a few seconds. */
-    .card.is-new {
-      animation: arrive 6s ease-out;
+    .stack.has-repeats { margin-bottom: 18px; }
+    .stack.has-repeats::after {
+      content: '';
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: -9px;
+      height: 30px;
+      border-radius: 0 0 16px 16px;
+      background: var(--card-stack);
+      box-shadow: inset 0 0 0 0.5px var(--hairline);
     }
+
+    .card {
+      position: relative;
+      z-index: 1;              /* above the stack layer */
+      display: flex;
+      align-items: center;     /* iOS centres the icon against the text */
+      gap: 10px;
+      padding: 11px 14px 12px 12px;
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: inset 0 0 0 0.5px var(--hairline);
+      cursor: default;
+    }
+
+    /* A notification that arrived since the last refresh drops in from
+       above, the way a new one lands on a phone. */
+    .stack.is-new { animation: arrive 0.5s cubic-bezier(.2, .9, .3, 1.15); }
     @keyframes arrive {
-      0%, 30% { background: var(--accent-soft); border-color: var(--accent); }
-      100%    { background: var(--surface);     border-color: var(--line); }
+      from { opacity: 0; transform: translateY(-14px) scale(0.96); }
+      to   { opacity: 1; transform: none; }
     }
 
-    /* The coloured square with the publisher's initials. */
-    .avatar {
+    /* The app icon: a rounded square ("squircle"), with a red count badge
+       when repeats of this alert were hidden. */
+    .icon {
+      position: relative;
       flex: none;
       width: 38px;
       height: 38px;
-      border-radius: 10px;
+    }
+    .icon img,
+    .icon .initials {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 9px;      /* iOS icon corners are about 23% of the size */
+      background: #fff;
+      object-fit: cover;
+      box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+    }
+    /* Apps with no icon file get their initials on a steady colour. */
+    .icon .initials {
       display: grid;
       place-items: center;
       color: #fff;
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: 0.02em;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .badge {
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: var(--badge);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 20px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
     }
 
-    .card-body { min-width: 0; }  /* lets long words wrap instead of overflowing */
+    .card-body { flex: 1; min-width: 0; }  /* lets long words wrap instead of overflowing */
 
-    /* "NZ Herald · 8:32 am · 3 min ago" */
-    .meta {
+    /* Top line: bold title on the left, time on the right. */
+    .card-top {
+      position: relative;      /* the exact-time label hangs from here */
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .title {
+      flex: 1;
+      min-width: 0;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* The time ("now", "12m ago", "14:43", "Fri 16:04"). Hover it, tap it
+       or tab to it to see the exact moment in a small label below. */
+    .when {
+      flex: none;
       font-size: 13px;
       color: var(--text-soft);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0 6px;
-    }
-    .meta .app { color: var(--text); font-weight: 600; }
-
-    /* "8:32 am · 3 min ago": hover, tap or focus it to see the exact time
-       (to the millisecond, with time zone) in a small dark label below. */
-    .meta { position: relative; } /* the label hangs from the start of this line */
-    .when {
+      font-variant-numeric: tabular-nums;
       cursor: help;
       border-radius: 4px;
     }
     .when:hover, .when:focus { color: var(--text); outline: none; }
-    .when:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .when:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
     .when::after {
       content: attr(data-full);
       position: absolute;
-      left: 0;
+      right: 0;
       top: calc(100% + 4px);
       z-index: 5;
       white-space: pre-line;
       width: max-content;
-      max-width: calc(100vw - 2 * var(--gutter) - 70px); /* never off-screen on phones */
-      padding: 6px 9px;
-      border-radius: 8px;
-      background: var(--text);
-      color: var(--bg);
+      max-width: calc(100vw - 2 * var(--gutter) - 40px); /* never off-screen on phones */
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
       font-size: 12px;
-      font-variant-numeric: tabular-nums;
+      font-weight: 400;
+      text-align: left;
       line-height: 1.45;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
       pointer-events: none;
       opacity: 0;
       visibility: hidden;
@@ -302,21 +371,22 @@
     .when:hover::after,
     .when:focus::after { opacity: 1; visibility: visible; }
 
-    /* Optional second line: an alert title or an author's name. */
-    .byline {
-      margin-top: 2px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-soft);
-    }
-
-    /* The headline itself. "pre-line" keeps the line breaks some apps
-       send (for example AT Mobile's bulleted service updates). */
+    /* The alert text. Like iOS, long alerts are cut to four lines;
+       clicking or tapping the notification shows the rest. "pre-line"
+       keeps the line breaks some apps send (e.g. AT Mobile's bullets). */
     .headline {
-      margin: 3px 0 0;
-      font: 500 17px/1.38 var(--font-news);
+      margin: 1px 0 0;
       white-space: pre-line;
       overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 4;
+      line-clamp: 4;
+      overflow: hidden;
+    }
+    .card.is-expanded .headline {
+      -webkit-line-clamp: unset;
+      line-clamp: none;
     }
 
     /* Shown when there's nothing to show (no data yet, or no search match). */
@@ -330,9 +400,8 @@
        5. FOOTER
        ════════════════════════════════════════════════════════════════════ */
     footer {
-      border-top: 1px solid var(--line);
-      padding: 20px 0 36px;
-      font-size: 12.5px;
+      padding: 12px 0 40px;
+      font-size: 12px;
       color: var(--text-soft);
     }
     footer p { margin: 0 0 6px; }
@@ -341,14 +410,14 @@
        6. SMALL SCREENS AND ACCESSIBILITY
        ════════════════════════════════════════════════════════════════════ */
     /* On narrow phones, stack the search box above the dropdown. */
-    @media (max-width: 460px) {
+    @media (max-width: 420px) {
       .controls { flex-direction: column; }
       .controls select { flex-basis: auto; }
     }
 
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
-      .card.is-new { animation: none; border-color: var(--accent); }
+      .stack.is-new { animation: none; }
     }
   </style>
 </head>
@@ -375,7 +444,11 @@
 
       <!-- EDIT ME: one line describing your feed. -->
       <p class="tagline">News alerts from New Zealand publishers, the moment they hit our phone.</p>
+    </div>
+  </header>
 
+  <div class="toolbar">
+    <div class="wrap">
       <!-- News / side tab (e.g. AT Mobile). Labels and counts are filled in
            by the JavaScript; the bar hides itself if CONFIG.SIDE_TAB is null. -->
       <div class="tabs" role="tablist" aria-label="Feeds" id="tabs">
@@ -391,7 +464,7 @@
         </select>
       </div>
     </div>
-  </header>
+  </div>
 
   <main class="wrap" id="feed" aria-label="Notifications">
     <p class="empty">Loading the latest alerts…</p>
@@ -456,6 +529,21 @@
       // minutes counts as a repeat: only the first one is shown. A genuine
       // re-push later than this is kept, so the push history stays honest.
       DEDUPE_WINDOW_MINUTES: 30,
+
+      // App icons, by app name (as it appears in the App column, ignoring
+      // capitals). Files live in the icons/ folder next to this page; any
+      // app not listed gets its initials on a coloured square instead.
+      ICONS: {
+        'nz herald':        'icons/nz-herald.png',
+        'rnz':              'icons/rnz.png',
+        'stuff':            'icons/stuff.png',
+        'the spinoff':      'icons/the-spinoff.png',
+        '1news':            'icons/1news.png',
+        'the post':         'icons/the-post.png',
+        'te ao māori news': 'icons/te-ao-news.png',
+        'te ao news':       'icons/te-ao-news.png',
+        'at mobile':        'icons/at-mobile.png',
+      },
     };
 
     /* ════════════════════════════════════════════════════════════════════
@@ -469,6 +557,7 @@
     let lastFetchStartedAt = 0;   // used to decide when to refresh next
     let refreshTimer = null;      // the pending "refresh again soon" timer
     let onSideTab = location.hash === '#side'; // which tab is showing; #side links straight to it
+    const expandedIds = new Set(); // notifications tapped open, kept open across refreshes
 
     // Shortcuts to the page elements we update.
     const el = {
@@ -782,41 +871,72 @@
       }
     }
 
-    // Builds one card:  [NH]  NZ Herald · 8:32 am · 3 min ago
-    //                         (byline, if any)
-    //                         The headline in larger serif type
+    // Builds one iOS-style notification:
+    //   [icon]  Title (alert title, author, or the app's name)     12m ago
+    //           The alert text, cut to four lines until tapped
+    // Hidden repeats show as a stacked card underneath plus a red badge.
     function buildCard(item) {
-      const card = make('article', 'card' + (item.isNew ? ' is-new' : ''));
+      const stack = make('div', 'stack' +
+        (item.repeats.length ? ' has-repeats' : '') +
+        (item.isNew ? ' is-new' : ''));
+      const card = make('article', 'card' + (expandedIds.has(item.id) ? ' is-expanded' : ''));
 
-      const avatar = make('div', 'avatar', initials(item.app));
-      avatar.style.background = colourFor(item.pkg || item.app);
-      avatar.setAttribute('aria-hidden', 'true'); // decorative; the name is in text below
+      // Tap to show the whole alert, tap again to cut it back to four lines.
+      card.addEventListener('click', event => {
+        if (event.target.closest('.when')) return; // that tap is for the exact time
+        card.classList.toggle('is-expanded');
+        if (card.classList.contains('is-expanded')) expandedIds.add(item.id);
+        else expandedIds.delete(item.id);
+      });
 
-      const body = make('div', 'card-body');
+      card.append(buildIcon(item), make('div', 'card-body'));
+      const body = card.lastChild;
 
-      // "8:32 am · 3 min ago", which expands to the exact moment on hover
-      // (or tap / keyboard focus, so it works on phones too).
-      const when = make('span', 'when');
-      when.tabIndex = 0;
+      // The time ("12m ago"), which expands to the exact moment on hover
+      // (or tap / keyboard focus, so it works on phones too). tickClock()
+      // keeps it current, finding it by its data-time attribute.
+      const when = make('time', 'when', notificationTime(item.time));
+      when.dateTime = new Date(item.time).toISOString();
+      when.dataset.time = item.time;
       when.dataset.full = fullTime(item);
+      when.tabIndex = 0;
       when.setAttribute('aria-label', when.dataset.full);
-      const clock = make('time', '', clockTime(item.time));
-      clock.dateTime = new Date(item.time).toISOString();
-      // The "3 min ago" part is updated every 30 seconds by tickClock(),
-      // which finds it by its data-time attribute.
-      const ago = make('span', 'ago', timeAgo(item.time));
-      ago.dataset.time = item.time;
-      when.append(clock, make('span', '', ' · '), ago);
 
-      const meta = make('div', 'meta');
-      meta.append(make('span', 'app', item.app), make('span', '', '·'), when);
+      const top = make('div', 'card-top');
+      top.append(make('span', 'title', item.byline || item.app), when);
 
-      body.append(meta);
-      if (item.byline) body.append(make('div', 'byline', item.byline));
-      body.append(make('p', 'headline', item.headline));
+      body.append(top, make('p', 'headline', item.headline));
+      stack.append(card);
+      return stack;
+    }
 
-      card.append(avatar, body);
-      return card;
+    // The app's icon if we have one, otherwise its initials on a steady
+    // colour. The badge counts this alert plus its hidden repeats, the way
+    // iOS counts a stack.
+    function buildIcon(item) {
+      const box = make('div', 'icon');
+      const src = CONFIG.ICONS[item.app.toLowerCase()];
+      let img;
+      if (src) {
+        img = make('img');
+        img.src = src;
+        img.alt = item.app;
+        img.width = img.height = 38;
+        img.decoding = 'async';
+        // A missing file falls back to initials rather than a broken image.
+        img.addEventListener('error', () => img.replaceWith(initialsTile(item)), { once: true });
+      }
+      box.append(img || initialsTile(item));
+      if (item.repeats.length) box.append(make('span', 'badge', String(item.repeats.length + 1)));
+      return box;
+    }
+
+    function initialsTile(item) {
+      const tile = make('span', 'initials', initials(item.app));
+      tile.style.background = colourFor(item.pkg || item.app);
+      tile.setAttribute('role', 'img');
+      tile.setAttribute('aria-label', item.app);
+      return tile;
     }
 
     // Small helper: create an element with a class and some text.
@@ -901,11 +1021,11 @@
       el.statusText.title = lastCheckedAt ? 'Checked at ' + clockTime(lastCheckedAt, true) : '';
     }
 
-    // Every 30 seconds, update the "3 min ago" labels and the status line
+    // Every 30 seconds, update the "12m ago" labels and the status line
     // without downloading anything.
     function tickClock() {
-      for (const node of el.feed.querySelectorAll('.ago')) {
-        node.textContent = timeAgo(Number(node.dataset.time));
+      for (const node of el.feed.querySelectorAll('.when')) {
+        node.textContent = notificationTime(Number(node.dataset.time));
       }
       updateStatus();
     }
@@ -913,17 +1033,35 @@
     /* ════════════════════════════════════════════════════════════════════
        TIME HELPERS
        ════════════════════════════════════════════════════════════════════ */
-    // "just now", "3 min ago", "2 h ago", "4 d ago"
+    // "just now", "3m ago", "2h ago", "4d ago" (for the status line)
     function timeAgo(ms) {
       const s = Math.max(0, (Date.now() - ms) / 1000);
-      if (s < 45)    return 'just now';
-      if (s < 3600)  return Math.max(1, Math.round(s / 60)) + ' min ago';
-      if (s < 86400) return Math.floor(s / 3600) + ' h ago';
-      return Math.floor(s / 86400) + ' d ago';
+      if (s < 60)    return 'just now';
+      if (s < 3600)  return Math.floor(s / 60) + 'm ago';   // rounds down, like the cards
+      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+      return Math.floor(s / 86400) + 'd ago';
     }
 
     // Formatting options that respect CONFIG.TIME_ZONE.
     const tz = CONFIG.TIME_ZONE ? { timeZone: CONFIG.TIME_ZONE } : {};
+
+    // A notification's time, the way iOS writes it:
+    //   now · 12m ago · 2h ago · 14:43 (earlier today) · Yesterday 16:04
+    //   · Fri 16:04 (this week) · 12 Oct (older)
+    const hhmm = new Intl.DateTimeFormat('en-NZ', { ...tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const weekdayFormat = new Intl.DateTimeFormat('en-NZ', { ...tz, weekday: 'short' });
+    const shortDateFormat = new Intl.DateTimeFormat('en-NZ', { ...tz, day: 'numeric', month: 'short' });
+    function notificationTime(ms) {
+      const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
+      if (mins < 1)  return 'now';
+      if (mins < 60) return mins + 'm ago';
+      if (mins < 4 * 60) return Math.floor(mins / 60) + 'h ago';
+      const key = dayKey(ms);
+      if (key === dayKey(Date.now()))            return hhmm.format(ms);
+      if (key === dayKey(Date.now() - 86400000)) return 'Yesterday ' + hhmm.format(ms);
+      if (Date.now() - ms < 6 * 86400000)        return weekdayFormat.format(ms) + ' ' + hhmm.format(ms);
+      return shortDateFormat.format(ms);
+    }
 
     // "8:32 am" (or "8:32:40 am" with seconds)
     function clockTime(ms, withSeconds) {
@@ -933,6 +1071,7 @@
     }
 
     // The hover text for a card, for comparing who pushed first:
+    //   NZ Herald
     //   Mon 19 Oct 2026, 8:32:13.482 am NZDT
     //   Repeated 2× (last at 8:35:01 am)
     // (en-NZ so the zone reads "NZDT" rather than "GMT+13".)
@@ -942,7 +1081,7 @@
       fractionalSecondDigits: 3, timeZoneName: 'short',
     });
     function fullTime(item) {
-      let s = fullFormat.format(item.time);
+      let s = item.app + '\n' + fullFormat.format(item.time);
       if (item.repeats.length) {
         const last = item.repeats[item.repeats.length - 1];
         s += `\nRepeated ${item.repeats.length}× (last at ${clockTime(last, true)}), hidden`;

@@ -11,7 +11,7 @@ It has four parts, and none of them is a server you run:
 1. **The phone** has the news apps installed. MacroDroid copies every notification they send to a Google Form.
 2. **The Google Form** turns each copy into a new row in a private Google Sheet.
 3. **The Sheet** has a "Latest" tab that always holds the newest 150 notifications. Only that tab is published to the web, as a CSV file.
-4. **The website** is one file, `index.html`, hosted on GitHub Pages. Each visitor's browser downloads the CSV every 60 seconds and shows it as a feed.
+4. **The website** is one page, `index.html`, plus an `icons/` folder of app icons, hosted on GitHub Pages. Each visitor's browser downloads the CSV every 60 seconds and shows it as a feed.
 
 Everything runs on free tiers. The only code in the system is the web page.
 
@@ -95,7 +95,7 @@ To stop the website, unpublish: File → Share → Publish to web → Stop publi
 
 ## 4. The website (index.html)
 
-The whole site is one file. It downloads the CSV, turns it into cards, and repeats every 60 seconds, all inside the visitor's browser.
+The whole site is one page plus its app icons. It downloads the CSV, turns it into cards, and repeats every 60 seconds, all inside the visitor's browser.
 
 **What it does, in order** (each step is a labelled section in the file's comments):
 
@@ -106,8 +106,13 @@ The whole site is one file. It downloads the CSV, turns it into cards, and repea
 5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser or server can serve an old copy.
 6. **Removes repeats.** The same app sending the same headline again within 30 minutes is shown once: the first copy. Headlines are compared ignoring capitals, spacing and curly versus straight quotes. A genuine re-push after 30 minutes is kept, so the push history stays honest. The Sheet itself still keeps every row.
 7. **Splits the feed into tabs.** News is the main tab. AT Mobile goes on its own tab, because its service alerts aren't news. Link straight to it with `#side` on the end of the address.
-8. **Draws the feed** grouped under Today, Yesterday and dated headings, in NZ time for every visitor. Alerts new since the last check flash red for a few seconds.
-9. **Shows the exact time on hover.** Hovering, tapping or tabbing to a card's time shows the full date and time to the millisecond with its time zone, for example `Mon, 19 Oct 2026, 8:48:26.600 am NZDT`. If repeats were hidden, it also says how many and when the last one came.
+8. **Draws the feed** in the style of iOS dark-mode notifications: dark rounded cards on black, the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "14:43", "Fri 16:04"). The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
+   - The bold title is the alert's own title (AT Mobile) or author (The Spinoff), otherwise the app's name.
+   - Long alerts are cut to four lines; tap a card to show the rest.
+   - When repeats were hidden, the card shows as a stack with a red count badge on its icon.
+   - Alerts new since the last check drop in with a short animation.
+   - Fonts: iPhones and Macs use their built-in San Francisco font; other devices get Inter, a free look-alike from Google Fonts. Apple's own font files aren't loaded, because their licence only covers Apple devices.
+9. **Shows the exact time on hover.** Hovering, tapping or tabbing to a card's time shows the app's name and the full date and time to the millisecond with its time zone, for example `Mon, 19 Oct 2026, 8:48:26.600 am NZDT`. If repeats were hidden, it also says how many and when the last one came.
 10. **Shows feed health** in the header: green "Last alert 3 min ago", amber "Quiet for 4 h" after 3 hours with nothing new, red "Can't reach the feed" if a download fails. On a failure it keeps showing the last good alerts and retries next minute.
 
 **Settings** live in the `CONFIG` block at the top of the `<script>` section:
@@ -122,6 +127,9 @@ The whole site is one file. It downloads the CSV, turns it into cards, and repea
 | `IGNORE_APPS` | heartbeat, test | App names never shown |
 | `SIDE_TAB` | AT Mobile | Apps moved off the news feed onto their own tab; `null` for one feed |
 | `DEDUPE_WINDOW_MINUTES` | 30 | How close together two identical alerts must be to count as a repeat |
+| `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
+
+**App icons** are 120 px PNGs in `icons/`, made from the originals in `app icons/`. To add one: save a square image as `icons/<name>.png` and add a line to `ICONS` with the app's name exactly as it appears in the Sheet's App column (capitals don't matter).
 
 **Built-in protections:** headlines are always inserted as plain text, so a headline containing code is displayed, never run. Refreshes pause while the tab is hidden and catch up when it's visible again, which saves visitors' data and Google's servers.
 
@@ -129,12 +137,12 @@ The whole site is one file. It downloads the CSV, turns it into cards, and repea
 
 ## Hosting on GitHub Pages
 
-GitHub Pages serves the one file for free; it carries almost none of the load, because each visit downloads the 39 KB page once and every refresh after that goes to Google.
+GitHub Pages serves the site for free; it carries almost none of the load, because each visit downloads the page and icons (about 140 KB) once and every refresh after that goes to Google.
 
 **Setup (about 10 minutes):**
 
 1. Create a free GitHub account and a **public** repository, for example `push-feed`. Free accounts can only publish public repositories.
-2. Upload `index.html` by dragging it onto the repository page, then commit.
+2. Upload `index.html` and the `icons` folder by dragging them onto the repository page, then commit.
 3. Settings → Pages → Source: deploy from the `main` branch, root folder → Save.
 4. About a minute later the site is live at `https://<your-username>.github.io/push-feed/`.
 5. Optional: connect your own domain under Settings → Pages → Custom domain. HTTPS is free.
