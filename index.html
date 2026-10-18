@@ -66,14 +66,19 @@
       src: url("https://applesocial.s3.amazonaws.com/assets/styles/fonts/sanfrancisco/sanfranciscodisplay-bold-webfont.woff") format("woff"); }
 
     :root {
-      --bg:        #000000;                  /* page background */
-      --card:      #1f1f22;                  /* notification cards */
-      --card-stack:#161618;                  /* the card peeking out underneath a stack */
-      --control:   #1c1c1e;                  /* search box, dropdown, tab bar */
-      --control-on:#3a3a3c;                  /* the selected tab */
+      --bg:        #0b1a3a;                  /* behind the wallpaper while it loads */
+      --wallpaper: url("images/wallpaper.jpg");
+      --wall-dim:  rgba(0, 0, 0, 0.28);      /* darkens the wallpaper a touch, as iOS does behind notifications */
+
+      /* Frosted glass: a dark tint plus a blur of whatever's behind it. */
+      --glass-blur: blur(28px) saturate(170%);
+      --card:      rgba(28, 28, 32, 0.58);   /* notification cards */
+      --card-stack:rgba(28, 28, 32, 0.40);   /* the card peeking out underneath a stack */
+      --control:   rgba(28, 28, 32, 0.55);   /* search box, dropdown, tab bar */
+      --control-on:rgba(120, 120, 128, 0.42);/* the selected tab */
       --text:      #ffffff;
       --text-soft: rgba(235, 235, 245, 0.6); /* times, secondary text */
-      --hairline:  rgba(255, 255, 255, 0.07);
+      --hairline:  rgba(255, 255, 255, 0.08);
 
       --badge:  #ff453a;   /* iOS red: icon badges */
       --ok:     #30d158;   /* iOS green: feed is healthy */
@@ -83,8 +88,8 @@
       --tooltip-bg:   #f2f2f7;
       --tooltip-text: #000000;
 
-      --radius: 20px;      /* notification corner roundness */
-      --gutter: 12px;      /* space at the left/right edge on phones */
+      --radius: 22px;      /* notification corner roundness */
+      --gutter: 10px;      /* space at the left/right edge on phones */
       --max:    600px;     /* widest the feed column gets on big screens */
 
       /* San Francisco (loaded above) everywhere; if it can't download, the
@@ -97,14 +102,30 @@
        ════════════════════════════════════════════════════════════════════ */
     * { box-sizing: border-box; }   /* widths include padding: simpler maths */
 
+    /* The solid colour sits on <html>; <body> stays see-through so the
+       wallpaper layer below can show. */
+    html { background: var(--bg); }
     body {
       margin: 0;
-      background: var(--bg);
+      min-height: 100vh;
       color: var(--text);
       font: 15px/1.33 var(--font);
       letter-spacing: 0.01em;          /* the SF files are the "Display" cut, drawn tight for big sizes; this opens small text up */
       -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;  /* stop iPhones resizing text by themselves */
+    }
+
+    /* The wallpaper, pinned behind the page so cards scroll over it. (A
+       fixed layer rather than background-attachment: fixed, which iPhones
+       ignore.) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(var(--wall-dim), var(--wall-dim)),
+                  var(--wallpaper) center / cover no-repeat,
+                  var(--bg);
     }
 
     /* The centred column everything sits in. */
@@ -117,7 +138,7 @@
     /* ════════════════════════════════════════════════════════════════════
        3. HEADER: name, feed health, then tabs and search.
        ════════════════════════════════════════════════════════════════════ */
-    .site-header { padding: 20px 0 4px; }
+    .site-header { padding: 22px 0 6px; }
 
     .brand-row {
       display: flex;
@@ -133,7 +154,7 @@
       letter-spacing: -0.02em;
     }
     .tagline {
-      margin: 2px 0 0;
+      margin: 3px 0 0;
       font-size: 13px;
       color: var(--text-soft);
     }
@@ -167,9 +188,9 @@
       top: 0;
       z-index: 10;
       padding: 10px 0;
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      backdrop-filter: blur(20px) saturate(160%);
-      background: rgba(0, 0, 0, 0.72);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      background: rgba(0, 0, 0, 0.25);
     }
 
     /* "News | AT Mobile": an iOS segmented control. */
@@ -179,6 +200,8 @@
       margin-bottom: 8px;
       border-radius: 9px;
       background: var(--control);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
     }
     .tabs[hidden] { display: none; }
     .tabs button {
@@ -212,6 +235,8 @@
       font-size: 16px;         /* 16px+ stops iPhones zooming in on tap */
       color: var(--text);
       background: var(--control);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
       border: 0;
       border-radius: 10px;
       padding: 8px 12px;
@@ -229,11 +254,11 @@
     /* ════════════════════════════════════════════════════════════════════
        4. THE FEED: one iOS notification per alert.
        ════════════════════════════════════════════════════════════════════ */
-    main { padding-top: 4px; padding-bottom: 48px; }
+    main { padding-top: 2px; padding-bottom: 48px; }
 
     /* "Notification Centre"-style headings: Today, Yesterday, Sat 17 Oct. */
     .day-heading {
-      margin: 22px 4px 10px;
+      margin: 20px 6px 10px;
       font-size: 22px;
       font-weight: 600;
       letter-spacing: -0.01em;
@@ -246,17 +271,18 @@
       position: relative;
       margin-bottom: 8px;
     }
-    .stack.has-repeats { margin-bottom: 18px; }
+    .stack.has-repeats { margin-bottom: 17px; }
     .stack.has-repeats::after {
       content: '';
       position: absolute;
-      left: 14px;
-      right: 14px;
+      left: 12px;
+      right: 12px;
       bottom: -9px;
       height: 30px;
-      border-radius: 0 0 16px 16px;
+      border-radius: 0 0 18px 18px;
       background: var(--card-stack);
-      box-shadow: inset 0 0 0 0.5px var(--hairline);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
     }
 
     .card {
@@ -264,13 +290,19 @@
       z-index: 1;              /* above the stack layer */
       display: flex;
       align-items: center;     /* iOS centres the icon against the text */
-      gap: 10px;
-      padding: 11px 14px 12px 12px;
+      gap: 11px;
+      min-height: 66px;        /* a one-line alert is as tall as a two-line one, like iOS */
+      padding: 12px 15px 13px 13px;
       border-radius: var(--radius);
       background: var(--card);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
       box-shadow: inset 0 0 0 0.5px var(--hairline);
       cursor: default;
     }
+    /* Lift the card being looked at, so its exact-time label sits above
+       the next card rather than under it. */
+    .card:hover, .card:focus-within { z-index: 2; }
 
     /* A notification that arrived since the last refresh drops in from
        above, the way a new one lands on a phone. */
@@ -294,9 +326,7 @@
       width: 100%;
       height: 100%;
       border-radius: 9px;      /* iOS icon corners are about 23% of the size */
-      background: #fff;
       object-fit: cover;
-      box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
     }
     /* Apps with no icon file get their initials on a steady colour. */
     .icon .initials {
@@ -308,8 +338,8 @@
     }
     .badge {
       position: absolute;
-      top: -7px;
-      right: -7px;
+      top: -6px;
+      right: -6px;
       min-width: 20px;
       height: 20px;
       padding: 0 6px;
@@ -330,7 +360,7 @@
       position: relative;      /* the exact-time label hangs from here */
       display: flex;
       align-items: baseline;
-      gap: 8px;
+      gap: 10px;
     }
     .title {
       flex: 1;
@@ -345,7 +375,7 @@
        or tab to it to see the exact moment in a small label below. */
     .when {
       flex: none;
-      font-size: 13px;
+      font-size: 13.5px;
       color: var(--text-soft);
       font-variant-numeric: tabular-nums;
       cursor: help;
@@ -383,7 +413,8 @@
        clicking or tapping the notification shows the rest. "pre-line"
        keeps the line breaks some apps send (e.g. AT Mobile's bullets). */
     .headline {
-      margin: 1px 0 0;
+      margin: 2px 0 0;
+      line-height: 1.34;
       white-space: pre-line;
       overflow-wrap: anywhere;
       display: -webkit-box;
@@ -421,6 +452,12 @@
     @media (max-width: 420px) {
       .controls { flex-direction: column; }
       .controls select { flex-basis: auto; }
+    }
+
+    /* Browsers without the frosted-glass effect get nearly solid cards,
+       so text never sits on a busy wallpaper. */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      :root { --card: rgba(28, 28, 32, 0.92); --card-stack: rgba(28, 28, 32, 0.7); --control: rgba(28, 28, 32, 0.9); }
     }
 
     /* Visitors who've asked their device for less motion get no animation. */
