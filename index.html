@@ -634,8 +634,8 @@
     .display-mode .empty { font-size: 1.6rem; }
 
     /* ── Top-left: LIVE bug + clock ──
-       The bug is a little broadcast "on air" badge: its dot blinks and a
-       soft red halo breathes around it. If the feed goes quiet or can't be
+       A small, calm broadcast-style "on air" badge: its dot slowly
+       breathes rather than flashing. If the feed goes quiet or can't be
        reached, it turns amber ("Quiet") or grey ("Offline") instead, so
        the screen never claims to be live when it isn't. */
     .live-cluster { display: none; }
@@ -644,36 +644,29 @@
     .live-bug {
       display: inline-flex;
       align-items: center;
-      gap: 0.55rem;
-      padding: 0.6rem 1.05rem 0.6rem 0.9rem;
-      border-radius: 0.7rem;
-      background: linear-gradient(180deg, #ff5a4e, #e0201a);
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem 0.45rem 0.7rem;
+      border-radius: 0.55rem;
+      background: rgba(255, 69, 58, 0.82);
       color: #fff;
-      font-size: 1.3rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       line-height: 1;
-      box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.55), 0 0.3rem 1rem rgba(224, 32, 26, 0.35);
-      animation: on-air 2.4s ease-in-out infinite;
     }
     .live-dot {
-      width: 0.6rem;
-      height: 0.6rem;
+      width: 0.5rem;
+      height: 0.5rem;
       border-radius: 50%;
       background: #fff;
-      box-shadow: 0 0 0.5rem rgba(255, 255, 255, 0.9);
-      animation: blink 1.2s steps(1, end) infinite;
+      animation: breathe 2.8s ease-in-out infinite;
     }
-    @keyframes blink   { 50% { opacity: 0.15; } }
-    @keyframes on-air  {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.55), 0 0.3rem 1rem rgba(224, 32, 26, 0.35); }
-      50%      { box-shadow: 0 0 0 0.55rem rgba(255, 69, 58, 0), 0 0.3rem 1.4rem rgba(224, 32, 26, 0.55); }
-    }
-    .live-bug[data-state="is-warn"] { background: linear-gradient(180deg, #ffb340, #e08600); animation: none; }
-    .live-bug[data-state="is-bad"]  { background: linear-gradient(180deg, #8e8e93, #636366); animation: none; }
+    @keyframes breathe { 50% { opacity: 0.35; } }
+    .live-bug[data-state="is-warn"] { background: rgba(255, 159, 10, 0.82); }
+    .live-bug[data-state="is-bad"]  { background: rgba(142, 142, 147, 0.7); }
     .live-bug[data-state="is-warn"] .live-dot,
-    .live-bug[data-state="is-bad"] .live-dot { animation: none; opacity: 0.6; box-shadow: none; }
+    .live-bug[data-state="is-bad"] .live-dot { animation: none; opacity: 0.6; }
 
     /* The clock: hours and minutes bright, seconds softer. Each digit is
        its own little box, and a digit that changes rolls in from above. */
@@ -839,6 +832,7 @@
        between cards, in a list that scrolls (mouse wheel or touch) with no
        visible scrollbar. The bottom fades out to hint there's more. */
     .display-hero .stream {
+      position: relative;        /* card positions are measured from here */
       min-height: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
@@ -1009,6 +1003,13 @@
       // Wallpaper slideshow (the round button in the header): how long each
       // wallpaper stays, and how long the crossfade to the next one takes.
       // The visitor's on/off choice is remembered in their browser.
+      // Display mode, Hero layout: these big publishers get a fair look-in.
+      // When the newest alert is already "Xh ago" and one of these has no
+      // alert on screen without scrolling, its latest alert from that same
+      // "Xh ago" is lifted to the top of the right-hand list. (Matched
+      // against the App column, ignoring capitals.)
+      FAIR_SHARE_APPS: ['1news', 'rnz', 'stuff', 'nz herald'],
+
       SLIDESHOW_SECONDS: 20,
       SLIDESHOW_FADE_SECONDS: 4,
 
@@ -1386,6 +1387,7 @@
         for (const item of news.slice(2)) stream.append(buildCard(item));
         root.append(heroes, stream);
         el.feed.replaceChildren(root);
+        liftQuietPublishers(stream, news[0]);
         stream.scrollTop = scrolled;
         const markScrolled = () => stream.classList.toggle('is-scrolled', stream.scrollTop > 4);
         stream.addEventListener('scroll', markScrolled, { passive: true });
@@ -1435,6 +1437,37 @@
       setTimeout(tickDisplayClock, 1000 - (Date.now() % 1000) + 5); // land just after each new second
     }
 
+    /* ── Fair share for the big publishers (Hero layout) ──
+       One publisher pushing a lot can fill the whole screen, burying the
+       others. So when the newest alert already reads "Xh ago" (nothing new
+       for an hour or more), any FAIR_SHARE_APPS publisher with nothing
+       visible without scrolling gets its latest alert from that same
+       "Xh ago" moved to the top of the list. Those cards all show the same
+       "Xh ago" label as the hero, so the order on screen still reads
+       truthfully at the precision it's shown. Order resets on every redraw. */
+    function liftQuietPublishers(stream, newest) {
+      const label = notificationTime(newest.time);
+      if (!/h ago$/.test(label)) return;
+
+      // Which publishers can be seen right now: the two heroes, plus list
+      // cards that sit wholly above the list's faded bottom edge.
+      const fold = stream.clientHeight - 48;
+      const onScreen = new Set([...el.feed.querySelectorAll('.heroes .stack')].map(s => s.dataset.app));
+      for (const s of stream.children) {
+        if (s.offsetTop + s.offsetHeight <= fold) onScreen.add(s.dataset.app);
+      }
+
+      const lift = [];
+      for (const app of CONFIG.FAIR_SHARE_APPS) {
+        if (onScreen.has(app)) continue;
+        const latest = [...stream.children].find(s =>
+          s.dataset.app === app && notificationTime(Number(s.dataset.time)) === label);
+        if (latest) lift.push(latest);
+      }
+      lift.sort((a, b) => b.dataset.time - a.dataset.time);
+      stream.prepend(...lift);
+    }
+
     function setDisplayLayout(layout) {
       displayLayout = layout === 'hero' ? 'hero' : 'simple';
       for (const button of document.querySelectorAll('#mode-toggle button')) {
@@ -1455,6 +1488,8 @@
       const stack = make('div', 'stack' +
         (item.repeats.length ? ' has-repeats' : '') +
         (item.isNew ? ' is-new' : ''));
+      stack.dataset.app = item.app.toLowerCase();
+      stack.dataset.time = item.time;
       const card = make('article', 'card' + (expandedIds.has(item.id) ? ' is-expanded' : ''));
 
       // Tap to show the whole alert, tap again to cut it back to four lines.

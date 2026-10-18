@@ -127,6 +127,7 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 | `IGNORE_APPS` | heartbeat, test | App names never shown |
 | `SIDE_TAB` | AT Mobile | Apps moved off the news feed onto their own tab; `null` for one feed |
 | `DEDUPE_WINDOW_MINUTES` | 30 | How close together two identical alerts must be to count as a repeat |
+| `FAIR_SHARE_APPS` | 1news, rnz, stuff, nz herald | Display mode, Hero: publishers lifted up the list when buried by an over-pusher (see Display mode) |
 | `SLIDESHOW_SECONDS` | 20 | How long each wallpaper stays when the slideshow is on |
 | `SLIDESHOW_FADE_SECONDS` | 4 | How long the crossfade between wallpapers takes |
 | `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
@@ -150,8 +151,9 @@ Add `?display` to the site's address to show the feed on a 16:9 screen viewed fr
 - **Two layouts**, switched with the small toggle in the top-right corner. The toggle is faded to 10% until the mouse is over it.
   - **Simple:** the normal cards, bigger, in two columns, newest at the top of the left column.
   - **Hero:** the two newest alerts large on the left, each with its exact push time, and every older alert piled up in a scrollable list on the right (mouse wheel or touch; no visible scrollbar, and it keeps its place when new alerts arrive).
+- **Fair share in Hero (the one exception to strict time order).** One publisher pushing a lot can fill the whole screen. So when the newest alert already reads "Xh ago", any of 1News, RNZ, Stuff or NZ Herald with nothing visible without scrolling has its latest alert from that same "Xh ago" moved to the top of the right-hand list. Those cards carry the same "Xh ago" label as the hero, so nothing on screen contradicts itself, but the list is no longer strictly newest-first in that situation. Don't use Hero mode's list order to settle who pushed first; use the exact times (hover a card on the normal page, or the "Pushed at" line on a hero). The publishers are set by `FAIR_SHARE_APPS` in `CONFIG`; an empty list turns this off.
 - **Remembers the layout.** `?display=simple` or `?display=hero` opens a specific layout; plain `?display` uses whichever was last chosen on that screen.
-- **Top-left corner:** a broadcast-style **LIVE** bug with a blinking dot and a breathing red halo, a ticking NZ clock (seconds roll in digit by digit) with the date beneath, then the "Last alert" pill. If the feed goes quiet for 3 hours the bug turns amber and says **Quiet**; if the feed can't be reached it turns grey and says **Offline**, so the screen never claims to be live when it isn't.
+- **Top-left corner:** a small broadcast-style **LIVE** bug with a slowly breathing dot, a ticking NZ clock (seconds roll in digit by digit) with the date beneath, then the "Last alert" pill. If the feed goes quiet for 3 hours the bug turns amber and says **Quiet**; if the feed can't be reached it turns grey and says **Offline**, so the screen never claims to be live when it isn't.
 - **Hides the mouse pointer** after 3 seconds without movement.
 - **New alerts** drop in with a brief white glow so people glance up.
 
