@@ -103,7 +103,8 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 2. **Turns rows into alerts.** Columns are found by header name, so reordering them in the Sheet is safe. Heartbeat and test rows are skipped.
 3. **Picks the time** from "Posted at", the phone's exact timestamp. The Form's Timestamp column is only a fallback, because its day/month/year format has no time zone.
 4. **Picks the headline.** Text is always the headline. Title shows as a small line above it only when it adds something: AT Mobile's alert title or The Spinoff's author, but not NZ Herald's repeated "NZ Herald".
-5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser or server can serve an old copy.
+5. **Downloads with a cache buster:** a changing number on the end of the link, so no browser cache can serve an old copy.
+   - **Never steps backwards.** Google serves the published CSV from several copies that don't all update at the same moment. Each download lands on a different one, so right after a new alert, one download can include it and the next can miss it. Without protection, a new alert would appear and then vanish a minute later. So any alert that goes missing from a download is kept on screen for up to 10 minutes (`HOLD_MISSING_MINUTES`); in practice it reappears in the next up-to-date copy well before then. An alert you delete from the Sheet on purpose therefore takes up to 10 minutes to leave the page.
 6. **Removes repeats.** The same app sending the same headline again within 30 minutes is shown once: the first copy. Headlines are compared ignoring capitals, spacing and curly versus straight quotes. A genuine re-push after 30 minutes is kept, so the push history stays honest. The Sheet itself still keeps every row.
 7. **Splits the feed into tabs.** News is the main tab. AT Mobile goes on its own tab, because its service alerts aren't news. Link straight to it with `#side` on the end of the address.
 8. **Draws the feed** in the style of iOS dark-mode notifications: dark frosted-glass cards over a wallpaper picked at random on each visit from `images/wallpapers/` (currently Apple's WWDC 2022 and macOS Mojave Night wallpapers, dimmed), the app's icon on the left, a bold title, the text below, and the time on the right ("now", "12m ago", "2h ago", then the clock time such as "14:43"; the day heading above says which day). The tabs and search bar stay pinned to the top while scrolling and get a frosted backing once pinned. The page is always dark, whatever the visitor's device is set to. Cards are grouped under Today, Yesterday and dated headings, in NZ time for every visitor.
@@ -122,6 +123,7 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 | `CSV_URL` | your published link | Where alerts come from |
 | `REFRESH_SECONDS` | 60 | How often to check |
 | `FETCH_TIMEOUT_SECONDS` | 15 | When to give up on a slow download |
+| `HOLD_MISSING_MINUTES` | 10 | How long an alert missing from a stale download stays on screen |
 | `QUIET_AFTER_MINUTES` | 180 | When the dot turns amber |
 | `TIME_ZONE` | `Pacific/Auckland` | Clock shown to visitors; `null` uses their own |
 | `IGNORE_APPS` | heartbeat, test | App names never shown |

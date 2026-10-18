@@ -976,6 +976,14 @@
       // again at the next refresh.
       FETCH_TIMEOUT_SECONDS: 15,
 
+      // Google serves the published CSV from several copies that don't all
+      // update at the same moment, so a download can come back slightly
+      // older than the one before. An alert that vanishes like that is kept
+      // on screen for up to this many minutes (it reappears in a newer copy
+      // well before then). Alerts deleted from the Sheet on purpose drop
+      // off after this long.
+      HOLD_MISSING_MINUTES: 10,
+
       // If no new alert has arrived for this many minutes, the status dot turns
       // amber ("gone quiet"). Overnight quiet spells are normal; a quiet
       // weekday afternoon might mean the phone needs a look.
@@ -1034,6 +1042,7 @@
        ════════════════════════════════════════════════════════════════════ */
     let items = [];               // every alert from the latest download
     let seenIds = new Set();      // IDs we've already shown, to spot new arrivals
+    const heldRows = new Map();   // id → { item, seenAt }: every alert recently downloaded
     let firstLoad = true;         // no "new" highlight on the very first load
     let lastCheckOk = null;       // true/false: did the last download work?
     let lastCheckedAt = null;     // when we last downloaded successfully
@@ -1175,7 +1184,9 @@
       }
 
       // Newest first. (The Sheet already sorts this way; this makes sure.)
-      return dedupe(out).sort((a, b) => b.time - a.time);
+      // Repeats are removed and the list sorted in refresh(), after this
+      // download has been combined with alerts held from earlier ones.
+      return out;
     }
 
     /* ── Removing repeats ──
@@ -1265,12 +1276,37 @@
        which saves the visitor's data and Google's servers; we catch up
        the moment the tab is visible again.
        ════════════════════════════════════════════════════════════════════ */
+    // Never step backwards: if this download is from a copy of the CSV that
+    // hasn't caught up yet, alerts we've already shown are missing from it.
+    // Keep those (only ones within the time span this download covers, so
+    // alerts that simply scrolled off the newest 150 still go), for up to
+    // HOLD_MISSING_MINUTES since they were last downloaded.
+    function combineWithHeld(downloaded) {
+      const now = Date.now();
+      for (const item of downloaded) heldRows.set(item.id, { item, seenAt: now });
+
+      const oldest = downloaded.length ? Math.min(...downloaded.map(i => i.time)) : Infinity;
+      const combined = [...downloaded];
+      for (const [id, held] of heldRows) {
+        if (held.seenAt === now) continue;                                // in this download
+        if (now - held.seenAt > CONFIG.HOLD_MISSING_MINUTES * 60000 ||    // gone too long
+            held.item.time < oldest) {                                    // or fell off the bottom
+          heldRows.delete(id);
+          continue;
+        }
+        combined.push(held.item);
+      }
+
+      // Fresh copies, so repeat-counting starts clean every time.
+      return dedupe(combined.map(item => ({ ...item, repeats: [] }))).sort((a, b) => b.time - a.time);
+    }
+
     async function refresh() {
       clearTimeout(refreshTimer);
       lastFetchStartedAt = Date.now();
 
       try {
-        const fresh = await fetchFeed();
+        const fresh = combineWithHeld(await fetchFeed());
 
         // Mark anything we haven't seen before as new (but not on the very
         // first load, or the whole page would flash).
