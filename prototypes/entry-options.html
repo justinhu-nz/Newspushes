@@ -1,0 +1,746 @@
+<!doctype html>
+<!--
+  PROTOTYPE: ways a new alert could arrive on the newsroom display, with
+  dummy data. Not part of the site.
+
+  Controls (bottom of the screen, prototype only):
+    • Simple / Hero          which display layout
+    • 1 – 11                 entry style (or ← / → keys)
+    • "Fresh marker"         adds a fading NEW tag + edge glow that lasts a
+                             few minutes, for people who look up late
+    • Fire / ×2 / ×3         send 1, 2 or 3 fake alerts at once (space bar = 1)
+    • Auto                   send some every 10 seconds
+    • Batches                make Auto send 1–3 at a time, the way a
+                             60-second refresh can bring in several at once
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Entry options prototype</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    @font-face { font-family: "SF Pro Text"; font-weight: 400; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-regular-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 500; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-medium-webfont.woff2") format("woff2"); }
+    @font-face { font-family: "SF Pro Text"; font-weight: 600; font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/a1exalexander/Tokenplace@93b57715ab02b5db3ebefe125dc34b738bfcd918/src/assets/fonts/SFPro/sf-pro-text-semibold-webfont.woff2") format("woff2"); }
+
+    /* For the border-trace option: lets the browser animate an angle. */
+    @property --trace { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+    :root {
+      font-size: calc(100vh / 54);           /* 1rem = 20px on 1080p */
+      --bg: #0b1a3a;
+      --card: rgba(22, 22, 26, 0.84);
+      --control: rgba(118, 118, 128, 0.24);
+      --text: #fff;
+      --text-soft: rgba(235, 235, 245, 0.66);
+      --hairline: rgba(255, 255, 255, 0.08);
+      --edge: rgba(255, 255, 255, 0.10);
+      --glass: blur(24px) saturate(110%);
+      --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
+      --edge-gap: 2.4rem;
+      --block-gap: 1.6rem;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0; height: 100vh; overflow: hidden;
+      color: var(--text); font: 1rem/1.33 var(--font); letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+      display: flex; flex-direction: column;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: linear-gradient(rgba(4, 8, 20, 0.42), rgba(4, 8, 20, 0.42)),
+                  url("../images/wallpapers/wwdc-2022.jpg") center / cover;
+      transition: filter 0.8s;
+    }
+
+    /* ── Slim header (as on the real display) ── */
+    header { display: flex; align-items: center; gap: 1.1rem; padding: 1.2rem var(--edge-gap) 0.9rem; }
+    .live-bug {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.32rem 0.6rem 0.32rem 0.5rem; border-radius: 0.4rem;
+      background: rgba(255, 69, 58, 0.82);
+      font: 700 0.85rem/1 var(--font); letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .live-dot { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: #fff; animation: breathe 2.8s ease-in-out infinite; }
+    @keyframes breathe { 50% { opacity: 0.35; } }
+    .clock { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .date { font-size: 0.95rem; color: var(--text-soft); }
+    .status {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem 0.35rem 0.7rem;
+      border-radius: 999px; background: var(--control); font-size: 0.95rem; font-weight: 500;
+    }
+    .status::before { content: ''; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #30d158; }
+
+    main { flex: 1; min-height: 0; padding: 0 var(--edge-gap) var(--edge-gap); position: relative; }
+
+    /* ── Cards ── */
+    .card {
+      position: relative;
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.3rem 1.05rem 1.1rem;
+      border-radius: 1.6rem;
+      background: var(--card);
+      -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+      box-shadow: inset 0 0.5px 0 var(--edge), inset 0 0 0 0.5px var(--hairline), 0 6px 24px rgba(0, 0, 0, 0.16);
+      font-size: 1.45rem;
+      margin-bottom: 0.9rem;
+      break-inside: avoid;
+      isolation: isolate;          /* keeps the brand wash behind the text */
+      transition: filter 0.6s, opacity 0.6s;
+    }
+    /* While a card moves or fades it drops the frosted blur: re-blurring
+       the wallpaper behind every moving card each frame is what made the
+       screen stutter (a one-second freeze when three alerts arrived). The
+       cards are mostly solid, so the difference is barely visible. */
+    .card.is-moving { -webkit-backdrop-filter: none; backdrop-filter: none; will-change: transform, opacity; }
+    /* Brand wash: a colour layer that fades out, cheaper than repainting
+       the card's own background every frame. */
+    .wash { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; }
+    .icon { position: relative; flex: none; width: 3.6rem; height: 3.6rem; }
+    .icon img { display: block; width: 100%; height: 100%; border-radius: 0.85rem; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .body { flex: 1; min-width: 0; }
+    .top { display: flex; align-items: baseline; gap: 0.8rem; line-height: 1.33; }
+    .title { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .when { flex: none; font-size: 0.9em; color: var(--text-soft); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+    .headline { margin: 0; line-height: 1.33; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+    /* Soft edges. Both layouts clip what they can't show; a hard clip
+       slices through moving cards and their shadows. So each clipping box
+       is extended by --soft past the cards on every side, and its contents
+       fade out across that extra margin. At rest no card is in the margin,
+       so nothing looks different; mid-animation, anything crossing an edge
+       fades instead of being cut. */
+    :root { --soft: 1.4rem; }
+    .soft-edges {
+      margin: calc(-1 * var(--soft));
+      padding: var(--soft);
+      overflow: hidden;
+      -webkit-mask-image:
+        linear-gradient(to right, transparent, #000 var(--soft), #000 calc(100% - var(--soft)), transparent),
+        linear-gradient(to bottom, transparent, #000 var(--soft), #000 calc(100% - var(--fade-bottom, var(--soft))), transparent);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(to right, transparent, #000 var(--soft), #000 calc(100% - var(--soft)), transparent),
+        linear-gradient(to bottom, transparent, #000 var(--soft), #000 calc(100% - var(--fade-bottom, var(--soft))), transparent);
+      mask-composite: intersect;
+    }
+
+    /* Simple: two columns, newest top-left. */
+    .simple { height: calc(100% + 2 * var(--soft)); columns: 2; column-gap: var(--block-gap); column-fill: auto; }
+
+    /* Hero: two big cards left, list right. */
+    .hero { height: 100%; display: grid; grid-template-columns: 1.45fr 1fr; gap: var(--block-gap); }
+    .heroes { display: grid; grid-template-rows: 1fr 1fr; gap: var(--block-gap); min-height: 0; }
+    .heroes .card {
+      margin: 0; height: 100%;
+      display: grid; grid-template-columns: auto 1fr;
+      grid-template-areas: "icon top" "headline headline" "exact exact";
+      align-content: center; gap: 1.2rem;
+      padding: 2rem 2.4rem; border-radius: 2.2rem;
+    }
+    .heroes .body { display: contents; }
+    .heroes .icon { grid-area: icon; width: 4rem; height: 4rem; }
+    .heroes .icon img { border-radius: 0.95rem; }
+    .heroes .top { grid-area: top; align-self: center; font-size: 1.6rem; }
+    .heroes .headline { grid-area: headline; font-size: 2.5rem; line-height: 1.17; font-weight: 600; letter-spacing: -0.02em; -webkit-line-clamp: 3; }
+    .exact { grid-area: exact; margin-top: -0.4rem; font-size: 1.15rem; color: var(--text-soft); }
+    .stream { min-height: 0; --fade-bottom: 5rem; }   /* longer fade at the bottom hints there's more */
+    .stream .card { font-size: 1.3rem; padding-top: 0.8rem; padding-bottom: 0.85rem; margin-bottom: 0.7rem; }
+    .stream .icon { width: 3.4rem; height: 3.4rem; }
+
+    /* ════════════════════════ ENTRY EFFECTS ════════════════════════ */
+
+    /* 1 · Drop + glow (what the real display does today) */
+    .fx-drop { animation: drop 0.7s cubic-bezier(.2, .9, .3, 1.15), glow 6s ease-out; }
+    @keyframes drop { from { opacity: 0; transform: translateY(-1.2rem) scale(0.97); } }
+    @keyframes glow { 0%, 40% { box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.7), 0 6px 24px rgba(0, 0, 0, 0.16); } }
+
+    /* 4 · Shine sweep */
+    .fx-shine { overflow: hidden; }
+    .fx-shine::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.28) 48%, rgba(255, 255, 255, 0.05) 56%, transparent 70%);
+      transform: translateX(-120%);
+      animation: sweep 1.4s 0.45s cubic-bezier(.4, 0, .2, 1) forwards;
+    }
+    @keyframes sweep { to { transform: translateX(120%); } }
+
+    /* 6 · Border trace: a bright line runs once around the card */
+    .fx-trace::before {
+      content: ''; position: absolute; inset: -2px; border-radius: calc(1.6rem + 2px); pointer-events: none; padding: 2px;
+      background: conic-gradient(from var(--trace), transparent 0deg, rgba(255, 255, 255, 0.95) 40deg, transparent 80deg, transparent 360deg);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      animation: trace 1.8s linear, fade-out 0.6s 1.6s forwards;
+    }
+    .heroes .fx-trace::before { border-radius: calc(2.2rem + 2px); }
+    @keyframes trace { from { --trace: 0deg; } to { --trace: 360deg; } }
+    @keyframes fade-out { to { opacity: 0; } }
+
+    /* 7 · Icon pop + ripple */
+    .ripple {
+      position: absolute; inset: 0; border-radius: 0.95rem; pointer-events: none;
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+      animation: ripple 1.1s 0.25s ease-out forwards;
+    }
+    @keyframes ripple { to { box-shadow: 0 0 0 1.6rem rgba(255, 255, 255, 0); } }
+
+    /* 8 · Typewriter caret */
+    .caret::after { content: '▍'; margin-left: 0.05em; opacity: 0.8; animation: caret 0.8s steps(1) infinite; }
+    @keyframes caret { 50% { opacity: 0; } }
+
+    /* 9 · Spotlight: everything else dims for a moment */
+    body.spotlight::before { filter: brightness(0.45); }
+    body.spotlight .card:not(.spot) { filter: brightness(0.45) saturate(0.6); }
+    .spot { z-index: 2; }
+
+    /* 10 · Takeover overlay */
+    /* A plain dark veil: no blur, because blurring the whole screen every
+       frame is what made the old takeover stutter. */
+    .takeover-dim { position: fixed; inset: 0; z-index: 30; background: rgba(2, 4, 12, 0.74); }
+    .takeover {
+      position: fixed; inset: 0; z-index: 40; pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.3rem;
+    }
+    .takeover-kicker {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      font-size: 1.05rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .takeover-kicker::before { content: ''; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #ff453a; animation: breathe 1.6s ease-in-out infinite; }
+    .tcard {
+      position: relative; overflow: hidden;
+      width: min(64vw, 72rem);
+      padding: 2.1rem 2.6rem 2.2rem;
+      border-radius: 2.4rem;
+      background: rgba(28, 28, 32, 0.97);
+      box-shadow: inset 0 0.5px 0 var(--edge), inset 0 0 0 0.5px var(--hairline), 0 2rem 6rem rgba(0, 0, 0, 0.5);
+      will-change: transform, opacity;
+    }
+    /* A soft glow of the publisher's colour from the top-left corner. */
+    .tcard::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(110% 90% at 0% 0%, var(--brand), transparent 60%);
+      opacity: 0.4;
+    }
+    .tcard > * { position: relative; }
+    .tcard-row { display: flex; align-items: center; gap: 1rem; font-size: 1.6rem; font-weight: 600; }
+    .tcard-row img { width: 4.4rem; height: 4.4rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+    .tcard-row .when { margin-left: auto; font-size: 1.3rem; font-weight: 400; color: var(--text-soft); }
+    .tcard h2 { margin: 1.1rem 0 0; font-size: var(--tsize, 3.3rem); line-height: 1.12; font-weight: 600; letter-spacing: -0.02em; }
+    .tcard .exact { margin-top: 0.8rem; font-size: 1.2rem; }
+    .tcard h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+    /* Several at once: tighter cards so the stack fits the screen. */
+    .takeover.is-multi .tcard { padding: 1.5rem 2.2rem 1.6rem; border-radius: 2rem; }
+    .takeover.is-multi .tcard-row { font-size: 1.35rem; gap: 0.8rem; }
+    .takeover.is-multi .tcard-row img { width: 3.4rem; height: 3.4rem; border-radius: 0.8rem; }
+    .takeover.is-multi .tcard h2 { margin-top: 0.8rem; -webkit-line-clamp: 2; }
+    .takeover.is-multi .tcard .exact { margin-top: 0.5rem; font-size: 1.05rem; }
+    /* How long the takeover stays: a thin bar that empties. */
+    .takeover-timer { width: min(64vw, 72rem); height: 0.3rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+    .takeover-timer span { display: block; height: 100%; background: rgba(255, 255, 255, 0.75); transform-origin: left; }
+
+    /* Fresh marker (works with any style): a NEW tag and a soft edge glow
+       that fade out over FRESH_SECONDS, so someone looking up two minutes
+       later can still see what's new. --fresh runs from 1 down to 0. */
+    .is-fresh { box-shadow: inset 0 0.5px 0 var(--edge), inset 0 0 0 calc(2px * var(--fresh)) rgba(255, 255, 255, calc(0.55 * var(--fresh))), 0 6px 24px rgba(0, 0, 0, 0.16); }
+    .new-tag {
+      flex: none; align-self: center;
+      padding: 0.12rem 0.45rem; border-radius: 0.35rem;
+      background: #fff; color: #000;
+      font-size: 0.62em; font-weight: 700; letter-spacing: 0.08em;
+      opacity: var(--fresh);
+    }
+
+    /* ── Prototype controls ── */
+    .controls {
+      position: fixed; left: 50%; bottom: 0.8rem; transform: translateX(-50%); z-index: 50;
+      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center;
+      max-width: calc(100vw - 2rem);
+      padding: 0.5rem 0.7rem; border-radius: 1.2rem;
+      background: rgba(0, 0, 0, 0.72); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      font: 500 0.78rem var(--font); letter-spacing: 0;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+    .controls .group { display: flex; gap: 0.2rem; padding: 0.15rem; border-radius: 999px; background: rgba(255, 255, 255, 0.08); }
+    .controls button, .controls label {
+      font: inherit; color: #fff; background: none; border: 0; cursor: pointer;
+      padding: 0.35rem 0.65rem; border-radius: 999px; white-space: nowrap;
+    }
+    .controls button[aria-pressed="true"] { background: #fff; color: #000; font-weight: 600; }
+    .controls .fire { background: #ff453a; font-weight: 600; }
+    .controls input { accent-color: #fff; margin: 0 0.3rem 0 0; vertical-align: -0.1em; }
+    .explain {
+      position: fixed; left: 50%; bottom: 3.6rem; transform: translateX(-50%); z-index: 50;
+      max-width: 60rem; padding: 0.45rem 0.9rem; border-radius: 0.8rem;
+      background: rgba(0, 0, 0, 0.6); font-size: 0.85rem; text-align: center; color: rgba(255,255,255,.85);
+    }
+    .explain b { color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="live-bug"><span class="live-dot"></span>Live</span>
+    <span class="clock" id="clock">10:44:05</span>
+    <span class="date" id="date">Monday 19 October</span>
+    <span class="status" id="status">Last alert just now</span>
+  </header>
+  <main id="stage"></main>
+
+  <div class="explain" id="explain"></div>
+  <div class="controls" id="controls">
+    <div class="group" id="modes">
+      <button type="button" data-mode="simple">Simple</button>
+      <button type="button" data-mode="hero">Hero</button>
+    </div>
+    <div class="group" id="styles"></div>
+    <label id="takeover-wrap" title="In Simple mode, every new alert arrives as a breaking takeover first"><input type="checkbox" id="takeover-simple">Takeover (Simple)</label>
+    <label><input type="checkbox" id="fresh">Fresh marker</label>
+    <label><input type="checkbox" id="auto" checked>Auto</label>
+    <label><input type="checkbox" id="batches" checked>Batches</label>
+    <div class="group">
+      <button type="button" class="fire" id="fire">Fire ▸</button>
+      <button type="button" class="fire" data-batch="2">×2</button>
+      <button type="button" class="fire" data-batch="3">×3</button>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const STYLES = [
+      ['drop',      'Drop + glow',     'What the display does today: drops in from just above, with a white outline that fades over a few seconds.'],
+      ['glide',     'Glide',           'Everything already on screen glides down to make room, then the new card fades and grows into the gap. Calm, no jumps.'],
+      ['banner',    'iOS banner',      'Slides down from the top edge like a phone banner, holds for a beat so people can read it, then flies into its slot as the others move aside.'],
+      ['shine',     'Shine',           'Glides in, then a soft sheen sweeps across the card once, like light catching glass.'],
+      ['brand',     'Brand flash',     'The card arrives washed in the publisher’s own colour, which cools to the normal glass over a few seconds. You can tell who pushed from across the room.'],
+      ['trace',     'Border trace',    'A bright line races once around the card’s edge, then fades.'],
+      ['pop',       'Icon pop',        'The app icon pops in with a bounce and a ripple; the text slides in after it.'],
+      ['type',      'Typewriter',      'The headline types itself out, like a wire service.'],
+      ['spotlight', 'Spotlight',       'The rest of the screen dims for about three seconds so the new alert is the only bright thing.'],
+      ['takeover',  'Breaking takeover','The screen dims and the new alert (or several, stacked, newest on top) fills the middle, with a bar showing how long it stays: about 3½ seconds, plus 1¼ for each extra alert. Then it hands off: the big cards fade towards their places while the real cards land with option 11’s glide, brand wash and sheen.'],
+      ['combo',     'Glide + brand + shine', 'A combination: glide into place, brand-colour wash, one sheen. Noticeable but still polite.'],
+    ];
+    const FRESH_SECONDS = 180;   // how long the fresh marker takes to fade (prototype)
+
+    const ICONS = {
+      'NZ Herald': '../icons/nz-herald.png', 'RNZ': '../icons/rnz.png', 'Stuff': '../icons/stuff.png',
+      '1News': '../icons/1news.png', 'The Spinoff': '../icons/the-spinoff.png', 'The Post': '../icons/the-post.png',
+      'Te Ao Māori News': '../icons/te-ao-news.png',
+    };
+    // Brand colours, sampled from the icons (dark brands use a cool white instead).
+    const BRAND = {
+      'RNZ': 'rgba(210, 65, 65, 0.85)', 'Stuff': 'rgba(196, 160, 255, 0.75)', '1News': 'rgba(232, 72, 40, 0.85)',
+      'The Spinoff': 'rgba(0, 72, 200, 0.85)', 'Te Ao Māori News': 'rgba(164, 3, 47, 0.85)',
+      'NZ Herald': 'rgba(235, 238, 245, 0.55)', 'The Post': 'rgba(30, 110, 210, 0.75)',
+    };
+
+    const MIN = 60000;
+    let alerts = [
+      [3, 'RNZ', '', 'Heavy rain warning upgraded to red for Coromandel; residents told to prepare to evacuate'],
+      [5, 'NZ Herald', '', 'Breaking: Red heavy rain warning for Coromandel as rivers rise overnight'],
+      [9, '1News', '', 'Coromandel red warning: Civil Defence opens evacuation centres in Thames and Whitianga'],
+      [17, 'Stuff', '', 'Official Cash Rate held at 3.25% as Reserve Bank signals cuts are over'],
+      [18, 'NZ Herald', '', 'OCR decision: Reserve Bank holds rate, says inflation back inside target band'],
+      [26, 'The Post', '', 'Wellington Water confirms second major pipe failure in Kelburn this week'],
+      [41, 'The Spinoff', 'Toby Manhire', 'The five things that actually matter in today’s Budget speech'],
+      [55, 'RNZ', '', 'All Blacks name uncapped halfback in squad for northern tour'],
+      [63, 'Te Ao Māori News', '', 'Kīngitanga hui draws thousands to Tūrangawaewae for coronation anniversary'],
+      [80, '1News', '', 'Auckland Harbour Bridge: two northbound lanes closed after truck breakdown'],
+      [96, 'Stuff', '', 'Petrol prices hit 18-month low as global oil slides'],
+      [120, 'NZ Herald', '', 'Interislander ferry cancelled again due to mechanical fault'],
+    ].map(([m, app, title, text], i) => ({ id: 's' + i, time: Date.now() - m * MIN, app, title, text }));
+    const INCOMING = [
+      ['Stuff', '', 'Coromandel: State Highway 25 closed at Tairua as slips block road'],
+      ['RNZ', '', 'Prime Minister to front press conference on Coromandel flooding at 2pm'],
+      ['NZ Herald', '', 'Live: Coromandel flooding – Thames residents told to leave now'],
+      ['1News', '', 'Coromandel: Defence Force helicopters on standby as rivers peak'],
+      ['The Post', '', 'Wellington region also under orange heavy rain watch from tonight'],
+      ['Te Ao Māori News', '', 'Marae open doors to evacuees across Hauraki'],
+      ['The Spinoff', 'Stewart Sowman-Lund', 'The Bulletin: what the Coromandel floods mean for the region'],
+    ];
+
+    let mode = new URLSearchParams(location.search).get('mode') === 'hero' ? 'hero' : 'simple';
+    let style = STYLES.findIndex(s => s[0] === new URLSearchParams(location.search).get('style'));
+    if (style < 0) style = 10;   // option 11, the chosen one
+    const freshSince = new Map();   // id → when it arrived (for the fresh marker)
+    let busy = false;
+
+    const stage = document.getElementById('stage');
+    const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const hhmmss = new Intl.DateTimeFormat('en-NZ', { timeZone: 'Pacific/Auckland', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+    function ago(ms) {
+      const m = Math.floor((Date.now() - ms) / MIN);
+      return m < 1 ? 'now' : m < 60 ? m + 'm ago' : Math.floor(m / 60) + 'h ago';
+    }
+
+    function card(a, isHero) {
+      const c = make('article', 'card');
+      c.dataset.id = a.id;
+      const icon = make('div', 'icon');
+      const img = make('img'); img.src = ICONS[a.app]; img.alt = '';
+      icon.append(img);
+      const body = make('div', 'body');
+      const top = make('div', 'top');
+      top.append(make('span', 'title', a.title || a.app));
+      if (document.getElementById('fresh').checked && freshSince.has(a.id)) {
+        top.append(make('span', 'new-tag', 'NEW'));
+        c.classList.add('is-fresh');
+      }
+      top.append(make('span', 'when', ago(a.time)));
+      body.append(top, make('p', 'headline', a.text));
+      if (isHero) body.append(make('div', 'exact', 'Pushed at ' + hhmmss.format(a.time)));
+      c.append(icon, body);
+      return c;
+    }
+
+    function render() {
+      if (mode === 'hero') {
+        const root = make('div', 'hero');
+        const heroes = make('div', 'heroes');
+        alerts.slice(0, 2).forEach(a => heroes.append(card(a, true)));
+        const stream = make('div', 'stream soft-edges');
+        alerts.slice(2, 12).forEach(a => stream.append(card(a)));
+        root.append(heroes, stream);
+        stage.replaceChildren(root);
+      } else {
+        const root = make('div', 'simple soft-edges');
+        alerts.slice(0, 14).forEach(a => root.append(card(a)));
+        stage.replaceChildren(root);
+      }
+      updateFresh();
+      document.getElementById('status').textContent = 'Last alert ' + (ago(alerts[0].time) === 'now' ? 'just now' : ago(alerts[0].time));
+    }
+
+    // Where each card is on screen, keyed by alert id (for glide effects).
+    function rects() {
+      const map = new Map();
+      for (const c of stage.querySelectorAll('.card')) map.set(c.dataset.id, c.getBoundingClientRect());
+      return map;
+    }
+    // Animate cards from where they were to where they are now ("FLIP").
+    function glide(before, { delay = 0, duration = 650, skip } = {}) {
+      for (const c of stage.querySelectorAll('.card')) {
+        const was = before.get(c.dataset.id);
+        if (!was || c.dataset.id === skip) continue;
+        const now = c.getBoundingClientRect();
+        const dx = was.left - now.left, dy = was.top - now.top;
+        if (!dx && !dy) continue;
+        c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }],
+                  { duration, delay, easing: 'cubic-bezier(.2, .8, .2, 1)', fill: 'backwards' });
+      }
+    }
+    const grow = (el, delay = 150) => el.animate(
+      [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'none' }],
+      { duration: 550, delay, easing: 'cubic-bezier(.2, .9, .3, 1.1)', fill: 'backwards' });
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+
+    // Several alerts arriving in one refresh. Option 11 handles them as one
+    // movement: everything already on screen glides down once to make room
+    // for all of them, then the new cards appear one after another from the
+    // oldest (lowest) to the newest (top), each with its brand wash and
+    // sheen, so the eye ends on the newest. Other styles just play once.
+    const STAGGER_MS = 260;
+
+    /* ── Option 11's landing, shared by the takeover ──
+       Cards already on screen glide to their new places (or fade where
+       they are if pushed out of view; a hero dropping into the list slides
+       in instead of stretching). New cards appear oldest first, newest
+       last, each with a brand-colour wash and one sheen. Moving cards drop
+       the frosted blur while they move, which keeps it smooth. */
+    async function landBatch(batch, before, { startDelay = 180, stagger = STAGGER_MS } = {}) {
+      const ids = new Set(batch.map(b => b.id));
+      const moving = [];
+      const ease = 'cubic-bezier(.2, .8, .2, 1)';
+
+      for (const c of stage.querySelectorAll('.card')) {
+        if (ids.has(c.dataset.id)) continue;
+        const was = before.get(c.dataset.id);
+        if (!was) continue;
+        const now = c.getBoundingClientRect();
+        const sameSize = Math.abs(was.width - now.width) < 2 && Math.abs(was.height - now.height) < 2;
+        moving.push(c);
+        const clip = c.closest('.soft-edges');
+        const box = clip && clip.getBoundingClientRect();
+        const offScreen = !!box && (now.left >= box.right - 1 || now.top >= box.bottom - 1);
+        const dx = was.left - now.left, dy = was.top - now.top;
+        if (offScreen) {
+          c.animate([{ transform: `translate(${dx}px, ${dy}px)`, opacity: 1 },
+                     { transform: `translate(${dx}px, ${dy + 24}px)`, opacity: 0 }],
+                    { duration: 500, easing: 'ease-in', fill: 'backwards' });
+        } else if (sameSize) {
+          if (dx || dy) c.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }],
+                                  { duration: 700, easing: ease, fill: 'backwards' });
+        } else {
+          c.animate([{ opacity: 0, transform: 'translateX(-1.6rem)' }, { opacity: 1, transform: 'none' }],
+                    { duration: 600, delay: 120, easing: ease, fill: 'backwards' });
+        }
+      }
+
+      [...batch].reverse().forEach((b, i) => {
+        const c = stage.querySelector(`.card[data-id="${b.id}"]`);
+        if (!c) return;
+        moving.push(c);
+        const delay = startDelay + i * stagger;
+        const big = !!c.closest('.heroes');
+        c.animate([{ opacity: 0, transform: big ? 'translateY(-0.8rem) scale(0.985)' : 'translateY(-0.5rem) scale(0.96)' },
+                   { opacity: 1, transform: 'none' }],
+                  { duration: 600, delay, easing: 'cubic-bezier(.2, .9, .3, 1.05)', fill: 'backwards' });
+        const wash = make('span', 'wash');
+        wash.style.background = BRAND[b.app];
+        c.prepend(wash);
+        wash.animate([{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }],
+                     { duration: 4500, delay, easing: 'ease-out', fill: 'both' })
+            .finished.then(() => wash.remove());
+        setTimeout(() => c.classList.add('fx-shine'), delay + 150);
+      });
+
+      for (const c of moving) c.classList.add('is-moving');
+      await wait(startDelay + batch.length * stagger + 900);
+      for (const c of moving) c.classList.remove('is-moving');
+    }
+
+    /* ── Breaking takeover ──
+       Dim the screen; show the new alert(s) large in the middle, newest on
+       top, arriving one after another from the bottom up; a bar empties to
+       show how long they'll stay. Then hand off: the big cards fade while
+       drifting a little towards where they'll live, and the real cards
+       land underneath with option 11 at the same moment. Nothing is
+       stretched or squashed, so text never distorts. */
+    const TAKEOVER_HOLD_MS = 3500, TAKEOVER_EXTRA_MS = 1250;
+
+    async function takeover(batch) {
+      const dim = make('div', 'takeover-dim');
+      const box = make('div', 'takeover' + (batch.length > 1 ? ' is-multi' : ''));
+      box.append(make('div', 'takeover-kicker', batch.length > 1 ? `${batch.length} new alerts` : 'Just in'));
+      const size = batch.length >= 3 ? '2.3rem' : batch.length === 2 ? '2.8rem' : '3.3rem';
+      const cards = batch.map(b => {
+        const t = make('article', 'tcard');
+        t.style.setProperty('--brand', BRAND[b.app]);
+        t.style.setProperty('--tsize', size);
+        const row = make('div', 'tcard-row');
+        const img = make('img'); img.src = ICONS[b.app]; img.alt = '';
+        row.append(img, make('span', '', b.title || b.app), make('span', 'when', 'now'));
+        t.append(row, make('h2', '', b.text), make('div', 'exact when', 'Pushed at ' + hhmmss.format(b.time)));
+        t.dataset.id = b.id;
+        return t;
+      });
+      const timer = make('div', 'takeover-timer');
+      const fill = make('span');
+      timer.append(fill);
+      box.append(...cards, timer);
+      document.body.append(dim, box);
+
+      // If it's still taller than the screen (long headlines, many alerts),
+      // shrink the whole stack evenly to fit.
+      const room = innerHeight * 0.9;
+      const tall = [...box.children].reduce((h, c) => h + c.getBoundingClientRect().height, 0) +
+                   (box.children.length - 1) * parseFloat(getComputedStyle(box).rowGap || 0);
+      if (tall > room) box.style.transform = `scale(${(room / tall).toFixed(3)})`;
+
+      // In: veil, then cards from the bottom (oldest) up to the top (newest).
+      const ease = 'cubic-bezier(.2, .9, .3, 1.05)';
+      dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out', fill: 'both' });
+      box.firstChild.animate([{ opacity: 0, transform: 'translateY(0.6rem)' }, { opacity: 1, transform: 'none' }],
+                             { duration: 500, delay: 100, easing: ease, fill: 'backwards' });
+      [...cards].reverse().forEach((t, i) => t.animate(
+        [{ opacity: 0, transform: 'translateY(2.2rem) scale(0.96)' }, { opacity: 1, transform: 'none' }],
+        { duration: 650, delay: 180 + i * 220, easing: ease, fill: 'backwards' }));
+      const entrance = 180 + (cards.length - 1) * 220 + 650;
+      const hold = TAKEOVER_HOLD_MS + (batch.length - 1) * TAKEOVER_EXTRA_MS;
+      timer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: entrance - 300, fill: 'backwards' });
+      fill.animate([{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: hold, delay: entrance, easing: 'linear', fill: 'both' });
+      await wait(entrance + hold);
+
+      // Out: put the real cards in place, then cross-fade to them.
+      const before = rects();
+      alerts.unshift(...batch);
+      render();
+      const landing = landBatch(batch, before, { startDelay: 260, stagger: 150 });
+
+      const out = { duration: 520, easing: 'cubic-bezier(.4, 0, .6, 1)', fill: 'forwards' };
+      for (const t of cards) {
+        const from = t.getBoundingClientRect();
+        const target = stage.querySelector(`.card[data-id="${t.dataset.id}"]`);
+        const to = target ? target.getBoundingClientRect() : null;
+        // Drift a third of the way towards its new home (or just down a
+        // little if it lands out of view) while fading.
+        const dx = to ? (to.left + to.width / 2 - (from.left + from.width / 2)) * 0.33 : 0;
+        const dy = to ? (to.top + to.height / 2 - (from.top + from.height / 2)) * 0.33 : 30;
+        t.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translate(${dx}px, ${dy}px) scale(0.9)` }], out);
+      }
+      for (const el of [box.firstChild, timer]) el.animate([{ opacity: 1 }, { opacity: 0 }], out);
+      await dim.animate([{ opacity: 1 }, { opacity: 0 }], { ...out, duration: 600 }).finished;
+      dim.remove(); box.remove();
+      await landing;
+    }
+
+    async function fire(count = 1) {
+      if (typeof count !== 'number') count = 1;
+      if (busy) return;
+      busy = true;
+      const batch = [];
+      for (let k = 0; k < count; k++) {
+        const n = fire.count = (fire.count || 0) + 1;
+        const [app, title, text] = INCOMING[(n - 1) % INCOMING.length];
+        // A few seconds apart, as if pushed during the same minute.
+        batch.push({ id: 'n' + n, time: Date.now() - (count - 1 - k) * 7000, app, title, text });
+      }
+      batch.reverse();                       // newest first, like the feed
+      for (const b of batch) freshSince.set(b.id, Date.now());
+
+      const kind = STYLES[style][0];
+      const takeoverOn = kind === 'takeover' ||
+        (mode === 'simple' && document.getElementById('takeover-simple').checked);
+      if (takeoverOn) {
+        try { await takeover(batch); } finally { busy = false; }
+        return;
+      }
+
+      const before = rects();
+      alerts.unshift(...batch);
+      render();
+      const a = batch[0];
+      const { app, text } = a;
+      const el = stage.querySelector(`.card[data-id="${a.id}"]`);
+
+      try {
+        if (kind === 'combo') {
+          await landBatch(batch, before);
+        } else if (kind === 'drop') {
+          el.classList.add('fx-drop');
+        } else if (kind === 'glide') {
+          glide(before, { skip: a.id }); grow(el);
+        } else if (kind === 'shine') {
+          glide(before, { skip: a.id }); grow(el); el.classList.add('fx-shine');
+        } else if (kind === 'brand') {
+          el.classList.add('fx-drop');
+          const normal = getComputedStyle(el).backgroundColor;
+          el.animate([{ backgroundColor: BRAND[app] }, { backgroundColor: BRAND[app], offset: 0.35 }, { backgroundColor: normal }],
+                     { duration: 4500, easing: 'ease-out' });
+        } else if (kind === 'trace') {
+          glide(before, { skip: a.id }); grow(el); el.classList.add('fx-trace');
+        } else if (kind === 'pop') {
+          glide(before, { skip: a.id });
+          const icon = el.querySelector('.icon');
+          icon.animate([{ transform: 'scale(0)' }, { transform: 'scale(1.25)', offset: 0.6 }, { transform: 'scale(1)' }],
+                       { duration: 600, delay: 100, easing: 'cubic-bezier(.3, 1.4, .5, 1)', fill: 'backwards' });
+          icon.append(make('span', 'ripple'));
+          for (const part of el.querySelectorAll('.top, .headline, .exact')) {
+            part.animate([{ opacity: 0, transform: 'translateX(-0.8rem)' }, { opacity: 1, transform: 'none' }],
+                         { duration: 450, delay: 380, easing: 'ease-out', fill: 'backwards' });
+          }
+        } else if (kind === 'type') {
+          glide(before, { skip: a.id }); grow(el, 0);
+          const h = el.querySelector('.headline');
+          h.textContent = ''; h.classList.add('caret');
+          await wait(400);
+          for (let i = 1; i <= text.length; i++) { h.textContent = text.slice(0, i); await wait(22); }
+          await wait(900); h.classList.remove('caret');
+        } else if (kind === 'spotlight') {
+          glide(before, { skip: a.id }); grow(el);
+          el.classList.add('spot');
+          el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.035)', offset: 0.3 }, { transform: 'scale(1.035)', offset: 0.8 }, { transform: 'scale(1)' }],
+                     { duration: 3200, easing: 'ease-in-out' });
+          document.body.classList.add('spotlight');
+          await wait(2800);
+          document.body.classList.remove('spotlight');
+          await wait(400); el.classList.remove('spot');
+        } else if (kind === 'banner') {
+          // The real card waits invisible in its slot while a floating copy
+          // makes its entrance, then the copy flies onto it.
+          el.style.visibility = 'hidden';
+          const target = el.getBoundingClientRect();
+          const big = false, dim = null;
+          const holdAt = { w: Math.min(target.width, innerWidth * 0.5), top: 18 };
+
+          const ghost = card(a, mode === 'hero' && alerts[0] === a);
+          ghost.classList.remove('is-fresh');
+          Object.assign(ghost.style, { position: 'fixed', zIndex: 40, margin: 0, left: (innerWidth - holdAt.w) / 2 + 'px', top: holdAt.top + 'px', width: holdAt.w + 'px', height: 'auto' });
+          if (big) { ghost.style.fontSize = '2rem'; }
+          document.body.append(ghost);
+          const g = ghost.getBoundingClientRect();
+          await ghost.animate([{ transform: `translateY(${-g.bottom - 20}px)` }, { transform: 'none' }],
+                              { duration: 550, easing: 'cubic-bezier(.2, .9, .3, 1.1)' }).finished;
+          await wait(big ? 3200 : 1300);
+
+          // Others make room while the copy flies home.
+          glide(before, { skip: a.id, duration: 700 });
+          const sx = target.width / g.width, sy = target.height / g.height;
+          if (dim) dim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 600, fill: 'forwards' });
+          await ghost.animate([{ transform: 'none' },
+                               { transform: `translate(${target.left - g.left}px, ${target.top - g.top}px) scale(${sx}, ${sy})` }],
+                              { duration: 700, easing: 'cubic-bezier(.5, 0, .2, 1)', fill: 'forwards' }).finished;
+          el.style.visibility = '';
+          ghost.remove(); if (dim) dim.remove();
+          el.classList.add('fx-shine');
+        }
+      } finally {
+        busy = false;
+      }
+    }
+
+    // Fresh marker: fade from 1 to 0 over FRESH_SECONDS.
+    function updateFresh() {
+      for (const c of stage.querySelectorAll('.card')) {
+        const born = freshSince.get(c.dataset.id);
+        if (!born) continue;
+        c.style.setProperty('--fresh', Math.max(0, 1 - (Date.now() - born) / (FRESH_SECONDS * 1000)).toFixed(3));
+      }
+    }
+    setInterval(updateFresh, 1000);
+
+    // ── Controls ──
+    const stylesBox = document.getElementById('styles');
+    STYLES.forEach(([, label], i) => {
+      const b = make('button', '', `${i + 1} ${label}`);
+      b.type = 'button'; b.title = STYLES[i][2];
+      b.addEventListener('click', () => { style = i; syncControls(); fire(1); });
+      stylesBox.append(b);
+    });
+    for (const b of document.querySelectorAll('#modes button')) b.addEventListener('click', () => { mode = b.dataset.mode; syncControls(); render(); });
+    document.getElementById('fire').addEventListener('click', () => fire(1));
+    for (const b of document.querySelectorAll('[data-batch]')) b.addEventListener('click', () => fire(Number(b.dataset.batch)));
+    document.getElementById('fresh').addEventListener('change', render);
+    function syncControls() {
+      document.querySelectorAll('#modes button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+      document.getElementById('takeover-wrap').hidden = mode !== 'simple';
+      stylesBox.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(i === style)));
+      document.getElementById('explain').innerHTML = '';
+      const ex = document.getElementById('explain');
+      ex.append(make('b', '', `${style + 1} · ${STYLES[style][1]}: `), STYLES[style][2]);
+      history.replaceState(null, '', `?mode=${mode}&style=${STYLES[style][0]}`);
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === ' ') { e.preventDefault(); fire(1); }
+      if (e.key === 'ArrowRight') { style = (style + 1) % STYLES.length; syncControls(); }
+      if (e.key === 'ArrowLeft') { style = (style - 1 + STYLES.length) % STYLES.length; syncControls(); }
+      if (e.key === 's') { mode = 'simple'; syncControls(); render(); }
+      if (e.key === 'h') { mode = 'hero'; syncControls(); render(); }
+    });
+    setInterval(() => {
+      if (!document.getElementById('auto').checked) return;
+      fire(document.getElementById('batches').checked ? 1 + Math.floor(Math.random() * 3) : 1);
+    }, 10000);
+
+    // Clock
+    const df = new Intl.DateTimeFormat('en-NZ', { timeZone: 'Pacific/Auckland', weekday: 'long', day: 'numeric', month: 'long' });
+    setInterval(() => {
+      document.getElementById('clock').textContent = hhmmss.format(Date.now());
+      document.getElementById('date').textContent = df.format(Date.now()).replace(',', '');
+    }, 1000);
+
+    syncControls();
+    render();
+  })();
+  </script>
+</body>
+</html>

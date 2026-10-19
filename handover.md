@@ -130,6 +130,9 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 | `SIDE_TAB` | AT Mobile | Apps moved off the news feed onto their own tab; `null` for one feed |
 | `DEDUPE_WINDOW_MINUTES` | 30 | How close together two identical alerts must be to count as a repeat |
 | `FAIR_SHARE_APPS` | 1news, rnz, stuff, nz herald | Display mode, Hero: publishers that can have one card lifted on screen when buried by an over-pusher (see Display mode) |
+| `BRAND_COLOURS` | 7 publishers | Display mode: the colour each publisher's new alerts are washed in |
+| `TAKEOVER_SECONDS` | 3.5 | Display mode, Simple with Takeover on: how long new alerts stay full-screen |
+| `TAKEOVER_EXTRA_SECONDS` | 1.25 | Extra takeover time for each additional alert |
 | `SLIDESHOW_SECONDS` | 20 | How long each wallpaper stays when the slideshow is on |
 | `SLIDESHOW_FADE_SECONDS` | 4 | How long the crossfade between wallpapers takes |
 | `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
@@ -157,7 +160,9 @@ Add `?display` to the site's address to show the feed on a 16:9 screen viewed fr
 - **Remembers the layout.** `?display=simple` or `?display=hero` opens a specific layout; plain `?display` uses whichever was last chosen on that screen.
 - **Slim header:** one thin row across the top (about 85 px on a 1080p screen). On the left: a small broadcast-style **LIVE** bug with a slowly breathing dot, a ticking NZ clock (seconds roll in digit by digit) with the date beside it, and the "Last alert" pill. The Simple / Hero switch sits on the far right. If the feed goes quiet for 3 hours the bug turns amber and says **Quiet**; if the feed can't be reached it turns grey and says **Offline**, so the screen never claims to be live when it isn't. On a 1080p screen this fits 10 cards in Simple (5 per column), and 6 list cards beside the two heroes in Hero.
 - **Hides the mouse pointer** after 3 seconds without movement.
-- **New alerts** drop in with a brief white glow so people glance up.
+- **New alerts arrive with a little ceremony.** Cards already on screen glide to their new places, then the new ones appear one after another, oldest first and newest last, each washed in its publisher's colour (fading over a few seconds) with a single sheen across it. Several alerts from one refresh play as one movement, squeezed into about a second however many there are. A hero that drops into the list slides in rather than stretching, cards pushed out of view fade where they were, and every edge fades softly, so nothing is sliced mid-move. The publisher colours are in `BRAND_COLOURS` in `CONFIG`.
+- **Smoothness.** Moving cards briefly drop their frosted blur: re-blurring the wallpaper behind every moving card froze the screen for up to a second. Measured afterwards at a steady 60 frames a second at 1080p.
+- **Takeover (Simple layout only).** A **Takeover** switch next to Simple / Hero, faded until hovered, makes new alerts arrive as a breaking takeover first. The screen dims and the new alerts (up to three, newest on top; with more, it says e.g. "8 new alerts · latest 3") show large in the middle, with a bar that empties to show how long they'll stay: 3.5 seconds, plus 1.25 for each extra (`TAKEOVER_SECONDS`, `TAKEOVER_EXTRA_SECONDS`). Then they fade away towards their places as the real cards land underneath. Add `&takeover` to the address to switch it on; each screen remembers the choice.
 
 To run it full-screen on a dedicated computer, open Chrome in kiosk mode:
 
@@ -165,7 +170,7 @@ To run it full-screen on a dedicated computer, open Chrome in kiosk mode:
 chrome --kiosk "https://<your-username>.github.io/push-feed/?display=hero"
 ```
 
-`prototypes/display.html` is the throwaway mock-up the layouts were chosen from, with dummy data. It isn't part of the site.
+`prototypes/display.html` and `prototypes/entry-options.html` are throwaway mock-ups the layouts and the new-alert animation were chosen from, with dummy data. They aren't part of the site.
 
 ## Hosting on GitHub Pages
 
