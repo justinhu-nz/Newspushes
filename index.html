@@ -855,24 +855,25 @@
     .display-hero .heroes {
       display: grid;
       grid-template-rows: 1fr 1fr;
-      gap: var(--block-gap);
+      gap: 1.1rem;               /* a little tighter than the column gutter */
       min-height: 0;
     }
     .display-hero .heroes .stack { margin: 0; min-height: 0; }
     .display-hero .heroes .stack::after { display: none; }   /* no stack peek under a hero */
 
-    /* A hero card: icon, app name and time on one row (as on iOS), then
-       the headline, then the exact push time. Equal padding on all sides,
-       and the whole block sits in the vertical middle of the card. */
+    /* A hero card: icon, app name and time on one row (as on iOS) pinned
+       to the top, and the headline with the exact push time pinned to the
+       bottom, so the card reads as one block whatever the headline length.
+       Equal padding on all sides. */
     .display-hero .heroes .card {
       height: 100%;
       display: grid;
       grid-template-columns: auto 1fr;
+      grid-template-rows: auto 1fr auto;
       grid-template-areas: "icon top" "headline headline" "exact exact";
-      align-content: center;
       column-gap: 1.2rem;
       row-gap: 1.2rem;
-      padding: 2rem 2.4rem;
+      padding: 2.4rem;
       border-radius: 2.2rem;
       overflow: hidden;
     }
@@ -883,9 +884,11 @@
     .display-hero .heroes .card-top { grid-area: top; align-self: center; font-size: 1.6rem; }
     .display-hero .heroes .headline {
       grid-area: headline;
+      align-self: end;
       margin: 0;
-      font-size: 2.5rem;
-      line-height: 1.17;
+      text-wrap: pretty;         /* no one-word last line */
+      font-size: 2.65rem;
+      line-height: 1.15;
       font-weight: 600;
       letter-spacing: -0.02em;
       -webkit-line-clamp: 3;
