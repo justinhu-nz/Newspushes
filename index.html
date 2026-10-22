@@ -58,15 +58,26 @@
     (function () {
       var WALLPAPERS = [
         'wwdc-2022.jpg',
-        'macos-mojave-night.jpg',
         'black-unity-22.jpg',
         'monet-impression-sunrise.jpg',
         'gradient-dark.jpg',
         'gradient-light.jpg',
         'aura-red.jpg',
         'red-wave.jpg',
+        'solar-gradient-01.jpg',
+        'solar-gradient-02.jpg',
         'solar-gradient-03.jpg',
+        'solar-gradient-04.jpg',
+        'solar-gradient-05.jpg',
+        'solar-gradient-06.jpg',
+        'solar-gradient-07.jpg',
+        'solar-gradient-09.jpg',
+        'solar-gradient-11.jpg',
         'solar-gradient-12.jpg',
+        'solar-gradient-13.jpg',
+        'solar-gradient-14.jpg',
+        'solar-gradient-15.jpg',
+        'solar-gradient-16.jpg',
         'ipados-15.jpg',
       ];
       var pick = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
@@ -969,10 +980,12 @@
     .takeover-timer { width: min(64vw, 72rem); height: 0.3rem; border-radius: 1rem; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
     .takeover-timer span { display: block; height: 100%; background: rgba(255, 255, 255, 0.75); transform-origin: left; }
 
-    /* The Takeover switch: next to Simple / Hero, only in the Simple
-       layout, and just as faint until the mouse is over it. */
-    .takeover-toggle { display: none; }
-    .display-mode .takeover-toggle:not([hidden]) {
+    /* The Takeover switch (Simple layout only) and the Fade switch (both
+       layouts): next to Simple / Hero, and just as faint until the mouse
+       is over them. */
+    .takeover-toggle, .fade-toggle { display: none; }
+    .display-mode .takeover-toggle:not([hidden]),
+    .display-mode .fade-toggle {
       display: inline-flex; align-items: center; gap: 0.45rem;
       padding: 0.3rem 0.9rem 0.3rem 0.7rem;
       border-radius: 999px;
@@ -983,8 +996,10 @@
       transition: opacity 0.3s;
     }
     .display-mode .takeover-toggle:hover,
-    .display-mode .takeover-toggle:focus-within { opacity: 1; }
-    .takeover-toggle input { margin: 0; accent-color: #fff; }
+    .display-mode .takeover-toggle:focus-within,
+    .display-mode .fade-toggle:hover,
+    .display-mode .fade-toggle:focus-within { opacity: 1; }
+    .takeover-toggle input, .fade-toggle input { margin: 0; accent-color: #fff; }
 
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
@@ -1051,6 +1066,13 @@
           <label class="takeover-toggle" id="takeover-toggle" hidden
                  title="Show each new alert full-screen first, then drop it into the list">
             <input type="checkbox" id="takeover-check"> Takeover
+          </label>
+
+          <!-- Display mode, both layouts: the wallpaper slideshow (the round
+               button does this outside display mode). -->
+          <label class="fade-toggle" id="fade-toggle"
+                 title="Crossfade to a different wallpaper every so often">
+            <input type="checkbox" id="fade-check"> Fade
           </label>
         </div>
       </div>
@@ -2115,6 +2137,7 @@
       showing: 0,          // which layer is currently visible
       timer: null,
       button: document.getElementById('slideshow-toggle'),
+      check: document.getElementById('fade-check'),   // the display-mode switch
     };
     document.documentElement.style.setProperty('--wall-fade', CONFIG.SLIDESHOW_FADE_SECONDS + 's');
 
@@ -2122,6 +2145,7 @@
 
     function setSlideshow(on) {
       slideshow.button.setAttribute('aria-pressed', String(on));
+      slideshow.check.checked = on;
       try { localStorage.setItem('pushFeedSlideshow', on ? 'on' : 'off'); } catch (e) { /* not saved; fine */ }
       scheduleWallpaper();
     }
@@ -2154,6 +2178,7 @@
     }
 
     slideshow.button.addEventListener('click', () => setSlideshow(!slideshowOn()));
+    slideshow.check.addEventListener('change', () => setSlideshow(slideshow.check.checked));
     document.addEventListener('visibilitychange', scheduleWallpaper);
     try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
 
@@ -2199,6 +2224,10 @@
       takeoverCheck.addEventListener('change', () => {
         try { localStorage.setItem('pushFeedTakeover', takeoverCheck.checked ? 'on' : 'off'); } catch (e) { /* fine */ }
       });
+
+      // Fade (wallpaper slideshow): &fade in the address switches it on and,
+      // like the round button, it's remembered on this screen.
+      if (new URLSearchParams(location.search).has('fade')) setSlideshow(true);
 
       setDisplayLayout(new URLSearchParams(location.search).get('display') || saved || 'simple');
 
