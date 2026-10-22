@@ -23,7 +23,7 @@
 ║  WHAT YOU'LL MOST LIKELY WANT TO EDIT                                    ║
 ║    • The CONFIG block at the top of the <script> section (near the       ║
 ║      bottom of this file): the CSV link, refresh speed, time zone.       ║
-║    • The tagline and footer text in the <body> section.                  ║
+║    • The footer text in the <body> section.                              ║
 ║    • The colours in the :root block at the top of the <style> section.   ║
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
@@ -59,6 +59,10 @@
       var WALLPAPERS = [
         'wwdc-2022.jpg',
         'macos-mojave-night.jpg',
+        'black-unity-22.jpg',
+        'monet-impression-sunrise.jpg',
+        'gradient-dark.jpg',
+        'gradient-light.jpg',
       ];
       var pick = WALLPAPERS[Math.floor(Math.random() * WALLPAPERS.length)];
       document.documentElement.style.setProperty('--wallpaper', 'url("images/wallpapers/' + pick + '")');
@@ -203,13 +207,6 @@
       font-weight: 700;
       line-height: 1.1;
       letter-spacing: -0.025em;
-    }
-    .tagline {
-      margin: 6px 0 0;
-      max-width: 34em;
-      font-size: 14px;
-      line-height: 1.25;
-      color: rgba(255, 255, 255, 0.72);
     }
 
     /* The "● Last alert 3m ago" pill. */
@@ -616,7 +613,6 @@
       flex-direction: column;
     }
     .display-mode .brand,
-    .display-mode .tagline,
     .display-mode #slideshow-toggle,
     .display-mode #toolbar-sentinel,
     .display-mode .toolbar,
@@ -1053,9 +1049,6 @@
           </label>
         </div>
       </div>
-
-      <!-- EDIT ME: one line describing your feed. -->
-      <p class="tagline">News alerts from New Zealand publishers, the moment they hit our phone.</p>
     </div>
   </header>
 
