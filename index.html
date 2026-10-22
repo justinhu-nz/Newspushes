@@ -681,7 +681,8 @@
     .live-bug[data-state="is-bad"] .live-dot { animation: none; opacity: 0.6; }
 
     /* The clock: hours and minutes bright, seconds softer. Each digit is
-       its own little box, and a digit that changes rolls in from above. */
+       its own little box. An hour or minute digit that changes rolls in
+       from above; seconds just fade quietly, so the clock isn't busy. */
     .live-clock { line-height: 1; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); }
     .clock {
       display: flex;
@@ -697,9 +698,12 @@
       overflow: hidden;          /* hides the digit as it rolls in */
     }
     .clock .digit > span { display: inline-block; }
-    .clock .digit.roll > span { animation: roll-in 0.45s cubic-bezier(.2, .9, .3, 1.2); }
+    .clock .digit.roll > span { animation: roll-in 0.45s cubic-bezier(.2, .8, .2, 1); }
+    .clock .secs .digit.roll > span { animation: fade-in 0.3s ease-out; }
     @keyframes roll-in { from { transform: translateY(-75%); opacity: 0; } }
-    .clock .colon { display: inline-block; width: 0.3em; text-align: center; opacity: 0.55; transform: translateY(-0.06em); }
+    @keyframes fade-in { from { opacity: 0.4; } }
+    /* The font's colon sits low; lift it to the middle of the digits. */
+    .clock .colon { display: inline-block; width: 0.28em; text-align: center; opacity: 0.7; transform: translateY(-0.13em); }
     .clock .secs { color: rgba(255, 255, 255, 0.55); }
     .clock-date {
       margin-top: 0.35rem;
@@ -1007,7 +1011,7 @@
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
       .display-mode .card.fx-shine::after, .takeover-kicker::before,
-      .live-bug, .live-dot, .clock .digit.roll > span,
+      .live-bug, .live-dot, .clock .digit.roll > span, .clock .secs .digit.roll > span,
       .stack.is-new,
       .display-mode .stack.is-new .card { animation: none; }
     }
