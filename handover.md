@@ -135,13 +135,15 @@ The whole site is one page plus its app icons and wallpapers. It downloads the C
 | `TAKEOVER_EXTRA_SECONDS` | 1.25 | Extra takeover time for each additional alert |
 | `SLIDESHOW_SECONDS` | 20 | How long each wallpaper stays when the slideshow is on |
 | `SLIDESHOW_FADE_SECONDS` | 4 | How long the crossfade between wallpapers takes |
-| `ICONS` | 9 apps | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
+| `ICONS` | 10 app names | Which icon file in `icons/` goes with which app name; unlisted apps get their initials on a coloured square |
 
 **Wallpapers** are 2000 px JPEGs in `images/wallpapers/`. A small script in the page's `<head>` lists them as `WALLPAPERS` and picks one at random before the page is drawn, so only that one downloads.
 
 The round button next to the status pill turns on a **wallpaper slideshow**: every 20 seconds a different random wallpaper is downloaded and crossfaded in over 4 seconds. It pauses while the tab is hidden, and each visitor's on/off choice is remembered in their own browser. To add a wallpaper: save a JPEG of about 2000 px wide in `images/wallpapers/` and add its file name to the list. The full-size originals are 5–17 MB each, so keep them out of the GitHub repository.
 
 **App icons** are 120 px PNGs in `icons/`, made from the originals in `app icons/`. Each one should fill its square edge to edge, because the page rounds the corners itself. Two needed touching up: AT Mobile came with its own transparent rounded corners (filled in), and the RNZ swirl ran to the edges (given some margin). To add one: save a square image as `icons/<name>.png` and add a line to `ICONS` with the app's name exactly as it appears in the Sheet's App column (capitals don't matter).
+
+TVNZ+ uses the supplied 512 px image at `icons/tvnz-plus.png` and a cyan display-mode highlight. It matches the `TVNZ+` app name (package `nz.co.tvnz.ondemand.phone.android`), separately from `1News` (`nz.co.tvnz.news`), which keeps its own icon and highlight.
 
 **Built-in protections:** headlines are always inserted as plain text, so a headline containing code is displayed, never run. Refreshes pause while the tab is hidden and catch up when it's visible again, which saves visitors' data and Google's servers.
 
