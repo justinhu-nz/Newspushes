@@ -1,0 +1,301 @@
+<!doctype html>
+<!--
+  PROTOTYPE: Push Feed in the Android 7 "Nougat" notification style, on the
+  real feed (same CSV, refresh and repeat-hiding as index.html, from
+  feed-core.js). Draft E from material-options.html.
+    • Square white rows edge to edge with 1px dividers, under a grey band
+    • Header line: the app's one-colour glyph and name in its colour,
+      "• 12m", repeat count and chevron
+    • Author (when there is one) in black, headline below; three lines
+      until tapped, then the whole alert and a grey COPY / SHARE bar
+  Needs ../icons/ and ../svgs/glyphs/ beside it.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f5f5f5">
+  <title>Push Feed · Nougat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap">
+  <style>
+    :root {
+      --text: #212121;      /* primary text */
+      --soft: #757575;      /* secondary text */
+      --grey: #f5f5f5;      /* header band, day strips, action bar */
+      --line: #e0e0e0;      /* dividers */
+      --blue: #1565c0;      /* selected tab, focus */
+      --scrim: #616161;     /* behind the sheet */
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--scrim); }
+    body {
+      margin: 0;
+      font: 14px/20px Roboto, system-ui, sans-serif;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+    .shade { max-width: 480px; min-height: 100vh; margin: 0 auto; background: #fff; box-shadow: 0 0 24px rgba(0,0,0,.35); }
+
+    /* ── Grey header band (stands in for the quick settings) ── */
+    .band { position: sticky; top: 0; z-index: 5; background: var(--grey); box-shadow: 0 1px 0 var(--line); }
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 16px 6px; }
+    h1 { margin: 0; font-size: 20px; font-weight: 400; color: #424242; }
+    .status { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft); white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #bdbdbd; flex: none; }
+    .dot.is-ok { background: #43a047; } .dot.is-warn { background: #fb8c00; } .dot.is-bad { background: #e53935; }
+
+    .tabs { display: flex; margin: 0 16px; box-shadow: inset 0 -1px 0 var(--line); }
+    .tabs button {
+      flex: 1; height: 44px; border: 0; background: none; cursor: pointer;
+      font: 500 13px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--soft);
+    }
+    .tabs button[aria-selected="true"] { color: var(--blue); box-shadow: inset 0 -2px 0 var(--blue); }
+    .tabs .n { font-weight: 400; margin-left: 4px; opacity: .75; }
+    .tabs button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+
+    .controls { display: flex; gap: 8px; padding: 12px 16px 14px; }
+    .controls input, .controls select {
+      height: 44px; min-width: 0; border: 0; border-radius: 2px; background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,.2);
+      font: 16px Roboto, sans-serif; color: var(--text);
+      -webkit-appearance: none; appearance: none;
+    }
+    .controls input {
+      flex: 1; padding: 0 12px 0 44px;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23757575'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") 12px center no-repeat;
+    }
+    .controls input::placeholder { color: var(--soft); }
+    .controls select {
+      flex: 0 1 150px; padding: 0 32px 0 12px; font-size: 14px; color: var(--soft); cursor: pointer;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23757575'%3E%3Cpath d='m7 10 5 5 5-5z'/%3E%3C/svg%3E") right 6px center no-repeat;
+    }
+    .controls input:focus, .controls select:focus { outline: 2px solid var(--blue); outline-offset: 0; }
+
+    /* ── Day strips ── */
+    .day {
+      margin: 0; font-weight: 400; line-height: 20px;
+      padding: 10px 16px; background: var(--grey);
+      font-size: 13px; color: var(--soft);
+      border-bottom: 1px solid var(--line);
+    }
+    .day + .row { border-top: 0; }
+    .row + .day { border-top: 1px solid var(--line); }
+
+    /* ── One notification ── */
+    .row { padding: 14px 16px 16px; background: #fff; cursor: pointer; }
+    .row + .row { border-top: 1px solid var(--line); }
+    .row:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .hd { display: flex; align-items: center; min-width: 0; font-size: 12px; line-height: 16px; color: var(--soft); white-space: nowrap; }
+    .glyph { flex: none; width: 18px; height: 18px; margin-right: 8px; }
+    .glyph.tint {
+      background: var(--accent);
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+    }
+    .glyph.img { display: block; object-fit: contain; }
+    .glyph.photo { border-radius: 50%; object-fit: cover; }
+    .glyph.initials {
+      display: grid; place-items: center; border-radius: 50%;
+      background: var(--accent); color: #fff; font-size: 9px; font-weight: 500;
+    }
+    .app { color: var(--accent); overflow: hidden; text-overflow: ellipsis; }
+    .sep { padding: 0 4px; }
+    .when { cursor: help; }
+    .count { margin-left: 6px; color: var(--accent); }
+    .chev { flex: none; width: 16px; height: 16px; margin-left: 2px; fill: var(--accent); transition: transform .2s; }
+    .row.open .chev { transform: rotate(180deg); }
+
+    .author { margin-top: 6px; color: var(--text); }
+    .text {
+      margin: 6px 0 0; color: var(--text);
+      white-space: pre-line; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .author + .text { margin-top: 0; color: var(--soft); }
+    .row.open .text { -webkit-line-clamp: unset; }
+
+    .acts { display: none; }
+    .row.open { padding-bottom: 0; }
+    .row.open .acts { display: flex; gap: 8px; margin: 14px -16px 0; padding: 4px 8px; background: var(--grey); }
+    .acts button {
+      height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer;
+      font: 500 14px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--accent);
+    }
+    .acts button:focus-visible { outline: 2px solid var(--blue); }
+
+    /* New since the last refresh: slides down into place. */
+    .row.is-new { animation: arrive .35s cubic-bezier(.4, 0, .2, 1); }
+    @keyframes arrive { from { opacity: 0; transform: translateY(-16px); } }
+    @media (prefers-reduced-motion: reduce) { .row.is-new { animation: none; } .chev { transition: none; } }
+
+    .empty { padding: 48px 16px; text-align: center; color: var(--soft); }
+    footer { padding: 16px; font-size: 12px; color: var(--soft); background: var(--grey); border-top: 1px solid var(--line); }
+    footer p { margin: 0 0 4px; }
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      padding: 12px 20px; border-radius: 2px; background: #323232; color: #fff; font-size: 14px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="shade">
+    <header class="band">
+      <div class="head">
+        <h1>Push Feed</h1>
+        <p class="status" role="status" aria-live="polite" style="margin:0"><span class="dot" id="dot"></span><span id="status">Loading…</span></p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Feeds">
+        <button type="button" role="tab" id="tab-news" aria-selected="true">News</button>
+        <button type="button" role="tab" id="tab-side" aria-selected="false">AT Mobile</button>
+      </div>
+      <div class="controls">
+        <input type="search" id="search" placeholder="Search alerts…" aria-label="Search alerts" autocomplete="off">
+        <select id="filter" aria-label="Filter by publisher"><option value="">All apps</option></select>
+      </div>
+    </header>
+
+    <main id="feed" aria-label="Notifications"><p class="empty">Loading the latest alerts…</p></main>
+
+    <footer>
+      <p>Prototype of the Android skin. Independent hobby project, not affiliated with Project Push or any publisher shown.</p>
+      <p>Headlines belong to their publishers. Refreshes every minute.</p>
+    </footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="feed-core.js"></script>
+  <script>
+    const { time, publisher, initials } = PushFeed;
+    const $ = id => document.getElementById(id);
+    const feed = $('feed'), search = $('search'), filter = $('filter');
+    let items = [], onSide = location.hash === '#side';
+    const open = new Set();   // ids tapped open, kept across refreshes
+
+    // "now", "12m", "3h", then the clock: "9:14 pm"
+    function when(ms) {
+      const m = Math.floor(Math.max(0, Date.now() - ms) / 60000);
+      if (m < 1) return 'now';
+      if (m < 60) return m + 'm';
+      if (m < 240) return Math.floor(m / 60) + 'h';
+      return time.clock(ms);
+    }
+
+    function make(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+
+    // The small icon: one-colour glyph tinted the app's colour; 1News and
+    // TVNZ+ keep their own colours; no glyph yet → its icon, else initials.
+    function glyph(item, p) {
+      if (p.glyph && p.colourGlyph) {
+        const i = make('img', 'glyph img'); i.src = `../svgs/glyphs/${p.glyph}.svg`; i.alt = ''; return i;
+      }
+      if (p.glyph) {
+        const s = make('span', 'glyph tint'); s.style.setProperty('--src', `url("../svgs/glyphs/${p.glyph}.svg")`); return s;
+      }
+      if (p.icon) {
+        const i = make('img', 'glyph photo'); i.src = `../icons/${p.icon}.png`; i.alt = ''; return i;
+      }
+      return make('span', 'glyph initials', initials(item.app));
+    }
+
+    function row(item) {
+      const p = publisher(item.app);
+      const r = make('article', 'row' + (item.isNew ? ' is-new' : '') + (open.has(item.id) ? ' open' : ''));
+      r.style.setProperty('--accent', p.colour);
+      r.tabIndex = 0;
+
+      const hd = make('div', 'hd');
+      const t = make('time', 'when', when(item.time));
+      t.dataset.time = item.time;
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = time.full(item);
+      hd.append(glyph(item, p), make('span', 'app', item.app), make('span', 'sep', '•'), t);
+      if (item.repeats.length) hd.append(make('span', 'count', String(item.repeats.length + 1)));
+      hd.insertAdjacentHTML('beforeend', '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>');
+      r.append(hd);
+      if (item.byline) r.append(make('div', 'author', item.byline));
+      r.append(make('p', 'text', item.headline));
+
+      const acts = make('div', 'acts');
+      const copyBtn = make('button', '', 'Copy'), shareBtn = make('button', '', 'Share');
+      copyBtn.type = shareBtn.type = 'button';
+      copyBtn.onclick = async e => { e.stopPropagation(); toast(await PushFeed.copy(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
+      shareBtn.onclick = async e => { e.stopPropagation(); const res = await PushFeed.share(item); if (res === 'copied') toast('Headline copied'); };
+      acts.append(copyBtn, shareBtn);
+      r.append(acts);
+
+      const toggle = () => {
+        r.classList.toggle('open');
+        r.classList.contains('open') ? open.add(item.id) : open.delete(item.id);
+      };
+      r.addEventListener('click', toggle);
+      r.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === r) { e.preventDefault(); toggle(); } });
+      return r;
+    }
+
+    function render() {
+      const q = search.value.trim().toLowerCase(), app = filter.value;
+      const list = items.filter(i => i.side === onSide && (!app || i.app === app) &&
+        (!q || (i.app + ' ' + i.byline + ' ' + i.headline).toLowerCase().includes(q)));
+      feed.replaceChildren();
+      if (!list.length) {
+        feed.append(make('p', 'empty', (q || app) ? 'No alerts match your search.' : items.length ? 'Nothing on this tab yet.' : 'No alerts yet.'));
+        return;
+      }
+      let day = null;
+      for (const item of list) {
+        const d = time.dayKey(item.time);
+        if (d !== day) { day = d; feed.append(make('h2', 'day', time.dayLabel(item.time))); }
+        feed.append(row(item));
+      }
+    }
+
+    function updateTabs() {
+      const side = items.filter(i => i.side).length;
+      $('tab-news').replaceChildren('News', make('span', 'n', String(items.length - side)));
+      $('tab-side').replaceChildren(PushFeed.CONFIG.SIDE_TAB.label, make('span', 'n', String(side)));
+      $('tab-news').setAttribute('aria-selected', String(!onSide));
+      $('tab-side').setAttribute('aria-selected', String(onSide));
+    }
+    function updateFilter() {
+      const counts = new Map();
+      for (const i of items) if (i.side === onSide) counts.set(i.app, (counts.get(i.app) || 0) + 1);
+      const chosen = filter.value;
+      filter.replaceChildren(new Option('All apps', ''));
+      for (const name of [...counts.keys()].sort((a, b) => a.localeCompare(b))) filter.append(new Option(`${name} (${counts.get(name)})`, name));
+      filter.value = counts.has(chosen) ? chosen : '';
+    }
+    function switchTab(side) {
+      if (side === onSide) return;
+      onSide = side;
+      history.replaceState(null, '', side ? '#side' : location.pathname + location.search);
+      updateTabs(); updateFilter(); render();
+    }
+
+    let toastTimer;
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    $('tab-news').onclick = () => switchTab(false);
+    $('tab-side').onclick = () => switchTab(true);
+    search.addEventListener('input', render);
+    filter.addEventListener('change', render);
+
+    PushFeed.start({
+      onData(list) { items = list; updateTabs(); updateFilter(); render(); },
+      onStatus(state, text) { $('dot').className = 'dot ' + state; $('status').textContent = text; },
+      onTick() { for (const t of feed.querySelectorAll('.when')) t.textContent = when(Number(t.dataset.time)); },
+    });
+  </script>
+</body>
+</html>

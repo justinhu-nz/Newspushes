@@ -1,0 +1,322 @@
+<!doctype html>
+<!--
+  PROTOTYPE: Push Feed in the Android 6 "Marshmallow" notification style,
+  on the real feed (same CSV, refresh and repeat-hiding as index.html, from
+  feed-core.js). Draft G from material-options.html.
+    • Off-white cards with 2px corners, 8px in from the edges and 4px
+      apart, on a dimmed geometric wallpaper
+    • A 40px circle in the app's colour holding its white glyph
+    • Headline as the title (three lines until tapped), author in grey
+      below, clock time top right with the repeat count under it
+    • Dark blue-grey header panel; tap a card for the whole alert and
+      Copy / Share
+  Measurements are Android's own, in dp (1px here = 1dp).
+  Needs ../icons/ and ../svgs/glyphs/ beside it.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#263238">
+  <title>Push Feed · Marshmallow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap">
+  <style>
+    :root {
+      --card: #fafafa;
+      --title: #212121;
+      --soft: #757575;
+      --panel: #37474f;
+      --panel-dark: #263238;
+      --panel-soft: #b0bec5;
+      --teal: #80cbc4;
+    }
+    * { box-sizing: border-box; }
+    html { background: #2c4a52; }
+    body {
+      margin: 0; min-height: 100vh;
+      font: 14px/20px Roboto, system-ui, sans-serif; color: var(--title);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* A flat, geometric wallpaper in the period's style, dimmed as behind
+       the pulled-down shade. Fixed, so the cards scroll over it. */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background:
+        linear-gradient(rgba(0,0,0,.38), rgba(0,0,0,.38)),
+        linear-gradient(118deg, transparent 0 58%, rgba(0,0,0,.22) 58% 66%, transparent 66%),
+        linear-gradient(118deg, transparent 0 30%, rgba(255,255,255,.06) 30% 44%, transparent 44%),
+        linear-gradient(62deg, #c6b93a 0 14%, transparent 14%),
+        linear-gradient(62deg, transparent 0 62%, #1f4f5c 62%),
+        linear-gradient(160deg, #4a6b70, #2c4a52 70%);
+    }
+    .shade { max-width: 480px; margin: 0 auto; padding-bottom: 24px; }
+
+    /* ── Header panel ── */
+    .panel { position: sticky; top: 0; z-index: 5; background: var(--panel); color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.35); }
+    .head { padding: 18px 16px 10px 20px; }
+    h1 { margin: 0; font-size: 20px; font-weight: 500; line-height: 26px; }
+    .status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; color: var(--panel-soft); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--panel-soft); flex: none; }
+    .dot.is-ok { background: #76ff03; } .dot.is-warn { background: #ffab40; } .dot.is-bad { background: #ff5252; }
+    .tabs { display: flex; }
+    .tabs button {
+      flex: 1; padding: 12px 0 11px; border: 0; background: none; cursor: pointer;
+      font: 500 13px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--panel-soft);
+    }
+    .tabs button[aria-selected="true"] { color: #fff; box-shadow: inset 0 -2px 0 var(--teal); }
+    .tabs .n { font-weight: 400; margin-left: 4px; opacity: .7; }
+    .tabs button:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+
+    /* ── Search card, matching the notifications ── */
+    .controls {
+      display: flex; align-items: center; gap: 8px; height: 48px; margin: 10px 8px 4px; padding: 0 4px 0 0;
+      background: var(--card); border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.35);
+    }
+    .controls input, .controls select {
+      height: 100%; min-width: 0; border: 0; background: transparent;
+      font: 16px Roboto, sans-serif; color: var(--title); -webkit-appearance: none; appearance: none;
+    }
+    .controls input {
+      flex: 1; padding: 0 8px 0 56px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23757575'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") 20px center no-repeat;
+    }
+    .controls input::placeholder { color: var(--soft); }
+    .controls select {
+      flex: 0 1 140px; padding: 0 28px 0 8px; font-size: 14px; cursor: pointer;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23212121'%3E%3Cpath d='m7 10 5 5 5-5z'/%3E%3C/svg%3E") right 2px center no-repeat;
+    }
+    .controls:focus-within { box-shadow: 0 1px 3px rgba(0,0,0,.35), 0 0 0 2px var(--teal); }
+    .controls input:focus, .controls select:focus { outline: none; }
+
+    .day { margin: 14px 20px 6px; font-size: 13px; font-weight: 500; line-height: 20px; color: rgba(255,255,255,.88); text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+    /* ── One notification (all measurements in dp, from the references) ──
+       card ≥ 64 tall, 8 from the edges, 4 apart; circle 40, 12 from the
+       card edge, 12 to the text; time 8 from the right; 20dp lines. */
+    .card {
+      margin: 0 8px 4px; border-radius: 2px; background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,.35); cursor: pointer;
+    }
+    .card:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+    .row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 8px 12px 12px; }
+    .circle { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); overflow: hidden; }
+    .circle .g {   /* white glyph, sized per publisher so they weigh the same */
+      width: var(--size, 20px); height: var(--size, 20px); background: #fff;
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+    }
+    .circle.colour { background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    .circle.colour img { width: 24px; height: 24px; display: block; }
+    .circle img.photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .circle .initials { color: #fff; font-size: 15px; font-weight: 500; }
+    .body { flex: 1; min-width: 0; }
+    .title {
+      font-size: 15px; line-height: 20px; color: var(--title);
+      white-space: pre-line; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .sub { font-size: 13px; line-height: 20px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card.open .title { -webkit-line-clamp: unset; }
+    .card.open .sub { white-space: pre-line; }
+    .card.open .row { align-items: flex-start; }
+    .side { flex: none; align-self: flex-start; display: flex; flex-direction: column; align-items: flex-end; }
+    .when, .count { font-size: 12px; line-height: 20px; color: var(--soft); }
+    .when { cursor: help; }
+
+    .acts { display: none; }
+    .card.open .acts { display: flex; gap: 8px; margin: 0 8px 0 64px; padding: 2px 0 4px; border-top: 1px solid #e0e0e0; }
+    .acts button {
+      display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 0;
+      border: 0; background: none; cursor: pointer; font: 14px Roboto, sans-serif; color: var(--title);
+    }
+    .acts svg { width: 18px; height: 18px; fill: var(--soft); }
+    .acts button:focus-visible { outline: 2px solid var(--teal); }
+
+    .card.is-new { animation: arrive .35s cubic-bezier(.4, 0, .2, 1); }
+    @keyframes arrive { from { opacity: 0; transform: translateY(-16px); } }
+    @media (prefers-reduced-motion: reduce) { .card.is-new { animation: none; } }
+
+    .empty { margin: 32px 16px; text-align: center; color: rgba(255,255,255,.85); }
+    .clear-all { display: flex; justify-content: flex-end; padding: 10px 26px 0; }
+    .clear-all svg { width: 30px; height: 30px; fill: #fff; opacity: .9; }
+    footer { padding: 12px 20px 0; font-size: 12px; line-height: 18px; color: rgba(255,255,255,.7); }
+    footer p { margin: 0 0 4px; }
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      padding: 12px 20px; border-radius: 2px; background: #323232; color: #fff; font-size: 14px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="shade">
+    <header class="panel">
+      <div class="head">
+        <h1>Push Feed</h1>
+        <p class="status" role="status" aria-live="polite"><span class="dot" id="dot"></span><span id="status">Loading…</span></p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Feeds">
+        <button type="button" role="tab" id="tab-news" aria-selected="true">News</button>
+        <button type="button" role="tab" id="tab-side" aria-selected="false">AT Mobile</button>
+      </div>
+    </header>
+
+    <div class="controls">
+      <input type="search" id="search" placeholder="Search alerts…" aria-label="Search alerts" autocomplete="off">
+      <select id="filter" aria-label="Filter by publisher"><option value="">All apps</option></select>
+    </div>
+
+    <main id="feed" aria-label="Notifications"><p class="empty">Loading the latest alerts…</p></main>
+
+    <div class="clear-all" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/></svg></div>
+    <footer>
+      <p>Prototype of the Android skin. Independent hobby project, not affiliated with Project Push or any publisher shown.</p>
+      <p>Headlines belong to their publishers. Refreshes every minute.</p>
+    </footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="feed-core.js"></script>
+  <script>
+    const { time, publisher, initials } = PushFeed;
+    const $ = id => document.getElementById(id);
+    const feed = $('feed'), search = $('search'), filter = $('filter');
+    let items = [], onSide = location.hash === '#side';
+    const open = new Set();
+
+    // Glyph size inside the 40dp circle, by glyph file, so each mark
+    // looks equally heavy (Android's small icons sit in a 24dp box).
+    const SIZE = { 'nz-herald': 18, 'rnz': 24, 'the-spinoff-s': 15, 'stuff': 17, '1news-mono': 26, 'at-mobile': 24 };
+
+    function make(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+
+    function circle(item, p) {
+      const c = make('div', 'circle');
+      const file = p.circleGlyph || (!p.colourGlyph && p.glyph);
+      if (file) {
+        const g = make('span', 'g');
+        g.style.setProperty('--src', `url("../svgs/glyphs/${file}.svg")`);
+        if (SIZE[file]) g.style.setProperty('--size', SIZE[file] + 'px');
+        c.append(g);
+      } else if (p.glyph) {               // colour glyph with no one-colour version (TVNZ+)
+        c.classList.add('colour');
+        const i = make('img'); i.src = `../svgs/glyphs/${p.glyph}.svg`; i.alt = ''; c.append(i);
+      } else if (p.icon) {                // no glyph yet: its app icon
+        const i = make('img', 'photo'); i.src = `../icons/${p.icon}.png`; i.alt = ''; c.append(i);
+      } else {
+        c.append(make('span', 'initials', initials(item.app)));
+      }
+      return c;
+    }
+
+    // News: the headline is the title, the author underneath.
+    // AT Mobile: its alert title is the title, the details underneath.
+    function lines(item) {
+      if (item.side && item.byline) return [item.byline, item.headline];
+      return [item.headline, item.byline];
+    }
+
+    function card(item) {
+      const p = publisher(item.app);
+      const n = make('article', 'card' + (item.isNew ? ' is-new' : '') + (open.has(item.id) ? ' open' : ''));
+      n.style.setProperty('--accent', p.colour);
+      n.tabIndex = 0;
+      n.setAttribute('aria-label', item.app);
+
+      const row = make('div', 'row');
+      const body = make('div', 'body');
+      const [title, sub] = lines(item);
+      body.append(make('div', 'title', title));
+      if (sub) body.append(make('div', 'sub', sub));
+
+      const side = make('div', 'side');
+      const t = make('time', 'when', time.clock(item.time, true));
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = time.full(item);
+      side.append(t);
+      if (item.repeats.length) side.append(make('span', 'count', String(item.repeats.length + 1)));
+      row.append(circle(item, p), body, side);
+
+      const acts = make('div', 'acts');
+      acts.innerHTML =
+        '<button type="button" data-act="copy"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>' +
+        '<button type="button" data-act="share"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a3.3 3.3 0 0 0 0-1.39l7.05-4.11A2.99 2.99 0 1 0 15 5c0 .24.04.47.09.7L8.04 9.81A2.99 2.99 0 1 0 8.04 14.2l7.12 4.16a2.82 2.82 0 1 0 2.84-2.28z"/></svg>Share</button>';
+      acts.addEventListener('click', async e => {
+        e.stopPropagation();
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.act === 'copy') toast(await PushFeed.copy(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy');
+        else if (await PushFeed.share(item) === 'copied') toast('Headline copied');
+      });
+      n.append(row, acts);
+
+      const toggle = () => { n.classList.toggle('open'); n.classList.contains('open') ? open.add(item.id) : open.delete(item.id); };
+      n.addEventListener('click', toggle);
+      n.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === n) { e.preventDefault(); toggle(); } });
+      return n;
+    }
+
+    function render() {
+      const q = search.value.trim().toLowerCase(), app = filter.value;
+      const list = items.filter(i => i.side === onSide && (!app || i.app === app) &&
+        (!q || (i.app + ' ' + i.byline + ' ' + i.headline).toLowerCase().includes(q)));
+      feed.replaceChildren();
+      if (!list.length) {
+        feed.append(make('p', 'empty', (q || app) ? 'No alerts match your search.' : items.length ? 'Nothing on this tab yet.' : 'No alerts yet.'));
+        return;
+      }
+      let day = null;
+      for (const item of list) {
+        const d = time.dayKey(item.time);
+        if (d !== day) { day = d; feed.append(make('h2', 'day', time.dayLabel(item.time))); }
+        feed.append(card(item));
+      }
+    }
+
+    function updateTabs() {
+      const side = items.filter(i => i.side).length;
+      $('tab-news').replaceChildren('News', make('span', 'n', String(items.length - side)));
+      $('tab-side').replaceChildren(PushFeed.CONFIG.SIDE_TAB.label, make('span', 'n', String(side)));
+      $('tab-news').setAttribute('aria-selected', String(!onSide));
+      $('tab-side').setAttribute('aria-selected', String(onSide));
+    }
+    function updateFilter() {
+      const counts = new Map();
+      for (const i of items) if (i.side === onSide) counts.set(i.app, (counts.get(i.app) || 0) + 1);
+      const chosen = filter.value;
+      filter.replaceChildren(new Option('All apps', ''));
+      for (const name of [...counts.keys()].sort((a, b) => a.localeCompare(b))) filter.append(new Option(`${name} (${counts.get(name)})`, name));
+      filter.value = counts.has(chosen) ? chosen : '';
+    }
+    function switchTab(side) {
+      if (side === onSide) return;
+      onSide = side;
+      history.replaceState(null, '', side ? '#side' : location.pathname + location.search);
+      updateTabs(); updateFilter(); render();
+    }
+
+    let toastTimer;
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    $('tab-news').onclick = () => switchTab(false);
+    $('tab-side').onclick = () => switchTab(true);
+    search.addEventListener('input', render);
+    filter.addEventListener('change', render);
+
+    PushFeed.start({
+      onData(list) { items = list; updateTabs(); updateFilter(); render(); },
+      onStatus(state, text) { $('dot').className = 'dot ' + state; $('status').textContent = text; },
+    });
+  </script>
+</body>
+</html>

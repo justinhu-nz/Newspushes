@@ -1,0 +1,767 @@
+<!doctype html>
+<!--
+  PROTOTYPE: four light-mode drafts of the Android (Material) skin for
+  Push Feed, side by side in phone frames, with dummy alerts. For appraisal
+  only; not part of the site.
+    A  Pixel stack       Android 14: one block per day, 28px ends, 4px seams
+    B  Expressive        Android 16 "Material 3 Expressive": floating tinted
+                         cards, chunkier shapes, pill button group
+    C  Sheet             Android 12 style: one white sheet per day, dividers
+    D  Classic           Android 7–11 template: small icon inline in the
+                         header, large icon on the right
+  The colour chips at the top swap the dynamic-colour scheme (Android tints
+  everything from the wallpaper). Tap any notification to expand it.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Material skin drafts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <style>
+    /* ── Dynamic colour schemes (Material 3 light) ── */
+    :root, .scheme-blue {
+      --primary: #0b57d0;        --on-primary: #ffffff;
+      --primary-container: #d3e3fd; --on-primary-container: #041e49;
+      --secondary-container: #c2e7ff; --on-secondary-container: #001d35;
+      --surface: #f8fafd;
+      --surface-lowest: #ffffff;
+      --surface-low: #f3f6fc;
+      --surface-container: #f0f4f9;
+      --surface-high: #e9eef6;
+      --surface-highest: #dde3ea;
+      --on-surface: #1f1f1f;
+      --on-variant: #444746;
+      --outline: #747775;
+      --outline-variant: #c4c7c5;
+      --wall: url("../images/wallpapers/gradient-light.jpg");
+    }
+    .scheme-green {
+      --primary: #146c2e;        --on-primary: #ffffff;
+      --primary-container: #c4eed0; --on-primary-container: #072711;
+      --secondary-container: #d1e8d3; --on-secondary-container: #0c1f12;
+      --surface: #f6fbf3;
+      --surface-lowest: #ffffff;
+      --surface-low: #f0f5ed;
+      --surface-container: #eaf0e7;
+      --surface-high: #e4eae2;
+      --surface-highest: #dfe4dc;
+      --on-surface: #181d18;
+      --on-variant: #414941;
+      --outline: #717970;
+      --outline-variant: #c1c9be;
+      --wall: url("../images/wallpapers/solar-gradient-05.jpg");
+    }
+    .scheme-rose {
+      --primary: #8b4a62;        --on-primary: #ffffff;
+      --primary-container: #ffd9e3; --on-primary-container: #3a071f;
+      --secondary-container: #ffd8e5; --on-secondary-container: #31111d;
+      --surface: #fff8f8;
+      --surface-lowest: #ffffff;
+      --surface-low: #fcf0f2;
+      --surface-container: #f6eaec;
+      --surface-high: #f0e4e7;
+      --surface-highest: #eadfe1;
+      --on-surface: #22191c;
+      --on-variant: #514347;
+      --outline: #837377;
+      --outline-variant: #d5c2c6;
+      --wall: url("../images/wallpapers/solar-gradient-11.jpg");
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #e7e9ee; }
+    body {
+      margin: 0;
+      font: 14px/20px Roboto, system-ui, sans-serif;
+      color: #1f1f1f;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Page chrome (not part of the drafts) ── */
+    .page-head {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 28px 24px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .page-head h1 { margin: 0; font-size: 24px; font-weight: 500; }
+    .page-head p { margin: 4px 0 0; color: #555; max-width: 60ch; }
+    .schemes { display: flex; gap: 8px; }
+    .schemes button {
+      display: flex; align-items: center; gap: 8px;
+      height: 32px; padding: 0 12px 0 8px;
+      border: 1px solid #c4c7c5; border-radius: 8px;
+      background: #fff; font: 500 14px Roboto, sans-serif; color: #1f1f1f;
+      cursor: pointer;
+    }
+    .schemes button[aria-pressed="true"] { background: #1f1f1f; color: #fff; border-color: #1f1f1f; }
+    .schemes i { width: 16px; height: 16px; border-radius: 50%; }
+
+    .grid {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 16px 24px 48px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px 24px;
+      justify-items: center;
+    }
+    figure { margin: 0; }
+    figcaption { margin: 14px 4px 0; max-width: 360px; }
+    figcaption b { display: block; font-size: 16px; font-weight: 500; color: #1f1f1f; }
+    figcaption span { color: #555; font-size: 13px; }
+
+    /* ── Phone frame ── */
+    .phone {
+      width: 360px;
+      height: 760px;
+      border-radius: 40px;
+      padding: 10px;
+      background: #1b1b1d;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    }
+    .screen {
+      position: relative;
+      height: 100%;
+      border-radius: 31px;
+      overflow: hidden;
+      background: var(--surface);
+      color: var(--on-surface);
+      isolation: isolate;
+    }
+    /* Blurred, lightened wallpaper behind the shade. */
+    .screen::before {
+      content: '';
+      position: absolute;
+      inset: -40px;
+      z-index: -2;
+      background: var(--wall) center / cover;
+      filter: blur(30px) saturate(120%);
+    }
+    .screen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: color-mix(in srgb, var(--surface) 72%, transparent);
+    }
+    .scroll { height: 100%; overflow-y: auto; scrollbar-width: none; padding: 0 12px 24px; }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .statusbar {
+      position: sticky; top: 0; z-index: 3;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 36px; margin: 0 -12px; padding: 0 22px;
+      font-size: 14px; font-weight: 500; color: var(--on-surface);
+    }
+    .statusbar::before { /* camera hole */
+      content: ''; position: absolute; left: 50%; top: 10px;
+      width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: #111;
+    }
+    .sb-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ── Shared header bits ── */
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 18px 4px 14px; }
+    .brand { margin: 0; font-size: 24px; font-weight: 400; line-height: 32px; white-space: nowrap; }
+    .tools { display: flex; align-items: center; gap: 6px; }
+    .chip {
+      display: flex; align-items: center; gap: 6px;
+      height: 32px; padding: 0 10px 0 8px;
+      border-radius: 8px; border: 1px solid var(--outline-variant);
+      background: var(--surface-lowest);
+      font-size: 12px; font-weight: 500; letter-spacing: 0.1px; color: var(--on-variant);
+      white-space: nowrap;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #1e8e3e; }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: 0;
+      display: grid; place-items: center;
+      background: var(--surface-high); color: var(--on-variant);
+    }
+    .icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    .seg {
+      display: flex; height: 40px; margin-bottom: 10px;
+      border: 1px solid var(--outline); border-radius: 20px; overflow: hidden;
+    }
+    .seg button {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+      border: 0; background: none; font: 500 14px Roboto, sans-serif; color: var(--on-surface);
+    }
+    .seg button + button { border-left: 1px solid var(--outline); }
+    .seg button.on { background: var(--secondary-container); color: var(--on-secondary-container); }
+    .seg button.on::before {
+      content: ''; width: 18px; height: 18px; background: currentColor;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+    .n { opacity: 0.75; font-weight: 400; }
+
+    .search {
+      display: flex; align-items: center; gap: 12px;
+      height: 52px; padding: 0 16px; margin-bottom: 6px;
+      border-radius: 26px; background: var(--surface-high); color: var(--on-variant);
+      font-size: 15px;
+    }
+    .search svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+    .search .filter { margin-left: auto; display: flex; align-items: center; font-size: 13px; font-weight: 500; color: var(--on-surface); }
+    .search .filter svg { width: 20px; height: 20px; }
+
+    .day { margin: 18px 12px 8px; font-size: 14px; font-weight: 500; letter-spacing: 0.1px; color: var(--on-surface); }
+
+    /* ── Notification (shared parts) ── */
+    .note {
+      position: relative;
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 16px;
+      background: var(--surface-lowest);
+      cursor: pointer;
+    }
+    .ic { flex: none; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-top: 2px; }
+    .ic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .bd { flex: 1; min-width: 0; padding-right: 44px; }
+    .hd { display: flex; font-size: 12px; line-height: 16px; letter-spacing: 0.3px; color: var(--on-variant); white-space: nowrap; }
+    .hd .app { overflow: hidden; text-overflow: ellipsis; }
+    .hd .sep { padding: 0 4px; }
+    .tt { margin-top: 2px; font-size: 16px; font-weight: 500; line-height: 22px; letter-spacing: 0.15px; color: var(--on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tx {
+      margin: 2px 0 0; font-size: 14px; line-height: 20px; letter-spacing: 0.25px; color: var(--on-variant);
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .tx.lead { font-size: 15px; line-height: 21px; color: var(--on-surface); -webkit-line-clamp: 3; }
+    .note.open .tx { -webkit-line-clamp: unset; }
+    .pill {
+      position: absolute; top: 14px; right: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 1px;
+      min-width: 36px; height: 24px; padding: 0 6px; border-radius: 12px;
+      background: var(--surface-high); color: var(--on-surface);
+      font-size: 12px; font-weight: 500;
+    }
+    .pill svg { width: 18px; height: 18px; fill: currentColor; transition: transform 0.2s; }
+    .note.open .pill svg { transform: rotate(180deg); }
+    .lg { display: none; }
+
+    /* ════ A · Pixel stack (Android 14) ════ */
+    .vA .note { border-radius: 4px; margin-bottom: 2px; }
+    .vA .group > .note:first-child { border-top-left-radius: 28px; border-top-right-radius: 28px; }
+    .vA .group > .note:last-child  { border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; margin-bottom: 0; }
+
+    /* ════ B · Expressive (Android 16) ════ */
+    .vB .brand { font-size: 28px; font-weight: 500; letter-spacing: -0.2px; }
+    .vB .chip { border: 0; background: var(--primary-container); color: var(--on-primary-container); border-radius: 16px; }
+    .vB .icon-btn { border-radius: 12px; background: var(--primary-container); color: var(--on-primary-container); }
+    .vB .seg { border: 0; gap: 4px; overflow: visible; height: 44px; }
+    .vB .seg button { border-radius: 22px; background: var(--surface-high); }
+    .vB .seg button + button { border-left: 0; }
+    .vB .seg button.on { flex: 1.3; border-radius: 14px; background: var(--primary); color: var(--on-primary); }
+    .vB .search { height: 56px; border-radius: 28px; background: var(--surface-highest); }
+    .vB .day { font-size: 16px; color: var(--primary); margin-left: 8px; }
+    .vB .note { border-radius: 24px; margin-bottom: 6px; padding: 16px; background: var(--surface-container); }
+    .vB .group > .note:first-child { border-radius: 28px 28px 24px 24px; }
+    .vB .ic { width: 48px; height: 48px; border-radius: 16px; margin-top: 0; }
+    .vB .hd .app { color: var(--primary); font-weight: 500; }
+    .vB .tt, .vB .tx.lead { font-weight: 500; }
+    .vB .pill { background: var(--surface-lowest); top: 16px; right: 16px; height: 28px; border-radius: 14px; }
+    .vB .note.open { background: var(--primary-container); border-radius: 32px; }
+    .vB .note.open .tx, .vB .note.open .tt { color: var(--on-primary-container); }
+
+    /* ════ C · Sheet (Android 12) ════ */
+    .vC .brand { font-size: 22px; }
+    .vC .chip { background: transparent; }
+    .vC .search { background: var(--surface-lowest); border: 1px solid var(--outline-variant); height: 48px; }
+    .vC .seg { height: 36px; border-radius: 18px; }
+    .vC .group { border-radius: 28px; overflow: hidden; background: var(--surface-lowest); }
+    .vC .note { padding: 16px 18px; }
+    .vC .note + .note::before {
+      content: ''; position: absolute; left: 70px; right: 18px; top: 0;
+      border-top: 1px solid var(--outline-variant);
+    }
+    .vC .ic { width: 36px; height: 36px; }
+    .vC .pill { background: transparent; top: 12px; }
+
+    /* ════ D · Classic (Android 7–11) ════ */
+    .vD .brand { font-size: 22px; font-weight: 500; }
+    .vD .seg { border-radius: 4px; border-color: var(--outline-variant); height: 40px; }
+    .vD .seg button.on { background: transparent; color: var(--primary); box-shadow: inset 0 -3px 0 var(--primary); }
+    .vD .seg button.on::before { display: none; }
+    .vD .search { border-radius: 8px; background: var(--surface-lowest); height: 48px; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+    .vD .chip { border-radius: 16px; }
+    .vD .day { margin-left: 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--primary); }
+    .vD .note {
+      padding: 12px 16px 14px;
+      border-radius: 8px; margin-bottom: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.08);
+    }
+    .vD .ic { display: none; }
+    .vD .lg { display: block; flex: none; width: 40px; height: 40px; border-radius: 6px; overflow: hidden; margin-top: 22px; }
+    .vD .lg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vD .bd { padding-right: 0; }
+    .vD .hd { align-items: center; color: var(--primary); }
+    .vD .hd .mini { width: 16px; height: 16px; border-radius: 50%; overflow: hidden; margin-right: 6px; flex: none; }
+    .vD .hd .mini img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .vD .hd .app { font-weight: 500; }
+    .vD .hd .when, .vD .hd .sep { color: var(--on-variant); }
+    .vD .tt, .vD .tx.lead { font-weight: 500; font-size: 14px; line-height: 20px; }
+    .vD .tx { font-size: 14px; }
+    .vD .pill { position: static; min-width: 0; height: 16px; padding: 0 0 0 2px; background: none; color: var(--on-variant); }
+    .vD .pill svg { width: 16px; height: 16px; }
+    .hd .mini { display: none; }
+    .vD .hd .mini { display: block; }
+
+    /* One-colour logo glyphs (svgs/glyphs/), painted in the app's colour
+       the way Android tints a notification's small icon. */
+    .screen .hd .mini.glyph {
+      border-radius: 0; overflow: visible; background: var(--accent);
+      -webkit-mask: var(--glyph) center / contain no-repeat;
+      mask: var(--glyph) center / contain no-repeat;
+    }
+
+    .screen .hd .mini.colour-glyph { border-radius: 0; }
+    .screen .hd .mini.colour-glyph img { object-fit: contain; }
+
+    /* Parts only some drafts use. */
+    .acts, .tm { display: none; }
+
+    /* ════ E · Nougat (Android 7) ════
+       Square white rows edge to edge, 1px dividers, the app name and
+       chevron in the app's colour, large icon on the right, an action row
+       on grey when expanded, a grey header band like the quick settings. */
+    .vE { --n-text: #212121; --n-soft: #757575; --n-grey: #f5f5f5; --n-line: #dcdcdc; }
+    .vE::after { background: rgba(120, 120, 120, 0.55); }
+    .vE .scroll { padding: 0; }
+    .vE .top { background: var(--n-grey); padding: 0 16px 14px; }
+    .vE .statusbar { margin: 0 -16px; background: var(--n-grey); color: #424242; }
+    .vE .statusbar::before { display: none; }
+    .vE .head { padding: 10px 2px 12px; }
+    .vE .brand { font-size: 20px; font-weight: 400; color: #424242; }
+    .vE .chip { border: 0; background: transparent; color: var(--n-soft); padding: 0; font-size: 13px; font-weight: 400; }
+    .vE .dot { background: #43a047; }
+    .vE .icon-btn { background: transparent; color: #616161; width: 32px; }
+    .vE .seg { border: 0; border-radius: 0; height: 40px; margin-bottom: 12px; box-shadow: inset 0 -1px 0 var(--n-line); }
+    .vE .seg button { font-weight: 500; font-size: 13px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--n-soft); }
+    .vE .seg button + button { border-left: 0; }
+    .vE .seg button.on { background: none; color: #1565c0; box-shadow: inset 0 -2px 0 #1565c0; }
+    .vE .seg button.on::before { display: none; }
+    .vE .search { height: 44px; border-radius: 2px; background: #fff; color: var(--n-soft); box-shadow: 0 1px 2px rgba(0,0,0,.2); margin: 0; }
+    .vE .search .filter { color: var(--n-soft); }
+    .vE .day {
+      margin: 0; padding: 10px 16px; background: var(--n-grey);
+      font-size: 13px; font-weight: 400; color: var(--n-soft);
+      border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line);
+    }
+    .vE .group { box-shadow: 0 2px 3px rgba(0,0,0,.25); }
+    .vE .note { flex-wrap: wrap; gap: 0 16px; padding: 14px 16px 16px; background: #fff; }
+    .vE .note + .note { border-top: 1px solid var(--n-line); }
+    .vE .ic { display: none; }
+    /* No large icon on the right: the tinted glyph in the header is enough. */
+    .vE .bd { padding: 0; min-width: 0; }
+    .vE .hd { align-items: center; font-size: 12px; letter-spacing: 0; color: var(--n-soft); }
+    .vE .hd .mini { display: block; width: 18px; height: 18px; margin-right: 8px; border-radius: 50%; overflow: hidden; flex: none; }
+    .vE .hd .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vE .hd .app { color: var(--accent); }
+    .vE .tt, .vE .tx.lead { margin-top: 6px; font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0; color: var(--n-text); }
+    .vE .tt + .tx { margin-top: 0; }
+    .vE .tx { font-size: 14px; letter-spacing: 0; color: var(--n-soft); -webkit-line-clamp: 3; }
+    .vE .pill { position: static; min-width: 0; height: 16px; padding: 0 0 0 6px; gap: 2px; background: none; color: var(--accent); font-size: 12px; font-weight: 400; }
+    .vE .pill svg { width: 16px; height: 16px; }
+    .vE .note.open { padding-bottom: 0; }
+    .vE .note.open .tx { -webkit-line-clamp: unset; }
+    .vE .note.open .acts {
+      display: flex; gap: 8px; flex-basis: 100%;
+      margin: 14px -16px 0; padding: 4px 8px; background: var(--n-grey);
+    }
+    .vE .acts button {
+      height: 44px; padding: 0 8px; border: 0; background: none;
+      font: 500 14px Roboto, sans-serif; letter-spacing: 0.4px; text-transform: uppercase; color: var(--accent);
+    }
+
+    /* ════ F · Pie (Android 9) ════
+       Rounded white cards with a soft shadow, a neutral header line with
+       the chevron, bold title, black text, a coloured text action. */
+    .vF { --p-text: #202124; --p-soft: #5f6368; }
+    .vF::after { background: rgba(232, 234, 237, 0.82); }
+    .vF .brand { font-size: 22px; color: var(--p-text); }
+    .vF .chip { border: 0; background: #fff; border-radius: 16px; color: var(--p-soft); box-shadow: 0 1px 2px rgba(60,64,67,.3); }
+    .vF .icon-btn { background: #fff; color: var(--p-soft); box-shadow: 0 1px 2px rgba(60,64,67,.3); }
+    .vF .seg { border-color: #dadce0; border-radius: 8px; height: 38px; background: #fff; }
+    .vF .seg button + button { border-left-color: #dadce0; }
+    .vF .seg button.on { background: #e8f0fe; color: #1967d2; }
+    .vF .seg button.on::before { display: none; }
+    .vF .search { border-radius: 8px; height: 46px; background: #fff; box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); color: var(--p-soft); }
+    .vF .day { margin: 16px 6px 8px; font-size: 13px; color: var(--p-soft); }
+    .vF .note {
+      flex-wrap: wrap; gap: 0 16px;
+      padding: 12px 16px 16px; margin-bottom: 8px; border-radius: 8px; background: #fff;
+      box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    }
+    .vF .ic { display: none; }
+    .vF .lg { display: block; flex: none; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; margin-top: 30px; }
+    .vF .lg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vF .bd { padding: 0; min-width: 0; }
+    .vF .hd { align-items: center; font-size: 13px; letter-spacing: 0; color: var(--p-text); }
+    .vF .hd .mini { display: block; width: 20px; height: 20px; margin-right: 10px; border-radius: 50%; overflow: hidden; flex: none; }
+    .vF .hd .mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .vF .hd .sep, .vF .hd .when { color: var(--p-soft); }
+    .vF .tt, .vF .tx.lead { margin-top: 10px; font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.1px; color: var(--p-text); }
+    .vF .tt + .tx { margin-top: 0; }
+    .vF .tx { font-size: 14px; letter-spacing: 0.1px; color: var(--p-text); }
+    .vF .pill { position: static; min-width: 0; height: 18px; padding: 0 0 0 6px; background: none; color: var(--p-text); font-size: 12px; }
+    .vF .pill svg { width: 18px; height: 18px; }
+    .vF .note.open .acts { display: flex; gap: 16px; flex-basis: 100%; margin-top: 12px; }
+    .vF .acts button { padding: 0; border: 0; background: none; font: 500 14px Roboto, sans-serif; color: var(--accent); }
+
+    /* ════ G · Marshmallow (Android 6) ════
+       Off-white cards with 2px corners floating 8px in from the edges on
+       the dimmed wallpaper, a 40px circle in the app's colour holding its
+       white glyph, title with the clock time on the right, one grey line
+       of text with the repeat count under the time. Dark blue-grey header
+       panel, like the top of the shade. Tap a card for the full text and
+       its actions. */
+    .vG { --g-card: #fafafa; --g-title: #212121; --g-soft: #757575; --g-panel: #37474f; }
+    .vG::before {   /* a flat, geometric wallpaper in the period's style */
+      inset: 0; filter: none;
+      background:
+        linear-gradient(118deg, transparent 0 58%, rgba(0,0,0,.22) 58% 66%, transparent 66%),
+        linear-gradient(118deg, transparent 0 30%, rgba(255,255,255,.06) 30% 44%, transparent 44%),
+        linear-gradient(62deg, #c6b93a 0 14%, transparent 14%),
+        linear-gradient(62deg, transparent 0 62%, #1f4f5c 62%),
+        linear-gradient(160deg, #4a6b70, #2c4a52 70%);
+    }
+    .vG::after { background: rgba(0, 0, 0, 0.38); }
+    /* Android lays out on a 360dp-wide screen; draw at that size and
+       shrink to the 340px frame, so 1px here = 1dp and every measurement
+       can be taken straight from the references. */
+    .vG .scroll { padding: 0 0 24px; width: 360px; height: calc(100% * 360 / 340); zoom: calc(340 / 360); }
+
+    .vG .statusbar { margin: 0; height: 24px; padding: 0 12px 0 16px; font-size: 14px; color: #fff; background: #263238; }
+    .vG .statusbar::before { display: none; }
+    .g-panel {
+      background: var(--g-panel); color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,.35); margin-bottom: 10px;
+    }
+    .g-head { display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 20px; }
+    .g-titles { flex: 1; min-width: 0; }
+    .g-brand { margin: 0; font-size: 20px; font-weight: 500; line-height: 26px; }
+    .g-sub { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #b0bec5; }
+    .g-sub .dot { width: 7px; height: 7px; background: #76ff03; }
+    .g-icons { display: flex; align-items: center; gap: 14px; color: #fff; }
+    .g-icons svg { width: 20px; height: 20px; fill: currentColor; display: block; }
+    .g-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #26c6da; color: #fff; }
+    .g-tabs { display: flex; }
+    .g-tabs span {
+      flex: 1; text-align: center; padding: 12px 0 11px;
+      font-size: 13px; font-weight: 500; letter-spacing: .6px; text-transform: uppercase; color: #b0bec5;
+    }
+    .g-tabs span.on { color: #fff; box-shadow: inset 0 -2px 0 #80cbc4; }
+    .g-tabs b { font-weight: 400; opacity: .7; margin-left: 4px; }
+    .g-search {
+      display: flex; align-items: center; gap: 16px; height: 48px; margin: 0 8px 4px; padding: 0 8px 0 20px;
+      background: var(--g-card); border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.35);
+      color: var(--g-soft); font-size: 15px;
+    }
+    .g-search svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+    .g-search .filter { margin-left: auto; display: flex; align-items: center; font-size: 14px; color: var(--g-title); }
+    .g-search .filter svg { width: 20px; height: 20px; }
+
+    .vG .day { margin: 14px 20px 6px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,.85); text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+    .mn {
+      position: relative; margin: 0 8px 4px; border-radius: 2px;
+      background: var(--g-card); box-shadow: 0 1px 3px rgba(0,0,0,.35);
+      cursor: pointer;
+    }
+    /* From the references (in dp): card 64 tall, 8 in from the screen
+       edges, 4 apart; circle 40, 12 from the card edge, 12 to the text;
+       time 8 from the right edge; 20dp lines centred in the card. Type is
+       a step under Android's 16/14/12sp (15/13/12) so headlines sit lighter. */
+    .mn-row { display: flex; align-items: center; gap: 12px; padding: 12px 8px 12px 12px; min-height: 64px; }
+    .mn-circle {
+      flex: none; width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center; background: var(--accent);
+    }
+    .mn-circle .g {   /* the glyph, white, about 24px in a 40px circle */
+      width: 20px; height: 20px; background: #fff;
+      -webkit-mask: var(--glyph) center / contain no-repeat; mask: var(--glyph) center / contain no-repeat;
+    }
+    /* Each glyph sized by eye so they weigh the same in the circle
+       (Android's small icons sit inside a 24dp box). */
+    .mn-circle .g-nz-herald   { width: 18px; height: 18px; }
+    .mn-circle .g-rnz         { width: 24px; height: 24px; }   /* tall, narrow */
+    .mn-circle .g-the-spinoff { width: 15px; height: 15px; }
+    .mn-circle .g-stuff       { width: 17px; height: 17px; }
+    .mn-circle .g-1news       { width: 26px; height: 26px; }   /* fine detail */
+    .mn-circle .g-at-mobile   { width: 24px; height: 24px; }
+    .mn-circle.colour { background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    .mn-circle.colour img { width: 24px; height: 24px; display: block; }
+    .mn-circle.photo { overflow: hidden; }
+    .mn-circle.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mn-body { flex: 1; min-width: 0; }
+    .mn-line { display: flex; align-items: baseline; gap: 12px; }
+    .mn-title {
+      min-width: 0; font-size: 15px; line-height: 20px; color: var(--g-title);
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .mn.open .mn-title { -webkit-line-clamp: unset; }
+    .mn-side { flex: none; align-self: flex-start; display: flex; flex-direction: column; align-items: flex-end; }
+    .mn-time, .mn-count { font-size: 12px; line-height: 20px; color: var(--g-soft); }
+    .mn-text { min-width: 0; font-size: 13px; line-height: 20px; color: var(--g-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mn.open .mn-row { align-items: flex-start; }
+    .mn.open .mn-circle { margin-top: 0; }
+    .mn-acts { display: none; }
+    .mn.open .mn-acts {
+      display: flex; gap: 8px; margin-left: 64px; margin-right: 8px; padding: 2px 0 4px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .mn-acts button {
+      display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 0;
+      border: 0; background: none; font: 400 14px Roboto, sans-serif; color: var(--g-title);
+    }
+    .mn-acts svg { width: 18px; height: 18px; fill: var(--g-soft); }
+    .mn.quiet { background: #eeeeee; }   /* low priority, like the weather card */
+    .g-clear { display: flex; justify-content: flex-end; padding: 10px 26px 0; }
+    .g-clear svg { width: 30px; height: 30px; fill: #fff; opacity: .9; }
+  </style>
+</head>
+<body class="scheme-blue">
+  <header class="page-head">
+    <div>
+      <h1>Material skin drafts: light mode</h1>
+      <p>Four options with dummy alerts. Tap a notification to expand it. The chips swap Android's wallpaper-based colour scheme.</p>
+    </div>
+    <div class="schemes" role="group" aria-label="Colour scheme">
+      <button type="button" data-scheme="blue" aria-pressed="true"><i style="background:#0b57d0"></i>Blue</button>
+      <button type="button" data-scheme="green" aria-pressed="false"><i style="background:#146c2e"></i>Green</button>
+      <button type="button" data-scheme="rose" aria-pressed="false"><i style="background:#8b4a62"></i>Rose</button>
+    </div>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+  <script>
+    const VARIANTS = [
+      { id: 'A', name: 'A · Pixel stack', note: 'Android 14 on a Pixel. Each day is one block: 28px outer corners, 4px seams, round icons, expand pill top right. The light version of what\'s on the site now.' },
+      { id: 'B', name: 'B · Expressive', note: 'Android 16 "Material 3 Expressive". Floating tinted cards, rounded-square icons, the app name in the accent colour, a pill button group, and the open card fills with colour.' },
+      { id: 'C', name: 'C · Sheet', note: 'Android 12 feel. One white sheet per day with hairline dividers, quieter controls, the most compact of the four.' },
+      { id: 'D', name: 'D · Classic', note: 'Android 7–11 template. Small icon and coloured app name in the header row, the big icon on the right, light shadows, underlined tabs.' },
+      { id: 'E', name: 'E · Nougat', note: 'Android 7, from your references. Square rows edge to edge with dividers, app name and chevron in each publisher\'s colour, no large icon (the tinted glyph carries the brand), grey header band. Tap a row for the grey OPEN / SHARE action bar.' },
+      { id: 'F', name: 'F · Pie', note: 'Android 9, from your references. Rounded white cards with soft shadows, a neutral "icon App • time ⌄" line, bold title, black text. Expanding shows a coloured "Open article" action.' },
+      { id: 'G', name: 'G · Marshmallow', note: 'Android 6, refined from your references. Off-white cards floating on the wallpaper, each app\'s white glyph in a circle of its colour, the headline as the title (up to two lines), author in grey when there is one, clock time top right with the repeat count under it, dark header panel. Tap a card for the full text and actions.' },
+    ];
+
+    // Apps with a one-colour glyph in svgs/glyphs/ (same name as icons/).
+    const GLYPHS = ['nz-herald', 'rnz', 'the-spinoff', 'stuff', 'at-mobile'];
+    // These keep their brand colours instead of taking the app's tint.
+    const COLOUR_GLYPHS = ['1news', 'tvnz-plus'];
+
+    // Each app's notification colour (used by E and F), darkened from the
+    // site's BRAND_COLOURS so it reads on white.
+    const ACCENT = {
+      'NZ Herald': '#1a1a1a', 'RNZ': '#c62828', 'The Spinoff': '#0048c8', 
+      'Stuff': '#5e35b1', '1News': '#c8412f', 'The Post': '#1565c0', 'Te Ao News': '#a4032f',
+    };
+
+    const ALERTS = [
+      { day: 'Today', app: 'NZ Herald', icon: 'nz-herald', when: 'now', clock: '9:41 AM', text: 'Breaking: Reserve Bank cuts the official cash rate by 50 basis points to 2.25 per cent, the lowest level since 2021.' },
+      { day: 'Today', app: 'RNZ', icon: 'rnz', when: '12m', clock: '9:29 AM', text: 'Health expert accuses NZ Food Safety of \'very poor\' performance over campylobacter rates', repeats: 2 },
+      { day: 'Today', app: 'The Spinoff', icon: 'the-spinoff', when: '38m', clock: '9:03 AM', title: 'Toby Manhire', text: 'The week in politics: five things we learned from a chaotic Thursday at Parliament.' },
+      { day: 'Today', app: '1News', icon: '1news', when: '1h', clock: '8:41 AM', text: 'Newsmakers: Rogernomics – the man who changed NZ\'s economy forever' },
+      { day: 'Today', app: 'Stuff', icon: 'stuff', when: '2h', clock: '7:40 AM', text: 'Watch: Hundreds spot orcas passing close to swimmers at popular Auckland beach' },
+      { day: 'Yesterday', app: 'The Post', icon: 'the-post', when: '21:14', clock: '9:14 PM', text: 'Wellington water: council confirms another $40m for pipe repairs after summer of leaks' },
+      { day: 'Yesterday', app: 'Te Ao News', icon: 'te-ao-news', when: '18:02', clock: '6:02 PM', text: 'Kapa haka groups gather in Rotorua ahead of next year\'s national festival' },
+      { day: 'Yesterday', app: 'RNZ', icon: 'rnz', when: '16:40', clock: '4:40 PM', text: 'Weather: heavy rain watch for Coromandel and Bay of Plenty as low moves south' },
+    ];
+
+    const SVG = {
+      chevron: '<svg viewBox="0 0 24 24"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>',
+      search: '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
+      drop: '<svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5z"/></svg>',
+      wall: '<svg viewBox="0 0 24 24"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z"/></svg>',
+      phone: '<svg viewBox="0 0 24 24"><path d="M17 1H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 18H7V5h10v14z"/></svg>',
+      wifi: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21 0 9a17 17 0 0 1 24 0z"/></svg>',
+      batt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>',
+    };
+
+    // Headlines are dummy text written above, but build with textContent
+    // anyway, as the real page does.
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+    function img(name) {
+      const i = el('img'); i.src = '../icons/' + name + '.png'; i.alt = ''; return i;
+    }
+
+    function note(a) {
+      const n = el('article', 'note');
+      const ic = el('div', 'ic'); ic.append(img(a.icon));
+      const lg = el('div', 'lg'); lg.append(img(a.icon));
+      const bd = el('div', 'bd');
+      const hd = el('div', 'hd');
+      const mini = el('span', 'mini');
+      if (COLOUR_GLYPHS.includes(a.icon)) {
+        // Keeps its own colours, so drawn as an image rather than tinted.
+        const g = el('img'); g.src = `../svgs/glyphs/${a.icon}.svg`; g.alt = '';
+        mini.classList.add('colour-glyph');
+        mini.append(g);
+      } else if (GLYPHS.includes(a.icon)) {
+        mini.classList.add('glyph');
+        mini.style.setProperty('--glyph', `url("../svgs/glyphs/${a.icon}.svg")`);
+      } else {
+        mini.append(img(a.icon));   // no glyph yet: tiny colour icon
+      }
+      hd.append(mini, el('span', 'app', a.app), el('span', 'sep', '•'), el('span', 'when', a.when));
+      const pill = el('span', 'pill');
+      if (a.repeats) pill.append(String(a.repeats));
+      pill.insertAdjacentHTML('beforeend', SVG.chevron);
+      bd.append(hd);
+      if (a.title) bd.append(el('div', 'tt', a.title));
+      bd.append(el('p', 'tx' + (a.title ? '' : ' lead'), a.text));
+      n.style.setProperty('--accent', ACCENT[a.app] || 'var(--primary)');
+      const acts = el('div', 'acts');
+      acts.append(el('button', '', 'Open article'), el('button', '', 'Share'));
+      const tm = el('span', 'tm', a.when);
+      n.append(ic, bd, lg, pill, tm, acts);
+      acts.addEventListener('click', e => e.stopPropagation());
+      // Classic template keeps the chevron in the header row.
+      n.addEventListener('click', () => n.classList.toggle('open'));
+      return n;
+    }
+
+    // Draft G: Marshmallow notification card.
+    //   (●)  The headline, up to two lines             9:41 AM
+    //        Author (when there is one)                     2
+    function noteM(a) {
+      const n = el('article', 'mn');
+      n.style.setProperty('--accent', ACCENT[a.app] || '#607d8b');
+      const row = el('div', 'mn-row');
+      const circle = el('div', 'mn-circle');
+      // In a circle, glyphs go white; these have one-colour versions made
+      // for it (the plain ones are a disc, or depend on colour).
+      const CIRCLE_FILE = { 'the-spinoff': 'the-spinoff-s', '1news': '1news-mono' };
+      if (COLOUR_GLYPHS.includes(a.icon) && !CIRCLE_FILE[a.icon]) {
+        circle.classList.add('colour');
+        const g = el('img'); g.src = `../svgs/glyphs/${a.icon}.svg`; g.alt = '';
+        circle.append(g);
+      } else if (GLYPHS.includes(a.icon) || CIRCLE_FILE[a.icon]) {
+        const g = el('span', 'g g-' + a.icon);
+        const file = CIRCLE_FILE[a.icon] || a.icon;
+        g.style.setProperty('--glyph', `url("../svgs/glyphs/${file}.svg")`);
+        circle.append(g);
+      } else {
+        circle.classList.add('photo');   // no glyph yet: its app icon
+        circle.append(img(a.icon));
+      }
+      const body = el('div', 'mn-body');
+      const l1 = el('div', 'mn-line');
+      // The headline is the title (the circle already says which app);
+      // the grey line is the author when there is one.
+      body.append(el('div', 'mn-title', a.text));
+      if (a.title) body.append(el('div', 'mn-text', a.title));
+      // Time on top, repeat count under it, in their own column.
+      const side = el('div', 'mn-side');
+      side.append(el('span', 'mn-time', a.clock));
+      if (a.repeats) side.append(el('span', 'mn-count', String(a.repeats)));
+      row.append(circle, body, side);
+      const acts = el('div', 'mn-acts');
+      acts.insertAdjacentHTML('beforeend',
+        '<button><svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>Open article</button>' +
+        '<button><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a3.3 3.3 0 0 0 0-1.39l7.05-4.11A2.99 2.99 0 1 0 15 5c0 .24.04.47.09.7L8.04 9.81A2.99 2.99 0 1 0 8.04 14.2l7.12 4.16a2.82 2.82 0 1 0 2.84-2.28z"/></svg>Share</button>');
+      acts.addEventListener('click', e => e.stopPropagation());
+      n.append(row, acts);
+      n.addEventListener('click', () => n.classList.toggle('open'));
+      return n;
+    }
+
+    function phoneG(scroll) {
+      scroll.insertAdjacentHTML('beforeend', `
+        <div class="statusbar"><span>9:41</span><span class="sb-icons">${SVG.wifi}${SVG.batt}</span></div>
+        <div class="g-panel">
+          <div class="g-head">
+            <div class="g-titles">
+              <h2 class="g-brand">Push Feed</h2>
+              <div class="g-sub"><span class="dot"></span>Last alert 9:41 AM</div>
+            </div>
+            <div class="g-icons">${SVG.wall}<span class="g-avatar">${SVG.phone}</span></div>
+          </div>
+          <div class="g-tabs"><span class="on">News<b>143</b></span><span>AT Mobile<b>6</b></span></div>
+        </div>
+        <div class="g-search">${SVG.search}<span>Search alerts…</span><span class="filter">All apps ${SVG.drop}</span></div>
+      `);
+      let day = null;
+      for (const a of ALERTS) {
+        if (a.day !== day) { day = a.day; scroll.append(el('div', 'day', day)); }
+        scroll.append(noteM(a));
+      }
+      scroll.insertAdjacentHTML('beforeend',
+        '<div class="g-clear"><svg viewBox="0 0 24 24"><path d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/></svg></div>');
+    }
+
+    function phone(v) {
+      const fig = el('figure');
+      const ph = el('div', 'phone');
+      const sc = el('div', 'screen v' + v.id);
+      const scroll = el('div', 'scroll');
+      sc.append(scroll);
+      ph.append(sc);
+      if (v.id === 'G') {
+        phoneG(scroll);
+        const cap = el('figcaption');
+        cap.append(el('b', '', v.name), el('span', '', v.note));
+        fig.append(ph, cap);
+        return fig;
+      }
+
+      scroll.insertAdjacentHTML('beforeend', `
+        <div class="statusbar"><span>9:41</span><span class="sb-icons">${SVG.wifi}${SVG.batt}</span></div>
+        <div class="top"><div class="head">
+          <h2 class="brand">Push Feed</h2>
+          <div class="tools">
+            <span class="chip"><span class="dot"></span>Last alert now</span>
+            <button class="icon-btn" aria-label="Skin">${SVG.phone}</button>
+          </div>
+        </div>
+        <div class="seg"><button class="on">News <span class="n">143</span></button><button>AT Mobile <span class="n">6</span></button></div>
+        <div class="search">${SVG.search}<span>Search alerts…</span><span class="filter">All apps ${SVG.drop}</span></div></div>
+      `);
+
+      let day = null, group = null;
+      for (const a of ALERTS) {
+        if (a.day !== day) {
+          day = a.day;
+          scroll.append(el('div', 'day', day));
+          group = el('div', 'group');
+          scroll.append(group);
+        }
+        const n = note(a);
+        if ('DEF'.includes(v.id)) { // chevron sits after the time in the header
+          n.querySelector('.hd').append(n.querySelector('.pill'));
+        }
+        group.append(n);
+      }
+
+      const cap = el('figcaption');
+      cap.append(el('b', '', v.name), el('span', '', v.note));
+      fig.append(ph, cap);
+      return fig;
+    }
+
+    const grid = document.getElementById('grid');
+    VARIANTS.forEach(v => grid.append(phone(v)));
+
+    document.querySelectorAll('.schemes button').forEach(b => b.addEventListener('click', () => {
+      document.body.className = 'scheme-' + b.dataset.scheme;
+      document.querySelectorAll('.schemes button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    }));
+  </script>
+</body>
+</html>

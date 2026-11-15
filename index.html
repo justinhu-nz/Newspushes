@@ -51,6 +51,12 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://applesocial.s3.amazonaws.com" crossorigin>
 
+  <!-- Roboto, Android's system font, for the Material skin only. The
+       browser only downloads it if the Material skin is showing. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+
   <!-- A different wallpaper on each visit. This runs before the page is
        drawn, so the chosen one is the only one downloaded and nothing
        flashes. EDIT ME: add or remove file names to change the rotation. -->
@@ -90,6 +96,16 @@
       if (new URLSearchParams(location.search).has('display')) {
         document.documentElement.classList.add('display-mode');
       }
+
+      // Skin: the iOS look (default) or Android's Material notifications.
+      // ?skin=material / ?skin=ios on the address wins; otherwise the
+      // visitor's last choice (the skin button in the header) is used.
+      var skinParam = new URLSearchParams(location.search).get('skin');
+      var skin = null;
+      if (skinParam === 'material' || skinParam === 'android') skin = 'material';
+      else if (skinParam === 'ios') skin = 'ios';
+      if (!skin) { try { skin = localStorage.getItem('pushFeedSkin'); } catch (e) { /* fine */ } }
+      if (skin === 'material') document.documentElement.classList.add('skin-material');
     })();
   </script>
 
@@ -603,6 +619,11 @@
     /* On narrow phones, stack the search box above the dropdown. */
     @media (max-width: 420px) {
       .controls select { flex-basis: 128px; }
+      /* Keep "Push Feed" on one line beside the status pill and buttons. */
+      .brand { font-size: 26px; white-space: nowrap; }
+      .header-tools { gap: 6px; }
+      html.skin-material:not(.display-mode) .brand { font-size: 24px; }
+      html.skin-material:not(.display-mode) .round-button { width: 36px; height: 36px; }
     }
 
     /* Browsers without the frosted-glass effect get nearly solid cards,
@@ -1008,8 +1029,329 @@
     .display-mode .fade-toggle:focus-within { opacity: 1; }
     .takeover-toggle input, .fade-toggle input { margin: 0; accent-color: #fff; }
 
+    /* ════════════════════════════════════════════════════════════════════
+       8. MATERIAL SKIN (html.skin-material): Android's notification shade.
+       An alternative to the iOS look, switched with the skin button in the
+       header (or ?skin=material / ?skin=ios). Modelled on Android 14 on a
+       Pixel in dark theme: opaque Material 3 cards stacked 2px apart with
+       big outer corners and small inner ones, a round app icon, an
+       "App • 12m" header line, a title and grey body text, and the expand
+       pill at the top right (with the count when repeats were grouped).
+       The wallpaper is blurred and dimmed, as behind a pulled-down shade.
+       Display mode (?display) always keeps the iOS look.
+       ════════════════════════════════════════════════════════════════════ */
+    html.skin-material:not(.display-mode) {
+      /* Google Material 3 dark tokens (Pixel's default blue scheme). */
+      --m-surface:        #121316;
+      --m-surface-high:   #282a2d;  /* notification cards */
+      --m-surface-highest:#333538;  /* expand pill */
+      --m-on-surface:     #e3e3e3;
+      --m-on-variant:     #c4c7c5;
+      --m-outline:        #8e918f;
+      --m-outline-variant:#444746;
+      --m-primary:        #a8c7fa;
+      --m-on-primary:     #062e6f;
+      --m-secondary-container: #004a77;
+      --m-on-secondary-container: #c2e7ff;
+
+      --bg: var(--m-surface);
+      --wall-dim: rgba(0, 0, 0, 0.5);
+      --text: var(--m-on-surface);
+      --text-soft: var(--m-on-variant);
+      --badge: var(--m-primary);
+      --ok:   #6dd58c;
+      --warn: #ffb870;
+      --bad:  #f2b8b5;
+      --focus: var(--m-primary);
+      --tooltip-bg: #e3e3e3;      /* inverse surface */
+      --tooltip-text: #303030;
+      --font: Roboto, "Google Sans Text", "Segoe UI", system-ui, sans-serif;
+      --font-display: Roboto, "Google Sans", "Segoe UI", system-ui, sans-serif;
+    }
+    .skin-material:not(.display-mode) body { letter-spacing: 0; font-size: 14px; line-height: 20px; }
+
+    /* The wallpaper, blurred and dimmed behind the shade. */
+    .skin-material:not(.display-mode) .wall {
+      filter: blur(28px) saturate(115%);
+      transform: scale(1.1);   /* hides the blur's soft edges */
+    }
+
+    /* Header */
+    .skin-material:not(.display-mode) .site-header { text-shadow: none; padding-top: 32px; }
+    .skin-material:not(.display-mode) .brand {
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 36px;
+    }
+    /* Status: a Material assist chip. */
+    .skin-material:not(.display-mode) .status {
+      height: 32px;
+      padding: 0 12px 0 10px;
+      gap: 8px;
+      border-radius: 8px;
+      background: var(--m-surface-high);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: inset 0 0 0 1px var(--m-outline-variant);
+      color: var(--m-on-variant);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.1px;
+    }
+    .skin-material:not(.display-mode) .dot { width: 8px; height: 8px; }
+    .skin-material:not(.display-mode) .dot.is-ok { box-shadow: none; }
+    /* Round buttons: Material filled-tonal icon buttons. */
+    .skin-material:not(.display-mode) .round-button {
+      width: 40px;
+      height: 40px;
+      color: var(--m-on-variant);
+      background: var(--m-surface-high);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .skin-material:not(.display-mode) .round-button[aria-pressed="true"] {
+      background: var(--m-primary);
+      color: var(--m-on-primary);
+    }
+
+    /* Toolbar backing once pinned */
+    .skin-material:not(.display-mode) .toolbar::before {
+      background: rgba(18, 19, 22, 0.88);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* Tabs: Material 3 segmented buttons (outlined, tick on the chosen one). */
+    .skin-material:not(.display-mode) .tabs {
+      padding: 0;
+      gap: 0;
+      height: 40px;
+      margin-bottom: 12px;
+      border-radius: 20px;
+      background: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: inset 0 0 0 1px var(--m-outline);
+      overflow: hidden;
+    }
+    .skin-material:not(.display-mode) .tabs button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 0;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.1px;
+      color: var(--m-on-surface);
+    }
+    .skin-material:not(.display-mode) .tabs button + button { box-shadow: inset 1px 0 0 var(--m-outline); }
+    .skin-material:not(.display-mode) .tabs button[aria-selected="true"] {
+      font-weight: 500;
+      color: var(--m-on-secondary-container);
+      background: var(--m-secondary-container);
+    }
+    .skin-material:not(.display-mode) .tabs button + button[aria-selected="true"] { box-shadow: inset 1px 0 0 var(--m-outline); }
+    .skin-material:not(.display-mode) .tabs button[aria-selected="true"]::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      flex: none;
+      background: currentColor;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+    .skin-material:not(.display-mode) .tabs .count { margin-left: 0; color: inherit; opacity: 0.8; }
+
+    /* Search: a Material 3 search bar; the publisher picker matches it. */
+    .skin-material:not(.display-mode) .controls input,
+    .skin-material:not(.display-mode) .controls select {
+      height: 56px;
+      border-radius: 28px;
+      color: var(--m-on-surface);
+      background-color: var(--m-surface-high);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .skin-material:not(.display-mode) .controls input {
+      padding: 0 16px 0 52px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23c4c7c5'%3E%3Cpath d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+      background-position: 16px center;
+    }
+    .skin-material:not(.display-mode) .controls input::placeholder { color: var(--m-on-variant); }
+    .skin-material:not(.display-mode) .controls select {
+      flex-basis: 150px;
+      padding: 0 40px 0 20px;
+      font-size: 14px;
+      font-weight: 500;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23c4c7c5'%3E%3Cpath d='m7 10 5 5 5-5z'/%3E%3C/svg%3E");
+      background-position: right 12px center;
+    }
+    .skin-material:not(.display-mode) .controls select option { background: var(--m-surface-high); color: var(--m-on-surface); }
+    .skin-material:not(.display-mode) .controls input:focus,
+    .skin-material:not(.display-mode) .controls select:focus { outline: 2px solid var(--m-primary); }
+
+    /* Day headings: the shade's section headers. */
+    .skin-material:not(.display-mode) .day-heading {
+      margin: 24px 16px 12px;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      letter-spacing: 0.1px;
+      color: var(--m-on-surface);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+    .skin-material:not(.display-mode) main > .day-heading:first-child { margin-top: 16px; }
+
+    /* Notifications: stacked 2px apart; the run under each heading reads
+       as one block, 28px corners at its ends and 8px between cards. */
+    .skin-material:not(.display-mode) .stack,
+    .skin-material:not(.display-mode) .stack.has-repeats { margin-bottom: 2px; }
+    .skin-material:not(.display-mode) .stack.has-repeats::after { display: none; }
+    .skin-material:not(.display-mode) .stack:has(+ .day-heading),
+    .skin-material:not(.display-mode) .stack:last-child { margin-bottom: 0; }
+
+    .skin-material:not(.display-mode) .card {
+      align-items: flex-start;
+      gap: 12px;
+      min-height: 0;
+      padding: 16px 16px 16px 16px;
+      border-radius: 8px;
+      background: var(--m-surface-high);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+      cursor: pointer;
+    }
+    .skin-material:not(.display-mode) .day-heading + .stack .card,
+    .skin-material:not(.display-mode) main > .stack:first-child .card {
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+    }
+    .skin-material:not(.display-mode) .stack:has(+ .day-heading) .card,
+    .skin-material:not(.display-mode) .stack:last-child .card {
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+    }
+
+    /* Round app icon, no badge (the count goes in the expand pill). */
+    .skin-material:not(.display-mode) .icon { width: 40px; height: 40px; margin-top: 2px; }
+    .skin-material:not(.display-mode) .icon img,
+    .skin-material:not(.display-mode) .icon .initials { border-radius: 50%; box-shadow: none; }
+    .skin-material:not(.display-mode) .icon .badge { display: none; }
+
+    .skin-material:not(.display-mode) .card-body { padding-right: 52px; }
+
+    /* "NZ Herald • 12m" */
+    .skin-material:not(.display-mode) .card-top {
+      display: flex;
+      align-items: baseline;
+      gap: 0;
+      font-size: 12px;
+      line-height: 16px;
+      letter-spacing: 0.3px;
+      color: var(--m-on-variant);
+      white-space: nowrap;
+    }
+    .skin-material:not(.display-mode) .m-app { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .skin-material:not(.display-mode) .m-sep { flex: none; padding: 0 4px; }
+    .skin-material:not(.display-mode) .when {
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      color: var(--m-on-variant);
+    }
+    .skin-material:not(.display-mode) .when:hover,
+    .skin-material:not(.display-mode) .when:focus { color: var(--m-on-surface); }
+    .skin-material:not(.display-mode) .when::after {
+      left: 0;
+      right: auto;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 16px;
+      letter-spacing: 0.4px;
+      box-shadow: none;
+    }
+
+    .skin-material:not(.display-mode) .m-title {
+      margin-top: 2px;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 24px;
+      letter-spacing: 0.15px;
+      color: var(--m-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .skin-material:not(.display-mode) .headline {
+      margin-top: 2px;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      color: var(--m-on-variant);
+      -webkit-line-clamp: 2;   /* Android shows two lines until expanded */
+      line-clamp: 2;
+    }
+    /* With no separate title, the alert text is the title, as most news
+       apps send it. */
+    .skin-material:not(.display-mode) .headline.is-lead {
+      font-size: 16px;
+      line-height: 22px;
+      letter-spacing: 0.15px;
+      color: var(--m-on-surface);
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+    .skin-material:not(.display-mode) .card.is-expanded .headline { -webkit-line-clamp: unset; line-clamp: none; }
+
+    /* The expand pill, top right: chevron, plus the count for a group. */
+    .m-expand { display: none; }
+    .skin-material:not(.display-mode) .m-expand {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 24px;
+      min-width: 36px;
+      padding: 0 6px;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--m-surface-highest);
+      color: var(--m-on-surface);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .skin-material:not(.display-mode) .m-expand svg { transition: transform 0.2s; }
+    .skin-material:not(.display-mode) .card.is-expanded .m-expand svg { transform: rotate(180deg); }
+
+    /* New notifications slide down into place, as on Android. */
+    .skin-material:not(.display-mode) .stack.is-new { animation: m-arrive 0.4s cubic-bezier(.2, 0, 0, 1); }
+    @keyframes m-arrive {
+      from { opacity: 0; transform: translateY(-24px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .skin-material:not(.display-mode) .empty { color: var(--m-on-surface); }
+    .skin-material:not(.display-mode) footer { color: var(--m-on-variant); letter-spacing: 0.4px; }
+
+    /* The skin button: iOS-style squircle in the iOS skin, round "Android"
+       circle in the Material skin, so it hints at what it switches to. */
+    .display-mode #skin-toggle { display: none; }
+    #skin-toggle .skin-ios { display: none; }
+    .skin-material #skin-toggle .skin-ios { display: block; }
+    .skin-material #skin-toggle .skin-android { display: none; }
+
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
+      .skin-material:not(.display-mode) .stack.is-new { animation: none; }
       .display-mode .card.fx-shine::after, .takeover-kicker::before,
       .live-bug, .live-dot, .clock .digit.roll > span, .clock .secs .digit.roll > span,
       .stack.is-new,
@@ -1050,6 +1392,22 @@
             <span class="dot" id="status-dot"></span>
             <span id="status-text">Loading…</span>
           </p>
+
+          <!-- Skin switch: iOS look <-> Android Material look. The icon shows
+               the style it switches to. -->
+          <button type="button" class="round-button" id="skin-toggle"
+                  aria-label="Switch to Android style" title="Switch to Android style">
+            <svg class="skin-android" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="1.5" width="8" height="13" rx="1.5"/>
+              <path d="M7 12.5h2"/>
+            </svg>
+            <svg class="skin-ios" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="1.5" width="9" height="13" rx="2.5"/>
+              <path d="M6.5 3.5h3"/>
+            </svg>
+          </button>
 
           <!-- Wallpaper slideshow on/off. -->
           <button type="button" class="round-button" id="slideshow-toggle"
@@ -1920,11 +2278,34 @@
       when.setAttribute('aria-label', when.dataset.full);
 
       const top = make('div', 'card-top');
-      top.append(make('span', 'title', item.byline || item.app), when);
 
-      body.append(top, make('p', 'headline', item.headline));
+      if (materialSkin()) {
+        // Android layout:
+        //   (icon)  NZ Herald • 12m                          [2 ⌄]
+        //           Title (only when the alert has its own)
+        //           The alert text, two lines until tapped
+        top.append(make('span', 'm-app', item.app), make('span', 'm-sep', '•'), when);
+        body.append(top);
+        if (item.byline) body.append(make('div', 'm-title', item.byline));
+        body.append(make('p', 'headline' + (item.byline ? '' : ' is-lead'), item.headline));
+        const pill = make('span', 'm-expand');
+        pill.setAttribute('aria-hidden', 'true');
+        if (item.repeats.length) pill.append(String(item.repeats.length + 1));
+        pill.insertAdjacentHTML('beforeend',
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>');
+        card.append(pill);
+      } else {
+        top.append(make('span', 'title', item.byline || item.app), when);
+        body.append(top, make('p', 'headline', item.headline));
+      }
       stack.append(card);
       return stack;
+    }
+
+    // The Android Material skin applies outside display mode only.
+    function materialSkin() {
+      const root = document.documentElement.classList;
+      return root.contains('skin-material') && !root.contains('display-mode');
     }
 
     // The app's icon if we have one, otherwise its initials on a steady
@@ -2072,6 +2453,11 @@
     function notificationTime(ms) {
       const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
       if (mins < 1)  return 'now';
+      if (materialSkin()) {   // Android's short form: "12m", "3h"
+        if (mins < 60) return mins + 'm';
+        if (mins < 4 * 60) return Math.floor(mins / 60) + 'h';
+        return hhmm.format(ms);
+      }
       if (mins < 60) return mins + 'm ago';
       if (mins < 4 * 60) return Math.floor(mins / 60) + 'h ago';
       return hhmm.format(ms);
@@ -2190,6 +2576,25 @@
     slideshow.check.addEventListener('change', () => setSlideshow(slideshow.check.checked));
     document.addEventListener('visibilitychange', scheduleWallpaper);
     try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
+
+    /* ════════════════════════════════════════════════════════════════════
+       SKIN SWITCH: iOS (default) or Android Material. The choice is saved
+       in this browser; ?skin=material / ?skin=ios overrides it on load
+       (see the script in <head>).
+       ════════════════════════════════════════════════════════════════════ */
+    const skinButton = document.getElementById('skin-toggle');
+    function labelSkinButton() {
+      const label = materialSkin() ? 'Switch to iOS style' : 'Switch to Android style';
+      skinButton.title = label;
+      skinButton.setAttribute('aria-label', label);
+    }
+    skinButton.addEventListener('click', () => {
+      const on = document.documentElement.classList.toggle('skin-material');
+      try { localStorage.setItem('pushFeedSkin', on ? 'material' : 'ios'); } catch (e) { /* fine */ }
+      labelSkinButton();
+      render();
+    });
+    labelSkinButton();
 
     /* ════════════════════════════════════════════════════════════════════
        START
