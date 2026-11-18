@@ -1399,6 +1399,63 @@
     .skin-nougat:not(.display-mode) .site-header { background: #f5f5f5; }
     .skin-nougat:not(.display-mode) .status, .skin-nougat:not(.display-mode) .round-button { color: #616161; }
     .skin-nougat:not(.display-mode) main.wrap { padding: 0; }
+
+    /* Feed switcher (Nougat / Marshmallow only). */
+    .legacy-bar { display: none; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .legacy-bar { display: flex; align-items: center; position: relative; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .tabs { display: none; }
+    .legacy-bar button { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+    .legacy-bar button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .feed-menu {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 200px; padding: 8px 0;
+      background: #fff; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,.2), 0 8px 16px rgba(0,0,0,.14);
+    }
+    .feed-menu[hidden] { display: none; }
+    .feed-menu button { display: flex; width: 100%; height: 48px; align-items: center; justify-content: space-between; gap: 24px; padding: 0 16px; font-size: 16px; color: #212121; text-align: left; }
+    .feed-menu button:hover, .feed-menu button:focus-visible { background: #eee; outline: none; }
+    .feed-menu button[aria-checked="true"] { color: var(--legacy-active); font-weight: 500; }
+    .feed-menu .count { font-size: 14px; color: #757575; font-weight: 400; }
+    .legacy-bar.no-feeds .feed-caret, .legacy-bar.no-feeds .feed-burger { display: none; }
+
+    /* Nougat: a plain white toolbar (2016 Google apps). The title is the
+       feed and opens a dropdown menu to switch; search is an icon at the
+       right that opens the search box under the bar. */
+    html.skin-nougat:not(.display-mode) { --legacy-panel: #fff; --legacy-active: #1565c0; }
+    .skin-nougat:not(.display-mode) .site-header { background: #fff; padding-bottom: 0; }
+    .skin-nougat:not(.display-mode) .toolbar { padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,.18); }
+    .skin-nougat:not(.display-mode) .legacy-bar { height: 56px; gap: 8px; color: #212121; }
+    .skin-nougat:not(.display-mode) .feed-burger { display: none; }
+    .skin-nougat:not(.display-mode) .feed-switch { display: flex; align-items: center; gap: 8px; height: 40px; margin-right: auto; font-size: 20px; font-weight: 500; }
+    .skin-nougat:not(.display-mode) .feed-count { font-size: 14px; font-weight: 400; color: #757575; }
+    .skin-nougat:not(.display-mode) .feed-caret { margin-left: -4px; color: #757575; }
+    .skin-nougat:not(.display-mode) .feed-search-btn { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; border-radius: 50%; color: #616161; }
+    .skin-nougat:not(.display-mode) .feed-search-btn[aria-expanded="true"] { color: #1565c0; }
+    .skin-nougat:not(.display-mode) .toolbar .controls { display: none; padding-bottom: 12px; }
+    .skin-nougat:not(.display-mode) .toolbar.is-searching .controls,
+    .skin-nougat:not(.display-mode) .toolbar .controls:has(#search:not(:placeholder-shown)) { display: flex; }
+    html.skin-nougat:not(.display-mode) .controls input,
+    html.skin-nougat:not(.display-mode) .controls select { background-color: #f1f1f1; box-shadow: none; }
+
+    /* Marshmallow: the 2015-16 Google app search card. One floating white
+       card holds the menu button (which opens the feed list), the search
+       box (its placeholder names the feed) and the publisher picker. */
+    .skin-marshmallow:not(.display-mode) .feed-search-btn,
+    .skin-marshmallow:not(.display-mode) .feed-name,
+    .skin-marshmallow:not(.display-mode) .feed-count,
+    .skin-marshmallow:not(.display-mode) .feed-caret { display: none; }
+    .skin-marshmallow:not(.display-mode) .toolbar { padding: 8px 0 12px; }
+    .skin-marshmallow:not(.display-mode) .toolbar .wrap { position: relative; }
+    .skin-marshmallow:not(.display-mode) .legacy-bar { position: absolute; top: 0; left: var(--gutter); height: 48px; z-index: 2; }
+    .skin-marshmallow:not(.display-mode) .feed-switch { display: grid; place-items: center; width: 48px; height: 48px; color: #616161; }
+    .skin-marshmallow:not(.display-mode) .legacy-bar.no-feeds .feed-switch { display: none; }
+    .skin-marshmallow:not(.display-mode) .controls { gap: 0; height: 48px; background: #fff; border-radius: 2px; box-shadow: 0 2px 2px rgba(0,0,0,.24), 0 0 2px rgba(0,0,0,.12); }
+    html.skin-marshmallow:not(.display-mode) .controls input,
+    html.skin-marshmallow:not(.display-mode) .controls select { height: 48px; background-color: transparent; box-shadow: none; border-radius: 0; font-size: 16px; }
+    html.skin-marshmallow:not(.display-mode) .controls input { padding-left: 52px; background-image: none; }
+    .skin-marshmallow:not(.display-mode) .legacy-bar.no-feeds ~ .controls input { padding-left: 16px; }
+    html.skin-marshmallow:not(.display-mode) .controls select { flex-basis: 120px; border-left: 1px solid #e0e0e0; font-size: 14px; }
+    .skin-marshmallow:not(.display-mode) .feed-menu { top: 52px; left: 0; }
+    .skin-marshmallow:not(.display-mode) .feed-menu button[aria-checked="true"] { color: #00796b; }
     .skin-nougat:not(.display-mode) .day-heading { margin: 0; padding: 10px 16px; background: #f5f5f5; color: #757575; border-bottom: 1px solid #e0e0e0; font-size: 13px; font-weight: 400; }
     html.skin-marshmallow:not(.display-mode) { --legacy-panel: #37474f; --legacy-soft: #b0bec5; --legacy-active: #80cbc4; }
     .skin-marshmallow:not(.display-mode) .site-header { background: #37474f; }
@@ -1589,6 +1646,24 @@
     <div class="wrap">
       <!-- News / side tab (e.g. AT Mobile). Labels and counts are filled in
            by the JavaScript; the bar hides itself if CONFIG.SIDE_TAB is null. -->
+      <!-- Nougat / Marshmallow feed switcher: a dropdown title (Nougat) or the
+           menu button in the search card (Marshmallow). It drives the tabs
+           below, which those themes hide. -->
+      <div class="legacy-bar">
+        <button type="button" class="feed-switch" aria-haspopup="menu" aria-expanded="false">
+          <svg class="feed-burger" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 18h18v-2H3zm0-5h18v-2H3zm0-7v2h18V6z"/></svg>
+          <span class="feed-name">News</span><span class="feed-count"></span>
+          <svg class="feed-caret" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m7 10 5 5 5-5z"/></svg>
+        </button>
+        <button type="button" class="feed-search-btn" aria-label="Search alerts" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </button>
+        <div class="feed-menu" role="menu" hidden>
+          <button type="button" role="menuitemradio" data-side="false"></button>
+          <button type="button" role="menuitemradio" data-side="true"></button>
+        </div>
+      </div>
+
       <div class="tabs" role="tablist" aria-label="Feeds" id="tabs">
         <button type="button" role="tab" id="tab-news" aria-selected="true">News</button>
         <button type="button" role="tab" id="tab-side" aria-selected="false"></button>
@@ -2694,7 +2769,7 @@
     // Labels the tabs with counts, e.g. "News 142" / "AT Mobile 8", and
     // marks the selected one.
     function updateTabs() {
-      if (!CONFIG.SIDE_TAB) { el.tabs.hidden = true; return; }
+      if (!CONFIG.SIDE_TAB) { el.tabs.hidden = true; syncFeedBar(); return; }
       const sideCount = items.filter(item => item.side).length;
       const label = (button, text, n) => {
         button.replaceChildren(text, make('span', 'count', String(n)));
@@ -2703,6 +2778,7 @@
       label(el.tabSide, CONFIG.SIDE_TAB.label, sideCount);
       el.tabNews.setAttribute('aria-selected', String(!onSideTab));
       el.tabSide.setAttribute('aria-selected', String(onSideTab));
+      syncFeedBar();
     }
 
     function switchTab(side) {
@@ -2975,7 +3051,7 @@
       themeSlider.style.setProperty('--theme-index', THEMES.indexOf(theme));
       themeSlider.querySelector('input[value="' + theme + '"]').checked = true;
       document.querySelector('meta[name="theme-color"]').content =
-        ({ ios: '#000000', material: '#121316', nougat: '#f5f5f5', marshmallow: '#37474f' })[theme];
+        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f' })[theme];
       document.querySelector('meta[name="color-scheme"]').content =
         theme === 'nougat' || theme === 'marshmallow' ? 'light' : 'dark';
     }
@@ -2991,6 +3067,7 @@
         history.replaceState(null, '', url);
       }
       syncTheme();
+      syncFeedBar();
       render();
       toast(THEME_NAMES[theme] + ' theme');   // swatch names are hover-only, so say it on touch screens too
     });
@@ -3002,6 +3079,60 @@
     // Re-draw as the visitor types or picks a publisher (no download needed).
     el.search.addEventListener('input', render);
     el.appFilter.addEventListener('change', render);
+    /* Feed switcher for the Nougat / Marshmallow themes. */
+    const feedBar = {
+      root: document.querySelector('.legacy-bar'),
+      toggle: document.querySelector('.feed-switch'),
+      name: document.querySelector('.feed-name'),
+      count: document.querySelector('.feed-count'),
+      menu: document.querySelector('.feed-menu'),
+      searchBtn: document.querySelector('.feed-search-btn'),
+    };
+    function tabCount(button) { return button.querySelector('.count')?.textContent || ''; }
+    function syncFeedBar() {
+      const sideLabel = CONFIG.SIDE_TAB ? CONFIG.SIDE_TAB.label : '';
+      const name = onSideTab ? sideLabel : 'News';
+      feedBar.name.textContent = name;
+      feedBar.count.textContent = tabCount(onSideTab ? el.tabSide : el.tabNews);
+      feedBar.root.classList.toggle('no-feeds', !CONFIG.SIDE_TAB);
+      const [news, side] = feedBar.menu.children;
+      news.replaceChildren('News', make('span', 'count', tabCount(el.tabNews)));
+      side.replaceChildren(sideLabel, make('span', 'count', tabCount(el.tabSide)));
+      news.setAttribute('aria-checked', String(!onSideTab));
+      side.setAttribute('aria-checked', String(onSideTab));
+      el.search.placeholder = currentSkin() === 'marshmallow' ? 'Search ' + name : 'Search alerts…';
+    }
+    function openFeedMenu(open) {
+      feedBar.menu.hidden = !open;
+      feedBar.toggle.setAttribute('aria-expanded', String(open));
+      if (open) feedBar.menu.querySelector('[aria-checked="true"]').focus();
+    }
+    feedBar.toggle.addEventListener('click', event => {
+      event.stopPropagation();
+      if (!CONFIG.SIDE_TAB) return;
+      openFeedMenu(feedBar.menu.hidden);
+    });
+    feedBar.menu.addEventListener('click', event => {
+      const item = event.target.closest('button');
+      if (!item) return;
+      (item.dataset.side === 'true' ? el.tabSide : el.tabNews).click();
+      openFeedMenu(false);
+      feedBar.toggle.focus();
+    });
+    document.addEventListener('click', event => {
+      if (!feedBar.menu.hidden && !feedBar.root.contains(event.target)) openFeedMenu(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !feedBar.menu.hidden) { openFeedMenu(false); feedBar.toggle.focus(); }
+    });
+    // Nougat: search hides behind the icon until it's tapped (or in use).
+    feedBar.searchBtn.addEventListener('click', () => {
+      const open = !document.getElementById('toolbar').classList.contains('is-searching');
+      document.getElementById('toolbar').classList.toggle('is-searching', open);
+      feedBar.searchBtn.setAttribute('aria-expanded', String(open));
+      if (open) el.search.focus();
+    });
+
     el.tabNews.addEventListener('click', () => switchTab(false));
     el.tabSide.addEventListener('click', () => switchTab(true));
 
