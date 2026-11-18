@@ -1523,14 +1523,18 @@
     .skin-marshmallow:not(.display-mode) .l-circle img.l-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
     .skin-marshmallow:not(.display-mode) .l-circle .l-initials { color: #fff; font-size: 15px; font-weight: 500; }
     .skin-marshmallow:not(.display-mode) .l-body { flex: 1; min-width: 0; }
+    /* Title line (app name, or the alert's top text) over the alert text. */
     .skin-marshmallow:not(.display-mode) .l-title {
-      font-size: 15px; line-height: 20px; color: var(--title);
-      white-space: pre-line; overflow-wrap: anywhere;
-      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+      font-size: 15px; line-height: 20px; font-weight: 500; color: var(--title);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .skin-marshmallow:not(.display-mode) .l-sub { font-size: 13px; line-height: 20px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-title { -webkit-line-clamp: unset; }
-    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-sub { white-space: pre-line; }
+    .skin-marshmallow:not(.display-mode) .l-sub {
+      margin-top: 2px; font-size: 14px; line-height: 20px; color: var(--soft);
+      white-space: pre-line; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-title { white-space: normal; }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-sub { -webkit-line-clamp: unset; }
     .skin-marshmallow:not(.display-mode) .l-card.l-open .l-row { align-items: flex-start; }
     .skin-marshmallow:not(.display-mode) .l-side { flex: none; align-self: flex-start; display: flex; flex-direction: column; align-items: flex-end; }
     .skin-marshmallow:not(.display-mode) .when,
@@ -1687,9 +1691,6 @@
 
   <footer>
     <div class="wrap">
-      <!-- EDIT ME: keep the "not affiliated" line. GitHub Pages' rules ask
-           for it on sites inspired by an existing website. -->
-      <p>Independent hobby project. Not affiliated with Project Push or with any publisher shown here.</p>
       <p>Headlines and alerts belong to their publishers. This page refreshes every minute.</p>
     </div>
   </footer>
@@ -2465,7 +2466,7 @@
       'rnz':              { colour: '#c62828', glyph: 'rnz',         icon: 'rnz' },
       'stuff':            { colour: '#5e35b1', glyph: 'stuff',       icon: 'stuff' },
       'the spinoff':      { colour: '#0048c8', glyph: 'the-spinoff', icon: 'the-spinoff', circleGlyph: 'the-spinoff-s' },
-      '1news':            { colour: '#c8412f', glyph: '1news',       icon: '1news', colourGlyph: true, circleGlyph: '1news-mono' },
+      '1news':            { colour: '#c8412f', glyph: '1news',       icon: '1news', colourGlyph: true, circleGlyph: '1news-motif', smallGlyph: '1news-motif' },
       'tvnz+':            { colour: '#0072ff', glyph: 'tvnz-plus',   icon: 'tvnz-plus', colourGlyph: true },
       'the post':         { colour: '#1565c0', icon: 'the-post' },
       'te ao māori news': { colour: '#a4032f', icon: 'te-ao-news' },
@@ -2480,6 +2481,9 @@
       return { colour: `hsl(${hash % 360} 52% 40%)` };
     }
     function glyph(item, p) {
+      if (p.smallGlyph) {   // a one-colour mark drawn for small sizes (1News)
+        const s = make('span', 'l-glyph l-tint'); s.style.setProperty('--src', `url("svgs/glyphs/${p.smallGlyph}.svg")`); return s;
+      }
       if (p.glyph && p.colourGlyph) {
         const i = make('img', 'l-glyph l-img'); i.src = `svgs/glyphs/${p.glyph}.svg`; i.alt = ''; return i;
       }
@@ -2526,7 +2530,7 @@
 
     // Glyph size inside the 40dp circle, by glyph file, so each mark
     // looks equally heavy (Android's small icons sit in a 24dp box).
-    const SIZE = { 'nz-herald': 18, 'rnz': 24, 'the-spinoff-s': 15, 'stuff': 17, '1news-mono': 26, 'at-mobile': 24 };
+    const SIZE = { 'nz-herald': 18, 'rnz': 24, 'the-spinoff-s': 15, 'stuff': 17, '1news-motif': 24, 'at-mobile': 24 };
 
     function circle(item, p) {
       const c = make('div', 'l-circle');
@@ -2547,11 +2551,11 @@
       return c;
     }
 
-    // News: the headline is the title, the author underneath.
-    // AT Mobile: its alert title is the title, the details underneath.
+    // Title line: the alert's own top text when it has one ("Breaking
+    // news", an author, AT Mobile's alert title), otherwise the app's name.
+    // The alert text goes underneath.
     function lines(item) {
-      if (item.side && item.byline) return [item.byline, item.headline];
-      return [item.headline, item.byline];
+      return [item.byline || item.app, item.headline];
     }
 
     function buildMarshmallow(item) {
