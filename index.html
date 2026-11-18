@@ -51,11 +51,11 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://applesocial.s3.amazonaws.com" crossorigin>
 
-  <!-- Roboto, Android's system font, for the Material skin only. The
-       browser only downloads it if the Material skin is showing. -->
+  <!-- Roboto, Android's system font, for the Android themes; Google Sans
+       Flex for the Material You theme. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Google+Sans+Flex:opsz,wght@6..144,400..700&display=swap">
 
   <!-- A different wallpaper on each visit. This runs before the page is
        drawn, so the chosen one is the only one downloaded and nothing
@@ -97,15 +97,13 @@
         document.documentElement.classList.add('display-mode');
       }
 
-      // Skin: the iOS look (default) or Android's Material notifications.
-      // ?skin=material / ?skin=ios on the address wins; otherwise the
-      // visitor's last choice (the skin button in the header) is used.
+      // Theme URL overrides the saved selection; iOS is the default.
       var skinParam = new URLSearchParams(location.search).get('skin');
       var skin = null;
       if (skinParam === 'material' || skinParam === 'android') skin = 'material';
-      else if (skinParam === 'ios') skin = 'ios';
+      else if (['ios', 'nougat', 'marshmallow'].includes(skinParam)) skin = skinParam;
       if (!skin) { try { skin = localStorage.getItem('pushFeedSkin'); } catch (e) { /* fine */ } }
-      if (skin === 'material') document.documentElement.classList.add('skin-material');
+      if (['material', 'nougat', 'marshmallow'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
     })();
   </script>
 
@@ -219,7 +217,7 @@
     }
 
     /* ════════════════════════════════════════════════════════════════════
-       3. HEADER: name, feed health, then tabs and search.
+       3. HEADER: feed health, theme controls, then tabs and search.
        ════════════════════════════════════════════════════════════════════ */
     .site-header {
       padding: 28px 0 4px;
@@ -231,14 +229,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-    }
-    .brand {
-      margin: 0;
-      font-family: var(--font-display);
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -0.025em;
     }
 
     /* The "● Last alert 3m ago" pill. */
@@ -619,10 +609,7 @@
     /* On narrow phones, stack the search box above the dropdown. */
     @media (max-width: 420px) {
       .controls select { flex-basis: 128px; }
-      /* Keep "Push Feed" on one line beside the status pill and buttons. */
-      .brand { font-size: 26px; white-space: nowrap; }
       .header-tools { gap: 6px; }
-      html.skin-material:not(.display-mode) .brand { font-size: 24px; }
       html.skin-material:not(.display-mode) .round-button { width: 36px; height: 36px; }
     }
 
@@ -649,7 +636,6 @@
       display: flex;
       flex-direction: column;
     }
-    .display-mode .brand,
     .display-mode #slideshow-toggle,
     .display-mode #toolbar-sentinel,
     .display-mode .toolbar,
@@ -1040,22 +1026,34 @@
        The wallpaper is blurred and dimmed, as behind a pulled-down shade.
        Display mode (?display) always keeps the iOS look.
        ════════════════════════════════════════════════════════════════════ */
+    /* Material You "dynamic colour": every tone below is built from one
+       hue, which script takes from the wallpaper (wallpaperHue()), so the
+       whole shade tints to match it, like a Pixel. Registered so a new
+       wallpaper's colour fades in rather than snapping. */
+    @property --m-hue { syntax: '<number>'; inherits: true; initial-value: 265; }
     html.skin-material:not(.display-mode) {
-      /* Google Material 3 dark tokens (Pixel's default blue scheme). */
-      --m-surface:        #121316;
-      --m-surface-high:   #282a2d;  /* notification cards */
-      --m-surface-highest:#333538;  /* expand pill */
-      --m-on-surface:     #e3e3e3;
-      --m-on-variant:     #c4c7c5;
-      --m-outline:        #8e918f;
-      --m-outline-variant:#444746;
-      --m-primary:        #a8c7fa;
-      --m-on-primary:     #062e6f;
-      --m-secondary-container: #004a77;
-      --m-on-secondary-container: #c2e7ff;
+      --m-hue: 265;
+      transition: --m-hue 1.2s ease;
+      /* Material 3 dark-scheme roles as OKLCH tones of the seed hue. */
+      --m-surface:        oklch(17% 0.012 var(--m-hue));
+      --m-surface-container: oklch(22% 0.018 var(--m-hue));
+      --m-surface-high:   oklch(26% 0.022 var(--m-hue));  /* notification cards */
+      --m-surface-highest:oklch(31% 0.026 var(--m-hue));  /* expand pill, icon buttons */
+      --m-on-surface:     oklch(93% 0.01 var(--m-hue));
+      --m-on-variant:     oklch(81% 0.022 var(--m-hue));
+      --m-outline:        oklch(64% 0.024 var(--m-hue));
+      --m-outline-variant:oklch(38% 0.022 var(--m-hue));
+      --m-primary:        oklch(84% 0.085 var(--m-hue));
+      --m-on-primary:     oklch(28% 0.07 var(--m-hue));
+      --m-primary-container:    oklch(38% 0.085 var(--m-hue));
+      --m-on-primary-container: oklch(93% 0.045 var(--m-hue));
+      --m-secondary-container:    oklch(35% 0.04 var(--m-hue));
+      --m-on-secondary-container: oklch(92% 0.03 var(--m-hue));
 
       --bg: var(--m-surface);
-      --wall-dim: rgba(0, 0, 0, 0.5);
+      --wall-dim: color-mix(in oklch, var(--m-surface) 72%, transparent);
+      --control: var(--m-surface-high);
+      --control-on: var(--m-primary);
       --text: var(--m-on-surface);
       --text-soft: var(--m-on-variant);
       --badge: var(--m-primary);
@@ -1065,8 +1063,8 @@
       --focus: var(--m-primary);
       --tooltip-bg: #e3e3e3;      /* inverse surface */
       --tooltip-text: #303030;
-      --font: Roboto, "Google Sans Text", "Segoe UI", system-ui, sans-serif;
-      --font-display: Roboto, "Google Sans", "Segoe UI", system-ui, sans-serif;
+      --font: "Google Sans Flex", Roboto, "Segoe UI", system-ui, sans-serif;
+      --font-display: "Google Sans Flex", Roboto, "Segoe UI", system-ui, sans-serif;
     }
     .skin-material:not(.display-mode) body { letter-spacing: 0; font-size: 14px; line-height: 20px; }
 
@@ -1078,23 +1076,17 @@
 
     /* Header */
     .skin-material:not(.display-mode) .site-header { text-shadow: none; padding-top: 32px; }
-    .skin-material:not(.display-mode) .brand {
-      font-size: 28px;
-      font-weight: 400;
-      letter-spacing: 0;
-      line-height: 36px;
-    }
-    /* Status: a Material assist chip. */
+
     .skin-material:not(.display-mode) .status {
       height: 32px;
       padding: 0 12px 0 10px;
       gap: 8px;
-      border-radius: 8px;
-      background: var(--m-surface-high);
+      border-radius: 16px;
+      background: var(--m-secondary-container);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      box-shadow: inset 0 0 0 1px var(--m-outline-variant);
-      color: var(--m-on-variant);
+      box-shadow: none;
+      color: var(--m-on-secondary-container);
       font-size: 13px;
       font-weight: 500;
       letter-spacing: 0.1px;
@@ -1105,8 +1097,8 @@
     .skin-material:not(.display-mode) .round-button {
       width: 40px;
       height: 40px;
-      color: var(--m-on-variant);
-      background: var(--m-surface-high);
+      color: var(--m-on-surface);
+      background: var(--m-surface-highest);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -1117,22 +1109,23 @@
 
     /* Toolbar backing once pinned */
     .skin-material:not(.display-mode) .toolbar::before {
-      background: rgba(18, 19, 22, 0.88);
+      background: color-mix(in oklch, var(--m-surface) 90%, transparent);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
 
-    /* Tabs: Material 3 segmented buttons (outlined, tick on the chosen one). */
+    /* Tabs: a Material You button group: a tonal track with the chosen
+       tab as a filled pill (tick included). */
     .skin-material:not(.display-mode) .tabs {
-      padding: 0;
-      gap: 0;
-      height: 40px;
+      padding: 4px;
+      gap: 4px;
+      height: 48px;
       margin-bottom: 12px;
-      border-radius: 20px;
-      background: transparent;
+      border-radius: 24px;
+      background: var(--m-surface-container);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      box-shadow: inset 0 0 0 1px var(--m-outline);
+      box-shadow: none;
       overflow: hidden;
     }
     .skin-material:not(.display-mode) .tabs button {
@@ -1140,20 +1133,19 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      border-radius: 0;
+      border-radius: 20px;
       padding: 0 12px;
       font-size: 14px;
       font-weight: 500;
       letter-spacing: 0.1px;
-      color: var(--m-on-surface);
+      color: var(--m-on-variant);
+      transition: background-color .2s, color .2s;
     }
-    .skin-material:not(.display-mode) .tabs button + button { box-shadow: inset 1px 0 0 var(--m-outline); }
     .skin-material:not(.display-mode) .tabs button[aria-selected="true"] {
-      font-weight: 500;
-      color: var(--m-on-secondary-container);
-      background: var(--m-secondary-container);
+      font-weight: 600;
+      color: var(--m-on-primary);
+      background: var(--m-primary);
     }
-    .skin-material:not(.display-mode) .tabs button + button[aria-selected="true"] { box-shadow: inset 1px 0 0 var(--m-outline); }
     .skin-material:not(.display-mode) .tabs button[aria-selected="true"]::before {
       content: '';
       width: 18px;
@@ -1197,10 +1189,10 @@
     .skin-material:not(.display-mode) .day-heading {
       margin: 24px 16px 12px;
       font-family: var(--font);
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 20px;
-      letter-spacing: 0.1px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
+      letter-spacing: 0;
       color: var(--m-on-surface);
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
     }
@@ -1242,6 +1234,23 @@
     .skin-material:not(.display-mode) .icon img,
     .skin-material:not(.display-mode) .icon .initials { border-radius: 50%; box-shadow: none; }
     .skin-material:not(.display-mode) .icon .badge { display: none; }
+
+    /* Material You themed icons: each publisher's one-colour mark on a
+       tonal circle, so the feed takes the wallpaper's colour rather than
+       a mix of brand colours. Apps without a one-colour mark keep theirs. */
+    .skin-material:not(.display-mode) .m-themed .l-circle {
+      width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
+      display: grid; place-items: center;
+      background: var(--m-primary-container); color: var(--m-on-primary-container);
+    }
+    .skin-material:not(.display-mode) .m-themed .l-g {
+      width: var(--size, 20px); height: var(--size, 20px); background: currentColor;
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+    }
+    .skin-material:not(.display-mode) .m-themed .l-colour { background: var(--m-on-primary-container); }
+    .skin-material:not(.display-mode) .m-themed .l-colour img { width: 24px; height: 24px; border-radius: 0; }
+    .skin-material:not(.display-mode) .m-themed img.l-photo { width: 100%; height: 100%; object-fit: cover; }
+    .skin-material:not(.display-mode) .m-themed .l-initials { font-size: 15px; font-weight: 600; }
 
     .skin-material:not(.display-mode) .card-body { padding-right: 52px; }
 
@@ -1342,13 +1351,6 @@
     .skin-material:not(.display-mode) .empty { color: var(--m-on-surface); }
     .skin-material:not(.display-mode) footer { color: var(--m-on-variant); letter-spacing: 0.4px; }
 
-    /* The skin button: iOS-style squircle in the iOS skin, round "Android"
-       circle in the Material skin, so it hints at what it switches to. */
-    .display-mode #skin-toggle { display: none; }
-    #skin-toggle .skin-ios { display: none; }
-    .skin-material #skin-toggle .skin-ios { display: block; }
-    .skin-material #skin-toggle .skin-android { display: none; }
-
     /* Visitors who've asked their device for less motion get no animation. */
     @media (prefers-reduced-motion: reduce) {
       .skin-material:not(.display-mode) .stack.is-new { animation: none; }
@@ -1356,6 +1358,154 @@
       .live-bug, .live-dot, .clock .digit.roll > span, .clock .secs .digit.roll > span,
       .stack.is-new,
       .display-mode .stack.is-new .card { animation: none; }
+    }
+
+    /* Small theme swatches in the header; native radios retain arrow-key support. */
+    .header-tools { flex: 1; min-width: 0; }
+    html:not(.display-mode) .status { min-width: 0; flex: 0 1 auto; }
+    html:not(.display-mode) #status-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .theme-slider { position: relative; flex: 0 0 94px; height: 28px; margin-left: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--control); isolation: isolate; }
+    .theme-thumb { position: absolute; inset: 3px auto 3px 3px; width: calc((100% - 6px) / 4); border-radius: 50%; background: var(--control-on); transform: translateX(calc(var(--theme-index, 0) * 100%)); transition: transform .18s ease; z-index: 0; box-shadow: 0 0 0 1px var(--text-soft), 0 1px 3px #0002; }
+    .theme-slider label { position: relative; z-index: 1; display: grid; place-items: center; min-width: 0; cursor: pointer; }
+    .theme-slider input { position: absolute; inset: 0; margin: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+    .theme-slider label span { width: 10px; height: 10px; border-radius: 3px; box-shadow: inset 0 0 0 1px #ffffff40, 0 0 0 1px #0002; }
+    .theme-slider label:nth-of-type(1) span { background: linear-gradient(135deg, #6e7ca1, #202535); }
+    .theme-slider label:nth-of-type(2) span { background: #b9a9dc; border-radius: 50%; }
+    .theme-slider label:nth-of-type(3) span { background: #f5f5f5; border-radius: 1px; box-shadow: inset 0 0 0 1.5px #9e9e9e; }
+    .theme-slider label:nth-of-type(4) span { background: linear-gradient(#37474f 40%, #fafafa 40%); border-radius: 1px; }
+    .theme-slider label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 1px; border-radius: 50%; }
+    .display-mode .theme-slider { display: none; }
+    @media (prefers-reduced-motion: reduce) { .theme-thumb { transition: none; } }
+    html:is(.skin-nougat, .skin-marshmallow):not(.display-mode) {
+      --font: Roboto, system-ui, sans-serif; --text: #212121; --text-soft: #757575; --card: #fafafa; --control: #e0e0e0; --control-on: #fff; --focus: #1565c0; --tooltip-bg: #323232; --tooltip-text: #fff; color-scheme: light;
+    }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) body { font-size: 14px; line-height: 20px; letter-spacing: 0; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .site-header { text-shadow: none; padding-top: 18px; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .toolbar { margin-bottom: 0; padding-bottom: 12px; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .toolbar::before { background: var(--legacy-panel); opacity: 1; mask-image: none; -webkit-mask-image: none; backdrop-filter: none; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .tabs { border-radius: 0; padding: 0; background: transparent; backdrop-filter: none; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .tabs button { border-radius: 0; background: none; color: var(--legacy-soft); text-transform: uppercase; letter-spacing: .6px; font-size: 13px; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .tabs button[aria-selected="true"] { color: var(--legacy-active); box-shadow: inset 0 -2px var(--legacy-active); }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls input,
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls select { background-color: #fff; color: #212121; border-radius: 2px; backdrop-filter: none; box-shadow: 0 1px 3px #0003; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls input::placeholder { color: #757575; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .stack { margin-bottom: 0; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .stack::after { display: none; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .when { color: #757575; margin: 0; font-size: 12px; font-weight: 400; }
+    html.skin-nougat:not(.display-mode) { --bg: #616161; --legacy-panel: #f5f5f5; --legacy-soft: #757575; --legacy-active: #1565c0; }
+    .skin-nougat:not(.display-mode) body { max-width: var(--max); margin: auto; min-height: 100vh; background: #fff; }
+    .skin-nougat:not(.display-mode) .wall, .skin-nougat:not(.display-mode) body::before { display: none; }
+    .skin-nougat:not(.display-mode) #slideshow-toggle { display: none; }   /* no wallpaper here to change */
+    .skin-nougat:not(.display-mode) .site-header { background: #f5f5f5; }
+    .skin-nougat:not(.display-mode) .status, .skin-nougat:not(.display-mode) .round-button { color: #616161; }
+    .skin-nougat:not(.display-mode) main.wrap { padding: 0; }
+    .skin-nougat:not(.display-mode) .day-heading { margin: 0; padding: 10px 16px; background: #f5f5f5; color: #757575; border-bottom: 1px solid #e0e0e0; font-size: 13px; font-weight: 400; }
+    html.skin-marshmallow:not(.display-mode) { --legacy-panel: #37474f; --legacy-soft: #b0bec5; --legacy-active: #80cbc4; }
+    .skin-marshmallow:not(.display-mode) .site-header { background: #37474f; }
+    /* Marshmallow's header is dark, so its controls use light-on-dark colours. */
+    .skin-marshmallow:not(.display-mode) .brand-row { --control: #ffffff1f; --control-on: #eceff1; }
+    .skin-marshmallow:not(.display-mode) .status,
+    .skin-marshmallow:not(.display-mode) .round-button { color: #eceff1; }
+    .skin-marshmallow:not(.display-mode) .day-heading { color: #fff; font-size: 13px; }
+    .skin-marshmallow:not(.display-mode) footer { color: #ffffffb3; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls input { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23757575' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E"); }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23757575' stroke-width='2'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E"); }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls select option { background: #fff; color: #212121; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .controls input::-webkit-search-cancel-button { filter: none; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .tabs .count { color: inherit; opacity: .75; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .day-heading { font-family: var(--font); text-shadow: none; }
+    .skin-marshmallow:not(.display-mode) .empty { color: #fff; }
+    .theme-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 20px; background: #323232; color: white; border-radius: 3px; z-index: 100; }
+    .theme-toast:empty { display: none; }
+    .skin-nougat:not(.display-mode) .l-row { padding: 14px 16px 16px; background: #fff; cursor: pointer; }
+    .skin-nougat:not(.display-mode) .l-hd { display: flex; align-items: center; min-width: 0; font-size: 12px; line-height: 16px; color: var(--soft); white-space: nowrap; }
+    .skin-nougat:not(.display-mode) .l-glyph { flex: none; width: 18px; height: 18px; margin-right: 8px; }
+    .skin-nougat:not(.display-mode) .l-glyph.l-tint {
+      background: var(--accent);
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+    }
+    .skin-nougat:not(.display-mode) .l-glyph.l-img { display: block; object-fit: contain; }
+    .skin-nougat:not(.display-mode) .l-glyph.l-photo { border-radius: 50%; object-fit: cover; }
+    .skin-nougat:not(.display-mode) .l-glyph.l-initials {
+      display: grid; place-items: center; border-radius: 50%;
+      background: var(--accent); color: #fff; font-size: 9px; font-weight: 500;
+    }
+    .skin-nougat:not(.display-mode) .l-app { color: var(--accent); overflow: hidden; text-overflow: ellipsis; }
+    .skin-nougat:not(.display-mode) .l-sep { padding: 0 4px; }
+    .skin-nougat:not(.display-mode) .when { cursor: help; }
+    .skin-nougat:not(.display-mode) .l-count { margin-left: 6px; color: var(--accent); }
+    .skin-nougat:not(.display-mode) .l-author { margin-top: 6px; color: var(--text); }
+    .skin-nougat:not(.display-mode) .l-text {
+      margin: 6px 0 0; color: var(--text);
+      white-space: pre-line; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .skin-nougat:not(.display-mode) .l-author + .l-text { margin-top: 0; color: var(--soft); }
+    .skin-nougat:not(.display-mode) .l-row.l-open .l-text { -webkit-line-clamp: unset; }
+    .skin-nougat:not(.display-mode) .l-acts { display: none; }
+    .skin-nougat:not(.display-mode) .l-row.l-open { padding-bottom: 0; }
+    .skin-nougat:not(.display-mode) .l-row.l-open .l-acts { display: flex; gap: 8px; margin: 14px -16px 0; padding: 4px 8px; background: var(--grey); }
+    .skin-nougat:not(.display-mode) .l-acts button {
+      height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer;
+      font: 500 14px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--accent);
+    }
+    .skin-nougat:not(.display-mode) .l-acts button:focus-visible { outline: 2px solid var(--blue); }
+
+    .skin-marshmallow:not(.display-mode) .l-card {
+      margin: 0 0 4px; border-radius: 2px; background: var(--card);
+      box-shadow: 0 1px 3px rgba(0,0,0,.35); cursor: pointer;
+    }
+    .skin-marshmallow:not(.display-mode) .l-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px 8px 12px 12px; }
+    .skin-marshmallow:not(.display-mode) .l-circle { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); overflow: hidden; }
+    .skin-marshmallow:not(.display-mode) .l-circle .l-g {   /* white glyph, sized per publisher so they weigh the same */
+      width: var(--size, 20px); height: var(--size, 20px); background: #fff;
+      -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+    }
+    .skin-marshmallow:not(.display-mode) .l-circle.l-colour { background: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    .skin-marshmallow:not(.display-mode) .l-circle.l-colour img { width: 24px; height: 24px; display: block; }
+    .skin-marshmallow:not(.display-mode) .l-circle img.l-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .skin-marshmallow:not(.display-mode) .l-circle .l-initials { color: #fff; font-size: 15px; font-weight: 500; }
+    .skin-marshmallow:not(.display-mode) .l-body { flex: 1; min-width: 0; }
+    .skin-marshmallow:not(.display-mode) .l-title {
+      font-size: 15px; line-height: 20px; color: var(--title);
+      white-space: pre-line; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .skin-marshmallow:not(.display-mode) .l-sub { font-size: 13px; line-height: 20px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-title { -webkit-line-clamp: unset; }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-sub { white-space: pre-line; }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-row { align-items: flex-start; }
+    .skin-marshmallow:not(.display-mode) .l-side { flex: none; align-self: flex-start; display: flex; flex-direction: column; align-items: flex-end; }
+    .skin-marshmallow:not(.display-mode) .when,
+    .skin-marshmallow:not(.display-mode) .l-count { font-size: 12px; line-height: 20px; color: var(--soft); }
+    .skin-marshmallow:not(.display-mode) .when { cursor: help; }
+    .skin-marshmallow:not(.display-mode) .l-acts { display: none; }
+    .skin-marshmallow:not(.display-mode) .l-card.l-open .l-acts { display: flex; gap: 8px; margin: 0 8px 0 64px; padding: 2px 0 4px; border-top: 1px solid #e0e0e0; }
+    .skin-marshmallow:not(.display-mode) .l-acts button {
+      display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 0;
+      border: 0; background: none; cursor: pointer; font: 14px Roboto, sans-serif; color: var(--title);
+    }
+    .skin-marshmallow:not(.display-mode) .l-acts svg { width: 18px; height: 18px; fill: var(--soft); }
+    .skin-marshmallow:not(.display-mode) .l-acts button:focus-visible { outline: 2px solid var(--teal); }
+
+    .skin-nougat:not(.display-mode) .l-row { --text: #212121; --soft: #757575; --grey: #f5f5f5; --blue: #1565c0; border-bottom: 1px solid #e0e0e0; }
+    .skin-marshmallow:not(.display-mode) .l-card { --title: #212121; --soft: #757575; --teal: #80cbc4; }
+
+    /* Legacy cards share the same tooltip and disclosure behaviour. */
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .when { position: relative; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .when::after { text-shadow: none; }
+    /* Nougat's time sits at the left of the row, so its tooltip opens rightwards. */
+    .skin-nougat:not(.display-mode) .when::after { left: 0; right: auto; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--accent); cursor: pointer; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand svg { width: 18px; height: 18px; fill: currentColor; transition: transform .18s ease; }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
+    :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+    .skin-nougat:not(.display-mode) .l-expand { margin: -6px 0 -6px 2px; }
+    .skin-nougat:not(.display-mode) .l-author,
+    .skin-marshmallow:not(.display-mode) .l-sub { overflow-wrap: anywhere; }
+    .skin-nougat:not(.display-mode) .day-heading:first-child { margin-top: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand svg { transition: none; }
     }
   </style>
 </head>
@@ -1373,8 +1523,6 @@
   <header class="site-header">
     <div class="wrap">
       <div class="brand-row">
-        <h1 class="brand">Push Feed</h1>
-
         <!-- Feed health. role="status" lets screen readers announce changes
              politely, without interrupting whatever they're reading. -->
         <div class="header-tools">
@@ -1393,21 +1541,13 @@
             <span id="status-text">Loading…</span>
           </p>
 
-          <!-- Skin switch: iOS look <-> Android Material look. The icon shows
-               the style it switches to. -->
-          <button type="button" class="round-button" id="skin-toggle"
-                  aria-label="Switch to Android style" title="Switch to Android style">
-            <svg class="skin-android" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="4" y="1.5" width="8" height="13" rx="1.5"/>
-              <path d="M7 12.5h2"/>
-            </svg>
-            <svg class="skin-ios" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3.5" y="1.5" width="9" height="13" rx="2.5"/>
-              <path d="M6.5 3.5h3"/>
-            </svg>
-          </button>
+          <div class="theme-slider" role="radiogroup" aria-label="Theme">
+            <span class="theme-thumb" aria-hidden="true"></span>
+            <label title="iOS"><input type="radio" name="theme" value="ios" aria-label="iOS" checked><span aria-hidden="true"></span></label>
+            <label title="Material"><input type="radio" name="theme" value="material" aria-label="Material"><span aria-hidden="true"></span></label>
+            <label title="Nougat"><input type="radio" name="theme" value="nougat" aria-label="Nougat"><span aria-hidden="true"></span></label>
+            <label title="Marshmallow"><input type="radio" name="theme" value="marshmallow" aria-label="Marshmallow"><span aria-hidden="true"></span></label>
+          </div>
 
           <!-- Wallpaper slideshow on/off. -->
           <button type="button" class="round-button" id="slideshow-toggle"
@@ -1467,6 +1607,8 @@
   <main class="wrap" id="feed" aria-label="Notifications">
     <p class="empty">Loading the latest alerts…</p>
   </main>
+
+  <div id="theme-toast" class="theme-toast" role="status" aria-live="polite"></div>
 
   <footer>
     <div class="wrap">
@@ -2243,11 +2385,200 @@
       render();
     }
 
+    const PUBLISHERS = {
+      'nz herald':        { colour: '#1a1a1a', glyph: 'nz-herald',   icon: 'nz-herald' },
+      'rnz':              { colour: '#c62828', glyph: 'rnz',         icon: 'rnz' },
+      'stuff':            { colour: '#5e35b1', glyph: 'stuff',       icon: 'stuff' },
+      'the spinoff':      { colour: '#0048c8', glyph: 'the-spinoff', icon: 'the-spinoff', circleGlyph: 'the-spinoff-s' },
+      '1news':            { colour: '#c8412f', glyph: '1news',       icon: '1news', colourGlyph: true, circleGlyph: '1news-mono' },
+      'tvnz+':            { colour: '#0072ff', glyph: 'tvnz-plus',   icon: 'tvnz-plus', colourGlyph: true },
+      'the post':         { colour: '#1565c0', icon: 'the-post' },
+      'te ao māori news': { colour: '#a4032f', icon: 'te-ao-news' },
+      'te ao news':       { colour: '#a4032f', icon: 'te-ao-news' },
+      'at mobile':        { colour: '#0073bd', glyph: 'at-mobile',   icon: 'at-mobile' },
+    };
+    function publisher(app) {
+      const p = PUBLISHERS[app.toLowerCase()];
+      if (p) return p;
+      let hash = 0;   // unknown app: a steady colour from its name, no glyph
+      for (const ch of app) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+      return { colour: `hsl(${hash % 360} 52% 40%)` };
+    }
+    function glyph(item, p) {
+      if (p.glyph && p.colourGlyph) {
+        const i = make('img', 'l-glyph l-img'); i.src = `svgs/glyphs/${p.glyph}.svg`; i.alt = ''; return i;
+      }
+      if (p.glyph) {
+        const s = make('span', 'l-glyph l-tint'); s.style.setProperty('--src', `url("svgs/glyphs/${p.glyph}.svg")`); return s;
+      }
+      if (p.icon) {
+        const i = make('img', 'l-glyph l-photo'); i.src = `icons/${p.icon}.png`; i.alt = ''; return i;
+      }
+      return make('span', 'l-glyph l-initials', initials(item.app));
+    }
+
+    function buildNougat(item) {
+      const p = publisher(item.app);
+      const r = make('article', 'l-row' + (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
+      r.style.setProperty('--accent', p.colour);
+
+      const hd = make('div', 'l-hd');
+      const t = make('time', 'when', notificationTime(item.time));
+      t.dataset.time = item.time;
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = fullTime(item);
+      t.dataset.full = t.title;
+      t.tabIndex = 0;
+      t.setAttribute('aria-label', t.title);
+      hd.append(glyph(item, p), make('span', 'l-app', item.app), make('span', 'l-sep', '•'), t);
+      if (item.repeats.length) hd.append(make('span', 'l-count', String(item.repeats.length + 1)));
+
+      r.append(hd);
+      if (item.byline) r.append(make('div', 'l-author', item.byline));
+      r.append(make('p', 'l-text', item.headline));
+
+      const acts = make('div', 'l-acts');
+      const copyBtn = make('button', '', 'Copy'), shareBtn = make('button', '', 'Share');
+      copyBtn.type = shareBtn.type = 'button';
+      copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
+      shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('Headline copied'); else if (res === 'failed') toast('Couldn’t share this headline'); };
+      acts.append(copyBtn, shareBtn);
+      r.append(acts);
+
+      wireLegacyExpansion(r, item, hd);
+      return r;
+    }
+
+    // Glyph size inside the 40dp circle, by glyph file, so each mark
+    // looks equally heavy (Android's small icons sit in a 24dp box).
+    const SIZE = { 'nz-herald': 18, 'rnz': 24, 'the-spinoff-s': 15, 'stuff': 17, '1news-mono': 26, 'at-mobile': 24 };
+
+    function circle(item, p) {
+      const c = make('div', 'l-circle');
+      const file = p.circleGlyph || (!p.colourGlyph && p.glyph);
+      if (file) {
+        const g = make('span', 'l-g');
+        g.style.setProperty('--src', `url("svgs/glyphs/${file}.svg")`);
+        if (SIZE[file]) g.style.setProperty('--size', SIZE[file] + 'px');
+        c.append(g);
+      } else if (p.glyph) {               // colour glyph with no one-colour version (TVNZ+)
+        c.classList.add('l-colour');
+        const i = make('img'); i.src = `svgs/glyphs/${p.glyph}.svg`; i.alt = ''; c.append(i);
+      } else if (p.icon) {                // no glyph yet: its app icon
+        const i = make('img', 'l-photo'); i.src = `icons/${p.icon}.png`; i.alt = ''; c.append(i);
+      } else {
+        c.append(make('span', 'l-initials', initials(item.app)));
+      }
+      return c;
+    }
+
+    // News: the headline is the title, the author underneath.
+    // AT Mobile: its alert title is the title, the details underneath.
+    function lines(item) {
+      if (item.side && item.byline) return [item.byline, item.headline];
+      return [item.headline, item.byline];
+    }
+
+    function buildMarshmallow(item) {
+      const p = publisher(item.app);
+      const n = make('article', 'l-card' + (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
+      n.style.setProperty('--accent', p.colour);
+      n.setAttribute('aria-label', item.app);
+
+      const row = make('div', 'l-row');
+      const body = make('div', 'l-body');
+      const [title, sub] = lines(item);
+      body.append(make('div', 'l-title', title));
+      if (sub) body.append(make('div', 'l-sub', sub));
+
+      const side = make('div', 'l-side');
+      const t = make('time', 'when', notificationTime(item.time));
+      t.dataset.time = item.time;
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = fullTime(item);
+      t.dataset.full = t.title;
+      t.tabIndex = 0;
+      t.setAttribute('aria-label', t.title);
+      side.append(t);
+      if (item.repeats.length) side.append(make('span', 'l-count', String(item.repeats.length + 1)));
+      row.append(circle(item, p), body, side);
+
+      const acts = make('div', 'l-acts');
+      acts.innerHTML =
+        '<button type="button" data-act="copy"><svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>' +
+        '<button type="button" data-act="share"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a3.3 3.3 0 0 0 0-1.39l7.05-4.11A2.99 2.99 0 1 0 15 5c0 .24.04.47.09.7L8.04 9.81A2.99 2.99 0 1 0 8.04 14.2l7.12 4.16a2.82 2.82 0 1 0 2.84-2.28z"/></svg>Share</button>';
+      acts.addEventListener('click', async e => {
+        e.stopPropagation();
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.act === 'copy') toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy');
+        else {
+          const result = await shareHeadline(item);
+          if (result === 'copied') toast('Headline copied');
+          else if (result === 'failed') toast('Couldn’t share this headline');
+        }
+      });
+      n.append(row, acts);
+
+      wireLegacyExpansion(n, item, side);
+      return n;
+    }
+
+    function wireLegacyExpansion(card, item, host) {
+      const button = make('button', 'l-expand');
+      button.type = 'button';
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>';
+      const sync = () => {
+        const expanded = card.classList.contains('l-open');
+        button.setAttribute('aria-expanded', String(expanded));
+        button.setAttribute('aria-label', (expanded ? 'Collapse' : 'Expand') + ' alert from ' + item.app);
+      };
+      const toggle = () => {
+        card.classList.toggle('l-open');
+        if (card.classList.contains('l-open')) expandedIds.add(item.id);
+        else expandedIds.delete(item.id);
+        sync();
+      };
+      button.addEventListener('click', event => { event.stopPropagation(); toggle(); });
+      card.addEventListener('click', event => {
+        if (!event.target.closest('.when, button, .l-acts')) toggle();
+      });
+      host.append(button);
+      sync();
+    }
+
+    function buildLegacyCard(item) {
+      const stack = make('div', 'stack' + (item.isNew ? ' is-new' : ''));
+      stack.dataset.id = item.id;
+      stack.dataset.app = item.app.toLowerCase();
+      stack.dataset.time = item.time;
+      stack.append(currentSkin() === 'nougat' ? buildNougat(item) : buildMarshmallow(item));
+      return stack;
+    }
+    let themeToastTimer;
+    function toast(message) {
+      const node = document.getElementById('theme-toast');
+      node.textContent = message;
+      clearTimeout(themeToastTimer);
+      themeToastTimer = setTimeout(() => { node.textContent = ''; }, 2000);
+    }
+    async function copyHeadline(item) {
+      try { await navigator.clipboard.writeText(item.headline); return 'copied'; }
+      catch (e) { return 'failed'; }
+    }
+    async function shareHeadline(item) {
+      if (navigator.share) {
+        try { await navigator.share({ text: item.headline + ' — ' + item.app }); return 'shared'; }
+        catch (e) { if (e.name === 'AbortError') return 'cancelled'; }
+      }
+      return copyHeadline(item);
+    }
+
     // Builds one iOS-style notification:
     //   [icon]  Title (alert title, author, or the app's name)     12m ago
     //           The alert text, cut to four lines until tapped
     // Hidden repeats show as a stacked card underneath plus a red badge.
     function buildCard(item) {
+      if (currentSkin() === 'nougat' || currentSkin() === 'marshmallow') return buildLegacyCard(item);
       const stack = make('div', 'stack' +
         (item.repeats.length ? ' has-repeats' : '') +
         (item.isNew ? ' is-new' : ''));
@@ -2264,7 +2595,7 @@
         else expandedIds.delete(item.id);
       });
 
-      card.append(buildIcon(item), make('div', 'card-body'));
+      card.append(materialSkin() ? themedIcon(item) : buildIcon(item), make('div', 'card-body'));
       const body = card.lastChild;
 
       // The time ("12m ago"), which expands to the exact moment on hover
@@ -2300,6 +2631,16 @@
       }
       stack.append(card);
       return stack;
+    }
+
+    // Material You's themed icon: the publisher's one-colour mark on a
+    // tonal circle (see circle(), shared with the Marshmallow theme).
+    function themedIcon(item) {
+      const box = make('div', 'icon m-themed');
+      box.setAttribute('role', 'img');
+      box.setAttribute('aria-label', item.app);
+      box.append(circle(item, publisher(item.app)));
+      return box;
     }
 
     // The Android Material skin applies outside display mode only.
@@ -2451,9 +2792,10 @@
     // (The day heading above the card already says which day.)
     const hhmm = new Intl.DateTimeFormat('en-NZ', { ...tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
     function notificationTime(ms) {
+      if (currentSkin() === 'marshmallow') return clockTime(ms).toUpperCase();
       const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
       if (mins < 1)  return 'now';
-      if (materialSkin()) {   // Android's short form: "12m", "3h"
+      if (materialSkin() || currentSkin() === 'nougat') {   // Android's short form: "12m", "3h"
         if (mins < 60) return mins + 'm';
         if (mins < 4 * 60) return Math.floor(mins / 60) + 'h';
         return hhmm.format(ms);
@@ -2536,6 +2878,43 @@
     };
     document.documentElement.style.setProperty('--wall-fade', CONFIG.SLIDESHOW_FADE_SECONDS + 's');
 
+    // Material You's dynamic colour: the theme's seed hue comes from the
+    // wallpaper (same-origin, so a canvas can read it). Each pixel's OKLab
+    // colour is averaged, weighted by how colourful it is, so the main vivid
+    // colour wins over greys and blacks. Sets --m-hue, which every Material
+    // tone is built from; other themes ignore it.
+    function applyWallpaperHue(img) {
+      try {
+        const size = 24;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, size, size);
+        const px = ctx.getImageData(0, 0, size, size).data;
+        const lin = v => (v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+        let sumA = 0, sumB = 0;
+        for (let i = 0; i < px.length; i += 4) {
+          const r = lin(px[i]), g = lin(px[i + 1]), b = lin(px[i + 2]);
+          const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+          const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+          const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+          const a  = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+          const bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+          const weight = Math.hypot(a, bb);
+          sumA += a * weight;
+          sumB += bb * weight;
+        }
+        if (Math.hypot(sumA, sumB) < 1e-6) return;   // a grey wallpaper: keep the default
+        const hue = (Math.atan2(sumB, sumA) * 180 / Math.PI + 360) % 360;
+        document.documentElement.style.setProperty('--m-hue', hue.toFixed(1));
+      } catch (e) { /* unreadable image: keep the default hue */ }
+    }
+    if (slideshow.walls.current) {
+      const first = new Image();
+      first.onload = () => applyWallpaperHue(first);
+      first.src = slideshow.walls.folder + slideshow.walls.current;
+    }
+
     function slideshowOn() { return slideshow.button.getAttribute('aria-pressed') === 'true'; }
 
     function setSlideshow(on) {
@@ -2566,6 +2945,7 @@
         outgoing.classList.remove('is-showing');
         slideshow.showing = 1 - slideshow.showing;
         slideshow.walls.current = name;
+        applyWallpaperHue(img);
         scheduleWallpaper();
       };
       img.onerror = scheduleWallpaper; // skip a missing file, try another next time
@@ -2578,23 +2958,43 @@
     try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
 
     /* ════════════════════════════════════════════════════════════════════
-       SKIN SWITCH: iOS (default) or Android Material. The choice is saved
-       in this browser; ?skin=material / ?skin=ios overrides it on load
+       THEME SLIDER: iOS, Material, Nougat and Marshmallow. Saved in this
+       browser; ?skin=ios|material|nougat|marshmallow overrides it on load
        (see the script in <head>).
        ════════════════════════════════════════════════════════════════════ */
-    const skinButton = document.getElementById('skin-toggle');
-    function labelSkinButton() {
-      const label = materialSkin() ? 'Switch to iOS style' : 'Switch to Android style';
-      skinButton.title = label;
-      skinButton.setAttribute('aria-label', label);
+    const THEMES = ['ios', 'material', 'nougat', 'marshmallow'];
+    const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow' };
+    const themeSlider = document.querySelector('.theme-slider');
+    function currentSkin() {
+      if (displayMode) return 'ios';
+      return THEMES.find(theme => document.documentElement.classList.contains('skin-' + theme)) || 'ios';
     }
-    skinButton.addEventListener('click', () => {
-      const on = document.documentElement.classList.toggle('skin-material');
-      try { localStorage.setItem('pushFeedSkin', on ? 'material' : 'ios'); } catch (e) { /* fine */ }
-      labelSkinButton();
+    function syncTheme() {
+      const theme = currentSkin();
+      themeSlider.setAttribute('aria-label', 'Theme: ' + THEME_NAMES[theme]);
+      themeSlider.style.setProperty('--theme-index', THEMES.indexOf(theme));
+      themeSlider.querySelector('input[value="' + theme + '"]').checked = true;
+      document.querySelector('meta[name="theme-color"]').content =
+        ({ ios: '#000000', material: '#121316', nougat: '#f5f5f5', marshmallow: '#37474f' })[theme];
+      document.querySelector('meta[name="color-scheme"]').content =
+        theme === 'nougat' || theme === 'marshmallow' ? 'light' : 'dark';
+    }
+    themeSlider.addEventListener('change', event => {
+      const theme = event.target.value;
+      if (!THEMES.includes(theme)) return;
+      document.documentElement.classList.remove(...THEMES.map(name => 'skin-' + name));
+      if (theme !== 'ios') document.documentElement.classList.add('skin-' + theme);
+      try { localStorage.setItem('pushFeedSkin', theme); } catch (e) { /* fine */ }
+      const url = new URL(location.href);
+      if (url.searchParams.has('skin')) {
+        url.searchParams.set('skin', theme);
+        history.replaceState(null, '', url);
+      }
+      syncTheme();
       render();
+      toast(THEME_NAMES[theme] + ' theme');   // swatch names are hover-only, so say it on touch screens too
     });
-    labelSkinButton();
+    syncTheme();
 
     /* ════════════════════════════════════════════════════════════════════
        START
