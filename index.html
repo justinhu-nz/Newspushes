@@ -1552,6 +1552,39 @@
     .skin-nougat:not(.display-mode) .l-row { --text: #212121; --soft: #757575; --grey: #f5f5f5; --blue: #1565c0; border-bottom: 1px solid #e0e0e0; }
     .skin-marshmallow:not(.display-mode) .l-card { --title: #212121; --soft: #757575; --teal: #80cbc4; }
 
+    /* Marshmallow proportions (Android 6 shade): 16dp side padding, a 40dp
+       icon, then one text column the full width of the card. The title row
+       carries the time and chevron, so the alert text runs edge to edge. */
+    html.skin-marshmallow:not(.display-mode) { --wall-dim: rgba(23, 33, 38, .62); }
+    html.skin-marshmallow:not(.display-mode) .l-card { margin: 0 0 2px; border-radius: 2px; background: #fafafa; box-shadow: 0 1px 1.5px rgba(0,0,0,.24); }
+    html.skin-marshmallow:not(.display-mode) .stack:has(+ .day-heading) .l-card,
+    html.skin-marshmallow:not(.display-mode) .stack:last-child .l-card { margin-bottom: 0; }
+    html.skin-marshmallow:not(.display-mode) .l-row { align-items: flex-start; gap: 16px; min-height: 72px; padding: 16px 12px 14px 16px; }
+    html.skin-marshmallow:not(.display-mode) .l-circle { margin-top: 0; }
+    html.skin-marshmallow:not(.display-mode) .l-head { display: flex; align-items: center; gap: 8px; min-width: 0; height: 20px; }
+    html.skin-marshmallow:not(.display-mode) .l-title { flex: 1; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: rgba(0,0,0,.87); }
+    html.skin-marshmallow:not(.display-mode) .l-head .when,
+    html.skin-marshmallow:not(.display-mode) .l-head .l-count { flex: none; font-size: 12px; line-height: 20px; color: rgba(0,0,0,.54); }
+    html.skin-marshmallow:not(.display-mode) .l-head .l-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: rgba(0,0,0,.08); line-height: 18px; text-align: center; }
+    html.skin-marshmallow:not(.display-mode) .l-head .l-expand { width: 24px; height: 24px; margin: -2px -4px -2px -4px; color: rgba(0,0,0,.54); }
+    html.skin-marshmallow:not(.display-mode) .l-sub { margin-top: 4px; font-size: 14px; line-height: 20px; color: rgba(0,0,0,.6); }
+    html.skin-marshmallow:not(.display-mode) .l-card.l-open .l-head { height: auto; align-items: flex-start; }
+    html.skin-marshmallow:not(.display-mode) .l-card.l-open .l-acts { margin: 0 12px 0 72px; }
+    /* Readability pass: white cards, larger type with roomier lines, and
+       the time at the far right of the title row with the chevron after it;
+       the alert text below stops short of that column so they never meet. */
+    html.skin-marshmallow:not(.display-mode) .l-card { background: #fff; }
+    html.skin-marshmallow:not(.display-mode) .l-row { padding: 14px 8px 14px 16px; min-height: 76px; }
+    html.skin-marshmallow:not(.display-mode) .l-body { position: relative; }
+    html.skin-marshmallow:not(.display-mode) .l-head { height: 22px; gap: 0; }
+    html.skin-marshmallow:not(.display-mode) .l-title { flex: 1; font-size: 15px; line-height: 22px; color: rgba(0,0,0,.87); }
+    html.skin-marshmallow:not(.display-mode) .l-head .when { order: 2; font-size: 13px; line-height: 22px; color: rgba(0,0,0,.5); }
+    html.skin-marshmallow:not(.display-mode) .l-head .when { margin-left: 8px; }
+    html.skin-marshmallow:not(.display-mode) .l-head .l-count { order: 3; margin-left: 6px; }
+    html.skin-marshmallow:not(.display-mode) .l-head .l-expand { order: 4; margin: 0 0 0 4px; width: 28px; height: 24px; }
+    html.skin-marshmallow:not(.display-mode) .l-sub { margin: 2px 32px 0 0; font-size: 15px; line-height: 22px; color: rgba(0,0,0,.62); }
+    html.skin-marshmallow:not(.display-mode) .day-heading { margin: 20px 4px 8px; font-size: 13px; font-weight: 500; letter-spacing: .2px; color: rgba(255,255,255,.8); }
+
     /* Legacy cards share the same tooltip and disclosure behaviour. */
     :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .when { position: relative; }
     :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .when::after { text-shadow: none; }
@@ -2567,10 +2600,12 @@
       const row = make('div', 'l-row');
       const body = make('div', 'l-body');
       const [title, sub] = lines(item);
-      body.append(make('div', 'l-title', title));
+      // Head row: title, then time (and repeat count) and the expand chevron.
+      const side = make('div', 'l-head');
+      side.append(make('div', 'l-title', title));
+      body.append(side);
       if (sub) body.append(make('div', 'l-sub', sub));
 
-      const side = make('div', 'l-side');
       const t = make('time', 'when', notificationTime(item.time));
       t.dataset.time = item.time;
       t.dateTime = new Date(item.time).toISOString();
@@ -2580,7 +2615,7 @@
       t.setAttribute('aria-label', t.title);
       side.append(t);
       if (item.repeats.length) side.append(make('span', 'l-count', String(item.repeats.length + 1)));
-      row.append(circle(item, p), body, side);
+      row.append(circle(item, p), body);
 
       const acts = make('div', 'l-acts');
       acts.innerHTML =
