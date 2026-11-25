@@ -2299,73 +2299,74 @@
     }
 
     /* ════════════════════════════════════════════════════════════════════
-       10. PALM WEBOS 1–2 SKIN (html.skin-webos): Pre Synergy Dashboard.
-       Pitch-black surround, curved black-glass card bezel, dark glossy
-       dashboard rows, glossy pill controls, bottom ticker notification
-       banner, and glowing gesture-area light-pipe.
+       10. PALM WEBOS 1–2 SKIN (html.skin-webos): Palm Pre Notifications.
+       Pure #000 black canvas, separate smoky-slate rounded pills with 4px
+       black gaps, split icon-tile + text-pill layout with glossy teal
+       top-right count badges for grouped alerts, floating sculpted SVG
+       publisher glyphs, bottom ticker banner, and glowing light-pipe.
        ════════════════════════════════════════════════════════════════════ */
     .webos-ticker,
     .webos-gesture { display: none; }
 
     html.skin-webos:not(.display-mode) {
       --bg: #000000;
-      --card: #181a1e;
-      --control: #14161a;
-      --control-on: #505660;
-      --text: #f0f2f5;
-      --text-soft: #8c95a2;
-      --hairline: rgba(255, 255, 255, 0.08);
+      --card: #3b404b;
+      --control: #2d313a;
+      --control-on: #545b69;
+      --text: #ffffff;
+      --text-soft: #b8c0ce;
+      --hairline: rgba(255, 255, 255, 0.16);
       --ok: #62d96b;
       --warn: #f5a623;
       --bad: #ff4d45;
-      --focus: #56b0f5;
-      --tooltip-bg: #121418;
-      --tooltip-text: #f0f2f5;
-      --font: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-display: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --focus: #4cc2e0;
+      --tooltip-bg: #1c1f26;
+      --tooltip-text: #f4f7fb;
+      --font: "Open Sans", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-display: "Open Sans", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color-scheme: dark;
     }
     .skin-webos:not(.display-mode) body {
       background: #000000;
       font-size: 14px;
-      line-height: 20px;
-      letter-spacing: 0;
-      padding-bottom: 58px;
+      line-height: 19px;
+      letter-spacing: -0.005em;
+      padding-bottom: 62px;
     }
     .skin-webos:not(.display-mode) .wall,
     .skin-webos:not(.display-mode) body::before,
     .skin-webos:not(.display-mode) #slideshow-toggle { display: none; }
 
-    /* Top pitch-black status strip */
+    /* Top Palm status bar on pure black */
     .skin-webos:not(.display-mode) .site-header {
-      padding: 14px 0 8px;
+      padding: 12px 0 8px;
       background: #000000;
       text-shadow: none;
     }
     .skin-webos:not(.display-mode) .status {
-      padding: 3px 10px 3px 8px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #1b1e23, #0f1114);
-      border: 1px solid rgba(255, 255, 255, 0.13);
+      padding: 0;
+      gap: 6px;
+      border-radius: 0;
+      background: transparent;
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.65);
-      font-size: 12px;
-      color: #c2c9d3;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #d6dce6;
     }
-    .skin-webos:not(.display-mode) .dot.is-ok { box-shadow: 0 0 7px #62d96b; }
+    .skin-webos:not(.display-mode) .dot.is-ok { box-shadow: 0 0 6px #62d96b; }
     .skin-webos:not(.display-mode) .theme-slider {
-      background: linear-gradient(180deg, #1a1d22, #0d0f12);
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.13);
+      background: linear-gradient(180deg, #272a32, #16181d);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.16);
     }
     .skin-webos:not(.display-mode) .theme-thumb {
-      background: linear-gradient(180deg, #626872, #383c43);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.55);
+      background: linear-gradient(180deg, #5a6170, #393e48);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 1px 3px rgba(0, 0, 0, 0.55);
     }
 
-    /* Curved black-glass Synergy Dashboard header bezel */
+    /* Rounded smoky-slate top card (like the active Pre card above notifications) */
     .skin-webos:not(.display-mode) .toolbar {
-      padding: 0;
+      padding: 0 0 8px;
       margin-bottom: 0;
     }
     .skin-webos:not(.display-mode) .toolbar::before {
@@ -2376,243 +2377,287 @@
       mask-image: none;
     }
     .skin-webos:not(.display-mode) .toolbar .wrap {
-      padding: 12px 14px 12px;
-      border-radius: 18px 18px 0 0;
-      background: linear-gradient(180deg, #3c4047 0%, #24272c 48%, #181a1e 100%);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-bottom: 1px solid #000000;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 4px 14px rgba(0, 0, 0, 0.55);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #484d59 0%, #373b45 55%, #2d313a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-top-color: rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 4px 12px rgba(0, 0, 0, 0.65);
     }
     .skin-webos:not(.display-mode) .toolbar.is-stuck .wrap {
-      border-radius: 0;
-      border-top-color: rgba(255, 255, 255, 0.09);
+      border-radius: 0 0 14px 14px;
+      border-top-color: rgba(255, 255, 255, 0.08);
     }
 
     /* Glossy pill segmented tabs */
     .skin-webos:not(.display-mode) .tabs {
       padding: 2px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       border-radius: 999px;
-      background: #101215;
+      background: rgba(0, 0, 0, 0.42);
       border: 1px solid rgba(255, 255, 255, 0.12);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.78);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.68);
     }
     .skin-webos:not(.display-mode) .tabs button {
-      padding: 6px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
-      color: #9ea6b2;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+      color: #b4bccb;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
     }
     .skin-webos:not(.display-mode) .tabs button[aria-selected="true"] {
       color: #ffffff;
-      background: linear-gradient(180deg, #626872, #383c43);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 1px 3px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(180deg, #646b7a, #414652);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 1px 3px rgba(0, 0, 0, 0.45);
     }
     .skin-webos:not(.display-mode) .tabs .count { color: inherit; opacity: 0.78; }
 
     /* Recessed dark pill search & filter controls */
     .skin-webos:not(.display-mode) .controls input,
     .skin-webos:not(.display-mode) .controls select {
-      height: 34px;
+      height: 33px;
       border-radius: 999px;
-      background-color: rgba(0, 0, 0, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background-color: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
-      color: #edf1f6;
-      font-size: 14px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65);
+      color: #f4f7fb;
+      font-size: 13.5px;
     }
     .skin-webos:not(.display-mode) .controls input { padding: 0 12px 0 34px; }
-    .skin-webos:not(.display-mode) .controls input::placeholder { color: #8c95a2; }
+    .skin-webos:not(.display-mode) .controls input::placeholder { color: #aeb6c4; }
     .skin-webos:not(.display-mode) .controls select { padding: 0 28px 0 12px; font-weight: 600; }
-    .skin-webos:not(.display-mode) .controls select option { background: #181a1e; color: #f0f2f5; }
+    .skin-webos:not(.display-mode) .controls select option { background: #242830; color: #f4f7fb; }
     .skin-webos:not(.display-mode) .controls input:focus,
     .skin-webos:not(.display-mode) .controls select:focus {
       outline: none;
-      border-color: #56b0f5;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72), 0 0 0 2px rgba(86, 176, 245, 0.28);
+      border-color: #5bd1eb;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.65), 0 0 0 2px rgba(91, 209, 235, 0.28);
     }
 
-    /* Synergy Dashboard feed card body */
+    /* Feed sits directly on pure #000 black so individual pills float cleanly */
     .skin-webos:not(.display-mode) main.wrap {
-      padding: 0;
-      border-radius: 0 0 18px 18px;
-      background: linear-gradient(180deg, #1a1c20, #111316);
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-top: 0;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      padding-top: 2px;
+      padding-bottom: 44px;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
     }
     .skin-webos:not(.display-mode) .day-heading {
-      margin: 0;
-      padding: 7px 14px;
+      margin: 14px 4px 6px;
       font-family: var(--font);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #8892a0;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
-      background: linear-gradient(180deg, #272a30, #1d2025);
-      border-top: 1px solid rgba(255, 255, 255, 0.07);
-      border-bottom: 1px solid #090a0c;
+      color: #7d8594;
+      text-shadow: none;
     }
-    .skin-webos:not(.display-mode) main > .day-heading:first-child { margin-top: 0; border-top: 0; }
+    .skin-webos:not(.display-mode) main > .day-heading:first-child { margin-top: 4px; }
 
+    /* 4px pure black gap between separate notification pills */
     .skin-webos:not(.display-mode) .stack,
-    .skin-webos:not(.display-mode) .stack.has-repeats { margin-bottom: 0; }
+    .skin-webos:not(.display-mode) .stack.has-repeats { margin-bottom: 4px; }
     .skin-webos:not(.display-mode) .stack.has-repeats::after { display: none; }
-    .skin-webos:not(.display-mode) .stack.is-new { animation: webos-arrive 0.38s cubic-bezier(0.2, 0.9, 0.25, 1); }
+    .skin-webos:not(.display-mode) .stack.is-new { animation: webos-arrive 0.36s cubic-bezier(0.2, 0.9, 0.25, 1); }
     @keyframes webos-arrive {
-      from { opacity: 0; transform: translateY(-10px) scale(0.985); }
+      from { opacity: 0; transform: translateY(-8px) scale(0.985); }
       to   { opacity: 1; transform: none; }
     }
 
-    /* Dark glossy dashboard rows */
+    /* Smoky-slate satin pill surface (from Palm Pre reference photos) */
     .skin-webos:not(.display-mode) .w-row {
       position: relative;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.04));
-      border-bottom: 1px solid #090a0c;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
       cursor: pointer;
-      transition: background 0.14s ease;
     }
     .skin-webos:not(.display-mode) .w-row:hover,
     .skin-webos:not(.display-mode) .w-row:focus-within { z-index: 2; }
-    .skin-webos:not(.display-mode) .stack:last-child .w-row {
-      border-bottom: 0;
-      border-radius: 0 0 17px 17px;
-    }
-    .skin-webos:not(.display-mode) .w-row.l-open {
-      background: linear-gradient(180deg, #2b3440, #1f2630);
-      box-shadow: inset 0 1px 0 rgba(120, 196, 255, 0.28);
-    }
-    .skin-webos:not(.display-mode) .w-row-main {
+
+    /* Single notification: one continuous rounded smoky-slate pill */
+    .skin-webos:not(.display-mode) .w-row.is-single {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 12px;
+      min-height: 58px;
+      padding: 9px 12px 10px 10px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #4b505d 0%, #3d424e 52%, #333742 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-top-color: rgba(255, 255, 255, 0.27);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 1px 3px rgba(0, 0, 0, 0.65);
     }
-    .skin-webos:not(.display-mode) .w-ic {
+    .skin-webos:not(.display-mode) .w-row.is-single.l-open {
+      align-items: flex-start;
+      border-color: rgba(91, 209, 235, 0.45);
+      background: linear-gradient(180deg, #525868 0%, #414755 52%, #363b47 100%);
+    }
+
+    /* Grouped notification (repeats > 0): two separate rounded pills with 4px black gap */
+    .skin-webos:not(.display-mode) .w-row.is-split {
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+    }
+    .skin-webos:not(.display-mode) .w-icon-pill,
+    .skin-webos:not(.display-mode) .w-text-pill {
+      border-radius: 12px;
+      background: linear-gradient(180deg, #4b505d 0%, #3d424e 52%, #333742 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-top-color: rgba(255, 255, 255, 0.27);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 1px 3px rgba(0, 0, 0, 0.65);
+    }
+    .skin-webos:not(.display-mode) .w-icon-pill {
       position: relative;
+      flex: none;
+      width: 56px;
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+    }
+    .skin-webos:not(.display-mode) .w-text-pill {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 12px 10px 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .skin-webos:not(.display-mode) .w-row.is-split.l-open .w-icon-pill,
+    .skin-webos:not(.display-mode) .w-row.is-split.l-open .w-text-pill {
+      border-color: rgba(91, 209, 235, 0.45);
+      background: linear-gradient(180deg, #525868 0%, #414755 52%, #363b47 100%);
+    }
+
+    /* Sculpted floating webOS publisher glyphs (silhouette drop-shadow, no square box) */
+    .skin-webos:not(.display-mode) .w-glyph-wrap {
       flex: none;
       width: 38px;
       height: 38px;
-      margin-top: 1px;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
     }
-    .skin-webos:not(.display-mode) .w-ic img,
-    .skin-webos:not(.display-mode) .w-ic .initials {
+    .skin-webos:not(.display-mode) .w-glyph-mask {
+      width: var(--w-size, 28px);
+      height: var(--w-size, 28px);
+      background: var(--w-grad, linear-gradient(180deg, #ffffff, #d2dae6));
+      -webkit-mask: var(--src) center / contain no-repeat;
+      mask: var(--src) center / contain no-repeat;
+    }
+    .skin-webos:not(.display-mode) .w-glyph-img {
+      width: 28px;
+      height: 28px;
       display: block;
-      width: 100%;
-      height: 100%;
-      border-radius: 9px;
-      object-fit: cover;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+      object-fit: contain;
     }
-    .skin-webos:not(.display-mode) .w-ic .initials {
+    .skin-webos:not(.display-mode) .w-glyph-photo {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      display: block;
+      object-fit: cover;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    .skin-webos:not(.display-mode) .w-glyph-initials {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
       display: grid;
       place-items: center;
       color: #ffffff;
+      font-size: 13px;
       font-weight: 700;
-      font-size: 14px;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
     }
-    .skin-webos:not(.display-mode) .w-ic::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 9px;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.03) 48%, transparent 50%);
-      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.35);
-    }
+
+    /* Signature Palm Pre glossy teal-blue circular count badge on top-right of icon pill */
     .skin-webos:not(.display-mode) .w-count {
       position: absolute;
-      bottom: -4px;
+      top: -4px;
       right: -4px;
-      z-index: 2;
-      min-width: 18px;
-      height: 18px;
+      z-index: 3;
+      min-width: 21px;
+      height: 21px;
       padding: 0 5px;
-      border-radius: 9px;
-      background: linear-gradient(180deg, #74c2ff, #2678c9);
-      border: 1.5px solid #090a0c;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #62d7f0 0%, #2798bb 52%, #176c89 100%);
+      border: 1.5px solid #d8f1f8;
       color: #ffffff;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
-      line-height: 15px;
+      line-height: 18px;
       text-align: center;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
       font-variant-numeric: tabular-nums;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 2px 5px rgba(0, 0, 0, 0.65);
     }
+
+    /* Two-line Palm Pre typography: bold crisp white over regular crisp white */
     .skin-webos:not(.display-mode) .w-bd { flex: 1; min-width: 0; }
     .skin-webos:not(.display-mode) .w-top {
       position: relative;
       display: flex;
-      align-items: center;
+      align-items: baseline;
       gap: 8px;
-      min-height: 20px;
+      line-height: 19px;
     }
-    .skin-webos:not(.display-mode) .w-app {
+    .skin-webos:not(.display-mode) .w-title {
       flex: 1;
       min-width: 0;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 14.5px;
+      font-weight: 700;
       color: #ffffff;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.42);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .skin-webos:not(.display-mode) .when {
-      font-size: 12px;
-      color: #8c95a2;
+      flex: none;
+      font-size: 11.5px;
+      font-weight: 400;
+      color: #bcc4d2;
       line-height: 18px;
     }
     .skin-webos:not(.display-mode) .when:hover,
     .skin-webos:not(.display-mode) .when:focus { color: #ffffff; }
     .skin-webos:not(.display-mode) .when::after {
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: linear-gradient(180deg, #25282e, #121418);
-      color: #f0f2f5;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(180deg, #2b2f38, #171a20);
+      color: #f4f7fb;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.72);
     }
     .skin-webos:not(.display-mode) .l-expand {
       flex: none;
       display: grid;
       place-items: center;
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       margin: -2px -4px -2px 0;
       padding: 0;
       border: 0;
       border-radius: 50%;
       background: transparent;
-      color: #7d8794;
+      color: rgba(255, 255, 255, 0.48);
       cursor: pointer;
     }
     .skin-webos:not(.display-mode) .l-expand svg { width: 16px; height: 16px; fill: currentColor; transition: transform 0.18s ease; }
-    .skin-webos:not(.display-mode) .l-expand[aria-expanded="true"] { color: #74c2ff; }
+    .skin-webos:not(.display-mode) .l-expand[aria-expanded="true"] { color: #62d7f0; }
     .skin-webos:not(.display-mode) .l-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
     .skin-webos:not(.display-mode) .l-expand:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 
-    .skin-webos:not(.display-mode) .w-byline {
-      margin-top: 1px;
-      font-size: 12.5px;
-      font-weight: 600;
-      line-height: 18px;
-      color: #74c2ff;
-      overflow-wrap: anywhere;
-    }
     .skin-webos:not(.display-mode) .w-text {
-      margin: 2px 0 0;
+      margin: 1px 0 0;
       font-size: 13.5px;
-      line-height: 19px;
-      color: #c8cfd8;
+      font-weight: 400;
+      line-height: 18.5px;
+      color: #e6ebf4;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
       white-space: pre-line;
       overflow-wrap: anywhere;
       display: -webkit-box;
@@ -2621,34 +2666,35 @@
       line-clamp: 2;
       overflow: hidden;
     }
+    .skin-webos:not(.display-mode) .w-row.l-open .w-title { white-space: normal; }
     .skin-webos:not(.display-mode) .w-row.l-open .w-text {
       -webkit-line-clamp: unset;
       line-clamp: none;
-      color: #edf1f6;
+      color: #ffffff;
     }
 
-    /* Glossy pill Copy / Share actions */
+    /* Glossy pill Copy / Share actions inside expanded card */
     .skin-webos:not(.display-mode) .l-acts { display: none; }
     .skin-webos:not(.display-mode) .w-row.l-open .l-acts {
       display: flex;
       gap: 8px;
-      margin: 10px 0 1px 50px;
+      margin-top: 9px;
     }
     .skin-webos:not(.display-mode) .l-acts button {
-      height: 29px;
-      padding: 0 14px;
+      height: 28px;
+      padding: 0 13px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: linear-gradient(180deg, #525760, #2b2f35);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: linear-gradient(180deg, #5d6473, #373c46);
       color: #ffffff;
       font: 600 12px/1 var(--font);
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 1px 3px rgba(0, 0, 0, 0.45);
       cursor: pointer;
     }
     .skin-webos:not(.display-mode) .l-acts button:first-child {
-      border-color: #3a92d8;
-      background: linear-gradient(180deg, #56b0f5, #1e73bc);
+      border-color: #79ddf2;
+      background: linear-gradient(180deg, #57cde7, #1f87a8);
     }
     .skin-webos:not(.display-mode) .l-acts button:hover { filter: brightness(1.08); }
     .skin-webos:not(.display-mode) .l-acts button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -2660,18 +2706,17 @@
       gap: 10px;
       position: fixed;
       left: 50%;
-      bottom: 32px;
+      bottom: 36px;
       z-index: 90;
-      width: min(100%, var(--max));
-      height: 44px;
+      width: min(calc(100% - 20px), calc(var(--max) - 20px));
+      height: 46px;
       padding: 0 12px;
-      background: linear-gradient(180deg, #2b2e33, #0e1013);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-bottom: 0;
-      border-radius: 12px 12px 0 0;
+      background: linear-gradient(180deg, #4b505d 0%, #3a3f4a 55%, #2f333d 100%);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
       color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 -8px 24px rgba(0, 0, 0, 0.7);
-      transform: translate(-50%, 130%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 8px 26px rgba(0, 0, 0, 0.8);
+      transform: translate(-50%, 140%);
       opacity: 0;
       pointer-events: none;
       transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.2s ease;
@@ -2681,25 +2726,29 @@
       opacity: 1;
       pointer-events: auto;
     }
-    .skin-webos:not(.display-mode) .webos-ticker-ic {
-      width: 24px;
-      height: 24px;
-      border-radius: 5px;
-      object-fit: cover;
+    .skin-webos:not(.display-mode) .webos-ticker-glyph {
       flex: none;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
     }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-wrap { width: 26px; height: 26px; }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-mask { width: 21px; height: 21px; }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-img,
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-photo { width: 22px; height: 22px; border-radius: 5px; }
     .skin-webos:not(.display-mode) .webos-ticker-text {
       flex: 1;
       min-width: 0;
-      font-size: 12.5px;
+      font-size: 13px;
       line-height: 1.25;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .skin-webos:not(.display-mode) .webos-ticker-app {
-      color: #74c2ff;
-      font-weight: 600;
+      color: #ffffff;
+      font-weight: 700;
       margin-right: 6px;
     }
     .skin-webos:not(.display-mode) .webos-ticker-close {
@@ -2708,12 +2757,12 @@
       height: 22px;
       border: 0;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.14);
+      background: rgba(0, 0, 0, 0.34);
       color: #ffffff;
       font: 700 13px/1 var(--font);
       cursor: pointer;
     }
-    .skin-webos:not(.display-mode) .webos-ticker-close:hover { background: rgba(255, 255, 255, 0.26); }
+    .skin-webos:not(.display-mode) .webos-ticker-close:hover { background: rgba(0, 0, 0, 0.55); }
 
     /* Fixed bottom gesture area + glowing white light-pipe */
     .skin-webos:not(.display-mode) .webos-gesture {
@@ -2725,27 +2774,27 @@
       bottom: 0;
       height: 32px;
       z-index: 95;
-      background: linear-gradient(180deg, #0d0e10, #000000);
-      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      background: linear-gradient(180deg, #0a0b0d, #000000);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       cursor: pointer;
     }
     .skin-webos:not(.display-mode) .webos-lightpipe {
       width: 64px;
       height: 3px;
       border-radius: 99px;
-      background: rgba(255, 255, 255, 0.62);
+      background: rgba(255, 255, 255, 0.65);
       box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
       transition: width 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     }
     .skin-webos:not(.display-mode) .webos-gesture:hover .webos-lightpipe {
-      width: 80px;
+      width: 82px;
       background: #ffffff;
-      box-shadow: 0 0 12px rgba(154, 224, 255, 0.8);
+      box-shadow: 0 0 12px rgba(154, 224, 255, 0.85);
     }
     .skin-webos:not(.display-mode) .webos-gesture.is-pulsing .webos-lightpipe {
-      width: 108px;
+      width: 112px;
       background: #ffffff;
-      box-shadow: 0 0 14px 3px rgba(180, 230, 255, 0.95), 0 0 28px rgba(56, 163, 235, 0.85);
+      box-shadow: 0 0 14px 3px rgba(190, 238, 255, 0.95), 0 0 28px rgba(76, 194, 224, 0.88);
       animation: webos-pipe 1.3s ease-in-out 2;
     }
     @keyframes webos-pipe {
@@ -2755,15 +2804,15 @@
 
     .skin-webos:not(.display-mode) .theme-toast {
       bottom: 44px;
-      border-radius: 999px;
+      border-radius: 12px;
       padding: 8px 16px;
-      background: linear-gradient(180deg, #2d323a, #171a1f);
-      border: 1px solid rgba(116, 194, 255, 0.35);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      background: linear-gradient(180deg, #4b505d, #333742);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.72);
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
     }
-    .skin-webos:not(.display-mode) footer { color: #6e7784; }
+    .skin-webos:not(.display-mode) footer { color: #6f7785; }
 
     @media (prefers-reduced-motion: reduce) {
       .skin-webos:not(.display-mode) .stack.is-new,
@@ -2927,7 +2976,7 @@
 
   <!-- Palm webOS bottom ticker banner & gesture-area light-pipe (webOS skin only). -->
   <div id="webos-ticker" class="webos-ticker" role="status" aria-live="polite">
-    <img id="webos-ticker-ic" class="webos-ticker-ic" alt="" hidden>
+    <div id="webos-ticker-glyph" class="webos-ticker-glyph" aria-hidden="true"></div>
     <div class="webos-ticker-text"><span id="webos-ticker-app" class="webos-ticker-app"></span><span id="webos-ticker-msg"></span></div>
     <button type="button" id="webos-ticker-close" class="webos-ticker-close" aria-label="Dismiss notification banner">×</button>
   </div>
@@ -3952,24 +4001,53 @@
       return n;
     }
 
-    function buildWebOS(item) {
-      const n = make('article', 'w-row' + (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
-      const main = make('div', 'w-row-main');
+    // Sculpted luminous gradients for floating Palm Pre glyphs on smoky slate.
+    const WEBOS_GLYPH_STYLE = {
+      'nz-herald':   { grad: 'linear-gradient(180deg, #ffffff 0%, #cfd7e3 100%)', size: 26 },
+      'rnz':         { grad: 'linear-gradient(180deg, #ff6b62 0%, #d62828 100%)', size: 30 },
+      'stuff':       { grad: 'linear-gradient(180deg, #c2a6ff 0%, #7d52c9 100%)', size: 25 },
+      'the-spinoff': { grad: 'linear-gradient(180deg, #5eb2ff 0%, #1668d8 100%)', size: 27 },
+      '1news-motif': { grad: 'linear-gradient(180deg, #ff8157 0%, #e03e22 100%)', size: 30 },
+      'at-mobile':   { grad: 'linear-gradient(180deg, #62d2ff 0%, #0d85d8 100%)', size: 30 },
+    };
 
-      const ic = make('div', 'w-ic');
-      const src = CONFIG.ICONS[item.app.toLowerCase()];
-      if (src) {
-        const img = make('img');
-        img.src = src;
-        img.alt = item.app;
-        img.width = img.height = 38;
+    function webosGlyph(item) {
+      const p = publisher(item.app);
+      const wrap = make('div', 'w-glyph-wrap');
+      const maskFile = p.smallGlyph || (!p.colourGlyph && p.glyph);
+      if (maskFile) {
+        const g = make('span', 'w-glyph-mask');
+        g.style.setProperty('--src', `url("svgs/glyphs/${maskFile}.svg")`);
+        const st = WEBOS_GLYPH_STYLE[maskFile];
+        if (st) {
+          g.style.setProperty('--w-grad', st.grad);
+          g.style.setProperty('--w-size', st.size + 'px');
+        }
+        wrap.append(g);
+      } else if (p.glyph) {
+        const img = make('img', 'w-glyph-img');
+        img.src = `svgs/glyphs/${p.glyph}.svg`;
+        img.alt = '';
+        wrap.append(img);
+      } else if (p.icon) {
+        const img = make('img', 'w-glyph-photo');
+        img.src = `icons/${p.icon}.png`;
+        img.alt = '';
         img.decoding = 'async';
-        img.addEventListener('error', () => img.replaceWith(initialsTile(item)), { once: true });
-        ic.append(img);
+        img.addEventListener('error', () => img.replaceWith(make('span', 'w-glyph-initials', initials(item.app))), { once: true });
+        wrap.append(img);
       } else {
-        ic.append(initialsTile(item));
+        const init = make('span', 'w-glyph-initials', initials(item.app));
+        init.style.background = p.colour;
+        wrap.append(init);
       }
-      if (item.repeats.length) ic.append(make('span', 'w-count', String(item.repeats.length + 1)));
+      return wrap;
+    }
+
+    function buildWebOS(item) {
+      const hasRepeats = item.repeats.length > 0;
+      const n = make('article', 'w-row ' + (hasRepeats ? 'is-split' : 'is-single') +
+        (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
 
       const bd = make('div', 'w-bd');
       const top = make('div', 'w-top');
@@ -3980,12 +4058,9 @@
       t.dataset.full = t.title;
       t.tabIndex = 0;
       t.setAttribute('aria-label', t.title);
-      top.append(make('span', 'w-app', item.app), t);
 
-      bd.append(top);
-      if (item.byline) bd.append(make('div', 'w-byline', item.byline));
-      bd.append(make('p', 'w-text', item.headline));
-      main.append(ic, bd);
+      top.append(make('span', 'w-title', item.byline || item.app), t);
+      bd.append(top, make('p', 'w-text', item.headline));
 
       const acts = make('div', 'l-acts');
       const copyBtn = make('button', '', 'Copy'), shareBtn = make('button', '', 'Share');
@@ -3993,7 +4068,19 @@
       copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
       shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('Headline copied'); else if (res === 'failed') toast('Couldn’t share this headline'); };
       acts.append(copyBtn, shareBtn);
-      n.append(main, acts);
+      bd.append(acts);
+
+      if (hasRepeats) {
+        // Grouped alert: separate left icon pill (with top-right teal count badge) + right text pill
+        const iconPill = make('div', 'w-icon-pill');
+        iconPill.append(webosGlyph(item), make('span', 'w-count', String(item.repeats.length + 1)));
+        const textPill = make('div', 'w-text-pill');
+        textPill.append(bd);
+        n.append(iconPill, textPill);
+      } else {
+        // Single alert: one continuous smoky-slate rounded pill
+        n.append(webosGlyph(item), bd);
+      }
 
       wireLegacyExpansion(n, item, top);
       return n;
@@ -4556,7 +4643,7 @@
 
     const webosTicker = {
       root: document.getElementById('webos-ticker'),
-      icon: document.getElementById('webos-ticker-ic'),
+      glyph: document.getElementById('webos-ticker-glyph'),
       app: document.getElementById('webos-ticker-app'),
       msg: document.getElementById('webos-ticker-msg'),
       close: document.getElementById('webos-ticker-close'),
@@ -4570,10 +4657,8 @@
     }
     function showWebosTicker(item) {
       if (!item || currentSkin() !== 'webos') return;
-      const src = CONFIG.ICONS[item.app.toLowerCase()];
-      if (src) { webosTicker.icon.src = src; webosTicker.icon.hidden = false; }
-      else { webosTicker.icon.hidden = true; }
-      webosTicker.app.textContent = item.app;
+      webosTicker.glyph.replaceChildren(webosGlyph(item));
+      webosTicker.app.textContent = item.byline || item.app;
       webosTicker.msg.textContent = item.headline;
       webosTicker.root.classList.add('is-open');
       webosTicker.gesture.classList.remove('is-pulsing');
