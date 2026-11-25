@@ -2300,90 +2300,73 @@
 
     /* ════════════════════════════════════════════════════════════════════
        10. PALM WEBOS 1–2 SKIN (html.skin-webos): Palm Pre Notifications.
-       Pure #000 black void, rounded wallpaper Card View header above,
-       tightly stacked dark graphite-charcoal rounded pills (3px black gap,
-       13px radius, top specular bevel), split icon-tile + text-pill with
-       glossy 3D cyan sphere count badges for grouped alerts, chunky 3D-lit
-       glossy Palm icons, bottom ticker banner, and glowing light-pipe.
+       Pure #000 canvas, restrained dark satin-charcoal pills with clean
+       spacing, split icon-tile + text-pill with a quiet steel-blue count
+       badge for grouped alerts, clean floating publisher glyphs, and a
+       subtle bottom gesture light-pipe + ticker for arriving alerts.
        ════════════════════════════════════════════════════════════════════ */
     .webos-ticker,
     .webos-gesture { display: none; }
 
     html.skin-webos:not(.display-mode) {
       --bg: #000000;
-      --card: #32363c;
-      --control: #272a30;
-      --control-on: #505660;
-      --text: #ffffff;
-      --text-soft: #a8b0bc;
-      --hairline: rgba(255, 255, 255, 0.16);
-      --ok: #62d96b;
-      --warn: #f5a623;
-      --bad: #ff4d45;
-      --focus: #5ad4ee;
-      --tooltip-bg: #1a1d22;
-      --tooltip-text: #f4f7fb;
-      --font: "Open Sans", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-display: "Open Sans", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --card: #2b2e33;
+      --control: #181a1e;
+      --control-on: #343840;
+      --text: #f4f6f9;
+      --text-soft: #8d94a0;
+      --hairline: rgba(255, 255, 255, 0.09);
+      --ok: #5cd666;
+      --warn: #f0a22e;
+      --bad: #e84e45;
+      --focus: #6c9cc0;
+      --tooltip-bg: #1c1f24;
+      --tooltip-text: #f4f6f9;
+      --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+      --font-display: "Open Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
       color-scheme: dark;
     }
     .skin-webos:not(.display-mode) body {
       background: #000000;
       font-size: 14px;
-      line-height: 18px;
-      letter-spacing: -0.01em;
-      padding-bottom: 64px;
+      line-height: 19.5px;
+      letter-spacing: -0.005em;
+      padding-bottom: 44px;
     }
-    /* Keep the page surround pure #000 black; the wallpaper appears inside
-       the rounded Palm Card View header (like the Pre's home/app card). */
     .skin-webos:not(.display-mode) .wall,
-    .skin-webos:not(.display-mode) body::before { display: none; }
+    .skin-webos:not(.display-mode) body::before,
+    .skin-webos:not(.display-mode) #slideshow-toggle { display: none; }
 
-    /* Top Palm status bar on pure black ("Sprint  5:57  [wifi][batt]") */
+    /* Quiet Palm status strip */
     .skin-webos:not(.display-mode) .site-header {
-      padding: 10px 0 6px;
+      padding: 20px 0 8px;
       background: #000000;
       text-shadow: none;
     }
     .skin-webos:not(.display-mode) .status {
       padding: 0;
-      gap: 6px;
+      gap: 7px;
       border-radius: 0;
       background: transparent;
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
       font-size: 12.5px;
-      font-weight: 700;
-      color: #eef2f7;
+      font-weight: 600;
+      color: #c2c8d2;
     }
-    .skin-webos:not(.display-mode) .dot.is-ok { box-shadow: 0 0 6px #62d96b; }
-    .skin-webos:not(.display-mode) .round-button {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(180deg, #32363e, #1a1d22);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-      color: #d8dee8;
-    }
-    .skin-webos:not(.display-mode) .round-button[aria-pressed="true"] {
-      background: linear-gradient(180deg, #62d7f0, #1f84a6);
-      border-color: #9be8f8;
-      color: #ffffff;
-    }
+    .skin-webos:not(.display-mode) .dot.is-ok { box-shadow: 0 0 5px rgba(92, 214, 102, 0.55); }
     .skin-webos:not(.display-mode) .theme-slider {
-      background: linear-gradient(180deg, #272a30, #14161a);
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.16);
+      background: #17191d;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.11);
     }
     .skin-webos:not(.display-mode) .theme-thumb {
-      background: linear-gradient(180deg, #5c626e, #373b43);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 1px 3px rgba(0, 0, 0, 0.6);
+      background: #363a42;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.45);
     }
 
-    /* Rounded Palm Pre Card View header: shows the active wallpaper behind
-       a glossy dark glass control dock, framed in pure #000 black */
+    /* Clean, understated sticky toolbar on pure black */
     .skin-webos:not(.display-mode) .toolbar {
-      padding: 0 0 6px;
+      padding: 6px 0 12px;
       margin-bottom: 0;
     }
     .skin-webos:not(.display-mode) .toolbar::before {
@@ -2392,101 +2375,85 @@
       backdrop-filter: none;
       -webkit-mask-image: none;
       mask-image: none;
-    }
-    .skin-webos:not(.display-mode) .toolbar .wrap {
-      position: relative;
-      overflow: hidden;
-      padding: 14px 12px 11px;
-      border-radius: 20px;
-      background:
-        linear-gradient(180deg, rgba(16, 20, 26, 0.34) 0%, rgba(12, 15, 20, 0.68) 100%),
-        var(--wallpaper, linear-gradient(145deg, #2f5e2e, #668a2c 55%, #c77b28)) center / cover no-repeat;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 16px rgba(0, 0, 0, 0.75);
-    }
-    .skin-webos:not(.display-mode) .toolbar.is-stuck .wrap {
-      border-radius: 0 0 18px 18px;
-      border-top: 0;
-      padding-top: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* Glossy pill segmented tabs inside the Card View */
+    /* Subtle dark pill segmented tabs */
     .skin-webos:not(.display-mode) .tabs {
-      padding: 2px;
-      margin-bottom: 8px;
-      border-radius: 999px;
-      background: rgba(8, 10, 14, 0.62);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
+      padding: 3px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: #16181c;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
     }
     .skin-webos:not(.display-mode) .tabs button {
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(235, 240, 248, 0.8);
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65);
+      padding: 6px 10px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #8f96a3;
+      transition: background 0.15s, color 0.15s;
     }
+    .skin-webos:not(.display-mode) .tabs button:hover { color: #d0d6e0; }
     .skin-webos:not(.display-mode) .tabs button[aria-selected="true"] {
       color: #ffffff;
-      background: linear-gradient(180deg, rgba(114, 122, 134, 0.92), rgba(58, 63, 72, 0.95));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 1px 3px rgba(0, 0, 0, 0.55);
+      background: linear-gradient(180deg, #3a3e46, #2d3037);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
-    .skin-webos:not(.display-mode) .tabs .count { color: inherit; opacity: 0.78; font-weight: 600; }
+    .skin-webos:not(.display-mode) .tabs .count { color: inherit; opacity: 0.7; font-weight: 400; }
 
-    /* Recessed glossy search & filter controls */
+    /* Clean dark search & filter inputs */
     .skin-webos:not(.display-mode) .controls input,
     .skin-webos:not(.display-mode) .controls select {
-      height: 32px;
-      border-radius: 999px;
-      background-color: rgba(10, 12, 16, 0.64);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
-      color: #ffffff;
-      font-size: 13.5px;
+      height: 36px;
+      border-radius: 10px;
+      background-color: #15171b;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      color: #f0f3f7;
+      font-size: 14px;
     }
     .skin-webos:not(.display-mode) .controls input { padding: 0 12px 0 34px; }
-    .skin-webos:not(.display-mode) .controls input::placeholder { color: rgba(226, 232, 242, 0.74); }
-    .skin-webos:not(.display-mode) .controls select { padding: 0 28px 0 12px; font-weight: 600; }
-    .skin-webos:not(.display-mode) .controls select option { background: #1e2126; color: #f4f7fb; }
+    .skin-webos:not(.display-mode) .controls input::placeholder { color: #7d8491; }
+    .skin-webos:not(.display-mode) .controls select { padding: 0 28px 0 12px; font-weight: 500; }
+    .skin-webos:not(.display-mode) .controls select option { background: #1c1f24; color: #f0f3f7; }
     .skin-webos:not(.display-mode) .controls input:focus,
     .skin-webos:not(.display-mode) .controls select:focus {
       outline: none;
-      border-color: #62d7f0;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(98, 215, 240, 0.3);
+      border-color: #6c9cc0;
     }
 
-    /* Notifications sit directly on pure #000 black under the rounded card */
+    /* Feed on pure #000 with calm vertical rhythm */
     .skin-webos:not(.display-mode) main.wrap {
       padding-top: 2px;
-      padding-bottom: 44px;
+      padding-bottom: 40px;
       background: transparent;
       border: 0;
       box-shadow: none;
     }
     .skin-webos:not(.display-mode) .day-heading {
-      margin: 12px 4px 5px;
+      margin: 20px 4px 8px;
       font-family: var(--font);
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: #6e7480;
+      color: #777e8a;
       text-shadow: none;
     }
-    .skin-webos:not(.display-mode) main > .day-heading:first-child { margin-top: 2px; }
+    .skin-webos:not(.display-mode) main > .day-heading:first-child { margin-top: 4px; }
 
-    /* Tight 3px pure black gap between stacked Palm Pre notification pills */
+    /* Crisp 6px black gap between notification pills */
     .skin-webos:not(.display-mode) .stack,
-    .skin-webos:not(.display-mode) .stack.has-repeats { margin-bottom: 3px; }
+    .skin-webos:not(.display-mode) .stack.has-repeats { margin-bottom: 6px; }
     .skin-webos:not(.display-mode) .stack.has-repeats::after { display: none; }
     .skin-webos:not(.display-mode) .stack.is-new { animation: webos-arrive 0.34s cubic-bezier(0.2, 0.9, 0.25, 1); }
     @keyframes webos-arrive {
-      from { opacity: 0; transform: translateY(-6px) scale(0.985); }
+      from { opacity: 0; transform: translateY(-6px) scale(0.99); }
       to   { opacity: 1; transform: none; }
     }
 
@@ -2497,201 +2464,159 @@
     .skin-webos:not(.display-mode) .w-row:hover,
     .skin-webos:not(.display-mode) .w-row:focus-within { z-index: 2; }
 
-    /* Authentic Palm Pre dark charcoal satin pill surface (high-res Pre reference) */
+    /* Restrained dark satin-charcoal Palm Pre pill */
     .skin-webos:not(.display-mode) .w-row.is-single {
       display: flex;
       align-items: center;
-      gap: 11px;
-      min-height: 54px;
-      padding: 6px 12px 6px 8px;
-      border-radius: 13px;
-      background: linear-gradient(180deg, #3f4145 0%, #2d2f33 48%, #232528 100%);
-      border: 1px solid #121315;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.24),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+      gap: 13px;
+      min-height: 62px;
+      padding: 11px 14px 12px 12px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #33363c 0%, #272a2f 100%);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13);
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
     .skin-webos:not(.display-mode) .w-row.is-single.l-open {
       align-items: flex-start;
-      padding-top: 8px;
-      padding-bottom: 10px;
-      background: linear-gradient(180deg, #494d54 0%, #34373d 48%, #292b30 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(164, 200, 226, 0.42),
-        inset 0 0 0 1px rgba(138, 176, 203, 0.22);
+      background: linear-gradient(180deg, #3a3e46 0%, #2d3138 100%);
+      border-color: rgba(124, 166, 198, 0.32);
     }
 
-    /* Grouped alert (repeats > 0): separate 54px left icon tile + 3px black gap + right text pill */
+    /* Grouped alert (repeats > 0): separate 58px icon tile + 4px black gap + text pill */
     .skin-webos:not(.display-mode) .w-row.is-split {
       display: flex;
       align-items: stretch;
-      gap: 3px;
+      gap: 4px;
     }
     .skin-webos:not(.display-mode) .w-icon-pill,
     .skin-webos:not(.display-mode) .w-text-pill {
-      border-radius: 13px;
-      background: linear-gradient(180deg, #3f4145 0%, #2d2f33 48%, #232528 100%);
-      border: 1px solid #121315;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.24),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #33363c 0%, #272a2f 100%);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13);
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
     .skin-webos:not(.display-mode) .w-icon-pill {
       position: relative;
       flex: none;
-      width: 54px;
-      min-height: 54px;
+      width: 58px;
+      min-height: 62px;
       display: grid;
       place-items: center;
     }
     .skin-webos:not(.display-mode) .w-text-pill {
       flex: 1;
       min-width: 0;
-      padding: 6px 12px 7px 12px;
+      padding: 11px 14px 12px;
       display: flex;
       flex-direction: column;
       justify-content: center;
     }
     .skin-webos:not(.display-mode) .w-row.is-split.l-open .w-icon-pill,
     .skin-webos:not(.display-mode) .w-row.is-split.l-open .w-text-pill {
-      background: linear-gradient(180deg, #505660 0%, #3a3f47 46%, #2d3138 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(120, 224, 248, 0.42),
-        inset 0 0 0 1px rgba(98, 215, 240, 0.22);
-    }
-    .skin-webos:not(.display-mode) .w-row.is-split.l-open .w-text-pill {
-      padding-top: 8px;
-      padding-bottom: 10px;
+      background: linear-gradient(180deg, #3a3e46 0%, #2d3138 100%);
+      border-color: rgba(124, 166, 198, 0.32);
     }
 
-    /* Chunky 3D-lit glossy Palm Pre publisher pebbles (40×40, fills pill height) */
-    .skin-webos:not(.display-mode) .w-icon-pebble {
-      position: relative;
+    /* Clean, unadorned floating publisher glyphs (no candy domes or boxes) */
+    .skin-webos:not(.display-mode) .w-glyph-wrap {
       flex: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 11px;
+      width: 36px;
+      height: 36px;
       display: grid;
       place-items: center;
-      background: var(--w-pebble, linear-gradient(180deg, #58606d, #2b3038));
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.62),
-        inset 0 -2px 3px rgba(0, 0, 0, 0.42),
-        0 2px 5px rgba(0, 0, 0, 0.68);
-      overflow: hidden;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.42));
     }
-    /* Curved 2009 webOS top glass dome highlight */
-    .skin-webos:not(.display-mode) .w-icon-pebble::after {
-      content: '';
-      position: absolute;
-      inset: 0 0 46% 0;
-      border-radius: 10px 10px 45% 45% / 10px 10px 28% 28%;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.56) 0%, rgba(255, 255, 255, 0.14) 100%);
-      pointer-events: none;
-    }
-    .skin-webos:not(.display-mode) .w-icon-pebble.is-orb { border-radius: 50%; }
-    .skin-webos:not(.display-mode) .w-icon-pebble.is-orb::after {
-      inset: 1px 4px 48% 4px;
-      border-radius: 50%;
-    }
-    .skin-webos:not(.display-mode) .w-icon-pebble .w-glyph-mask {
-      position: relative;
-      z-index: 1;
-      width: var(--w-size, 23px);
-      height: var(--w-size, 23px);
-      background: var(--w-ink, #ffffff);
+    .skin-webos:not(.display-mode) .w-glyph-mask {
+      width: var(--w-size, 24px);
+      height: var(--w-size, 24px);
+      background: var(--w-ink, #e6ebf2);
       -webkit-mask: var(--src) center / contain no-repeat;
       mask: var(--src) center / contain no-repeat;
-      filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
     }
-    .skin-webos:not(.display-mode) .w-icon-pebble .w-glyph-img {
-      position: relative;
-      z-index: 1;
+    .skin-webos:not(.display-mode) .w-glyph-img {
       width: 26px;
       height: 26px;
       display: block;
       object-fit: contain;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
     }
-    .skin-webos:not(.display-mode) .w-icon-pebble .w-glyph-photo {
-      width: 100%;
-      height: 100%;
+    .skin-webos:not(.display-mode) .w-glyph-photo {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
       display: block;
       object-fit: cover;
     }
-    .skin-webos:not(.display-mode) .w-icon-pebble .w-glyph-initials {
-      position: relative;
-      z-index: 1;
+    .skin-webos:not(.display-mode) .w-glyph-initials {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
       color: #ffffff;
-      font-size: 15px;
-      font-weight: 700;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+      font-size: 13px;
+      font-weight: 600;
     }
 
-    /* Signature Palm Pre glossy 3D steel-blue glass sphere count badge */
+    /* Quiet steel-blue circular count badge at top-right of the split icon tile */
     .skin-webos:not(.display-mode) .w-count {
       position: absolute;
-      top: -3px;
-      right: -3px;
-      z-index: 4;
-      min-width: 21px;
-      height: 21px;
+      top: -4px;
+      right: -4px;
+      z-index: 3;
+      min-width: 20px;
+      height: 20px;
       padding: 0 5px;
       border-radius: 999px;
-      background:
-        radial-gradient(circle at 38% 22%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0) 46%),
-        linear-gradient(180deg, #8ab0cb 0%, #4b708c 54%, #2d475e 100%);
-      border: 1.5px solid #d4e3ee;
+      background: linear-gradient(180deg, #6b93b2 0%, #3f6482 100%);
+      border: 1.5px solid #cbdce9;
       color: #ffffff;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
-      line-height: 18px;
+      line-height: 17px;
       text-align: center;
-      text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.65);
       font-variant-numeric: tabular-nums;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
     }
 
-    /* Tight, uncluttered two-line Palm Pre typography (no Material chevron!) */
+    /* Clean, legible Palm Pre typography */
     .skin-webos:not(.display-mode) .w-bd { flex: 1; min-width: 0; }
     .skin-webos:not(.display-mode) .w-top {
       position: relative;
       display: flex;
       align-items: baseline;
-      gap: 8px;
-      line-height: 18px;
+      gap: 10px;
+      line-height: 19px;
     }
     .skin-webos:not(.display-mode) .w-title {
       flex: 1;
       min-width: 0;
       font-size: 14.5px;
-      font-weight: 700;
+      font-weight: 600;
       color: #ffffff;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .skin-webos:not(.display-mode) .when {
       flex: none;
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 400;
-      color: #a6adb8;
-      line-height: 17px;
+      color: #8f96a3;
+      line-height: 18px;
     }
     .skin-webos:not(.display-mode) .when:hover,
     .skin-webos:not(.display-mode) .when:focus { color: #ffffff; }
     .skin-webos:not(.display-mode) .when::after {
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: linear-gradient(180deg, #2b2f36, #17191e);
-      color: #f4f7fb;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #1c1f24;
+      color: #f4f6f9;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
     }
-    /* Keep the disclosure button accessible to keyboard/screen readers but
-       visually omitted on webOS pills (tapping the pill toggles it, matching Pre). */
+    /* Keep the disclosure button accessible for keyboard/screen readers while
+       keeping the pill uncluttered (tapping anywhere on the pill toggles it). */
     .skin-webos:not(.display-mode) .l-expand {
       position: absolute;
       width: 1px;
@@ -2705,77 +2630,73 @@
     }
 
     .skin-webos:not(.display-mode) .w-text {
-      margin: 1px 0 0;
-      font-size: 13px;
+      margin: 2px 0 0;
+      font-size: 14px;
       font-weight: 400;
-      line-height: 17.5px;
-      color: #d7dde6;
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
+      line-height: 19.5px;
+      color: #cfd5df;
       white-space: pre-line;
       overflow-wrap: anywhere;
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      -webkit-line-clamp: 1;
-      line-clamp: 1;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
       overflow: hidden;
     }
     .skin-webos:not(.display-mode) .w-row.l-open .w-title { white-space: normal; }
     .skin-webos:not(.display-mode) .w-row.l-open .w-text {
       -webkit-line-clamp: unset;
       line-clamp: none;
-      color: #f4f7fb;
-      margin-top: 3px;
+      color: #eef2f7;
     }
 
-    /* Glossy pill Copy / Share actions inside expanded card */
+    /* Subtle Copy / Share pill buttons when expanded */
     .skin-webos:not(.display-mode) .l-acts { display: none; }
     .skin-webos:not(.display-mode) .w-row.l-open .l-acts {
       display: flex;
       gap: 8px;
-      margin-top: 9px;
+      margin-top: 10px;
     }
     .skin-webos:not(.display-mode) .l-acts button {
-      height: 27px;
+      height: 28px;
       padding: 0 13px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      background: linear-gradient(180deg, #5c626e, #33373f);
-      color: #ffffff;
-      font: 700 12px/1 var(--font);
-      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #424752;
+      color: #f0f3f7;
+      font: 600 12px/1 var(--font);
       cursor: pointer;
+      transition: background 0.14s;
     }
     .skin-webos:not(.display-mode) .l-acts button:first-child {
-      border-color: #82e0f4;
-      background: linear-gradient(180deg, #56cce7, #1c80a2);
+      border-color: rgba(164, 202, 230, 0.35);
+      background: linear-gradient(180deg, #527896, #3d5d77);
+      color: #ffffff;
     }
     .skin-webos:not(.display-mode) .l-acts button:hover { filter: brightness(1.08); }
     .skin-webos:not(.display-mode) .l-acts button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-    /* Classic Palm Pre bottom ticker notification banner */
+    /* Quiet Palm Pre bottom ticker (appears on new alert arrivals or light-pipe tap) */
     .skin-webos:not(.display-mode) .webos-ticker {
       display: flex;
       align-items: center;
       gap: 10px;
       position: fixed;
       left: 50%;
-      bottom: 36px;
+      bottom: 30px;
       z-index: 90;
       width: min(calc(100% - 20px), calc(var(--max) - 20px));
-      height: 46px;
-      padding: 0 11px 0 8px;
-      background: linear-gradient(180deg, #474b52 0%, #34383e 48%, #26292e 100%);
-      border: 1px solid #16181c;
-      border-radius: 13px;
-      color: #ffffff;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        0 8px 26px rgba(0, 0, 0, 0.85);
+      height: 44px;
+      padding: 0 12px;
+      background: linear-gradient(180deg, #33363c 0%, #25282d 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      color: #f4f6f9;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 24px rgba(0, 0, 0, 0.72);
       transform: translate(-50%, 140%);
       opacity: 0;
       pointer-events: none;
-      transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.2s ease;
+      transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.2s ease;
     }
     .skin-webos:not(.display-mode) .webos-ticker.is-open {
       transform: translate(-50%, 0);
@@ -2787,22 +2708,23 @@
       display: grid;
       place-items: center;
     }
-    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-icon-pebble { width: 28px; height: 28px; border-radius: 7px; }
-    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-icon-pebble.is-orb { border-radius: 50%; }
-    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-icon-pebble .w-glyph-mask { width: 16px; height: 16px; }
-    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-icon-pebble .w-glyph-img { width: 18px; height: 18px; }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-wrap { width: 24px; height: 24px; }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-mask { width: 18px; height: 18px; }
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-img,
+    .skin-webos:not(.display-mode) .webos-ticker-glyph .w-glyph-photo { width: 20px; height: 20px; border-radius: 5px; }
     .skin-webos:not(.display-mode) .webos-ticker-text {
       flex: 1;
       min-width: 0;
       font-size: 13px;
       line-height: 1.25;
+      color: #cfd5df;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .skin-webos:not(.display-mode) .webos-ticker-app {
       color: #ffffff;
-      font-weight: 700;
+      font-weight: 600;
       margin-right: 6px;
     }
     .skin-webos:not(.display-mode) .webos-ticker-close {
@@ -2811,14 +2733,14 @@
       height: 22px;
       border: 0;
       border-radius: 50%;
-      background: rgba(0, 0, 0, 0.38);
-      color: #ffffff;
-      font: 700 13px/1 var(--font);
+      background: rgba(255, 255, 255, 0.1);
+      color: #d8dee8;
+      font: 600 13px/1 var(--font);
       cursor: pointer;
     }
-    .skin-webos:not(.display-mode) .webos-ticker-close:hover { background: rgba(0, 0, 0, 0.58); }
+    .skin-webos:not(.display-mode) .webos-ticker-close:hover { background: rgba(255, 255, 255, 0.2); }
 
-    /* Fixed bottom gesture area + glowing white light-pipe */
+    /* Ultra-slim bottom gesture area with understated white light-pipe */
     .skin-webos:not(.display-mode) .webos-gesture {
       display: grid;
       place-items: center;
@@ -2826,47 +2748,47 @@
       left: 0;
       right: 0;
       bottom: 0;
-      height: 32px;
+      height: 24px;
       z-index: 95;
-      background: linear-gradient(180deg, #090a0c, #000000);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: #000000;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       cursor: pointer;
     }
     .skin-webos:not(.display-mode) .webos-lightpipe {
-      width: 64px;
-      height: 3px;
+      width: 48px;
+      height: 2.5px;
       border-radius: 99px;
-      background: rgba(255, 255, 255, 0.65);
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
-      transition: width 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+      background: rgba(255, 255, 255, 0.42);
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+      transition: width 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
     }
     .skin-webos:not(.display-mode) .webos-gesture:hover .webos-lightpipe {
-      width: 82px;
-      background: #ffffff;
-      box-shadow: 0 0 12px rgba(154, 224, 255, 0.85);
+      width: 64px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
     .skin-webos:not(.display-mode) .webos-gesture.is-pulsing .webos-lightpipe {
-      width: 112px;
+      width: 84px;
       background: #ffffff;
-      box-shadow: 0 0 14px 3px rgba(190, 238, 255, 0.95), 0 0 28px rgba(76, 194, 224, 0.88);
+      box-shadow: 0 0 12px 2px rgba(200, 228, 248, 0.85);
       animation: webos-pipe 1.3s ease-in-out 2;
     }
     @keyframes webos-pipe {
-      0%, 100% { opacity: 0.68; transform: scaleX(0.9); }
-      50%      { opacity: 1; transform: scaleX(1.12); }
+      0%, 100% { opacity: 0.62; transform: scaleX(0.92); }
+      50%      { opacity: 1; transform: scaleX(1.08); }
     }
 
     .skin-webos:not(.display-mode) .theme-toast {
-      bottom: 44px;
-      border-radius: 12px;
-      padding: 8px 16px;
-      background: linear-gradient(180deg, #474b52, #2b2e34);
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.78);
+      bottom: 36px;
+      border-radius: 10px;
+      padding: 8px 14px;
+      background: #2b2e34;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
     }
-    .skin-webos:not(.display-mode) footer { color: #6c727d; }
+    .skin-webos:not(.display-mode) footer { color: #686e79; }
 
     @media (prefers-reduced-motion: reduce) {
       .skin-webos:not(.display-mode) .stack.is-new,
@@ -4054,48 +3976,47 @@
       return n;
     }
 
-    // Chunky 2009 glossy 3D Palm Pre pebble/orb icon styles per publisher.
+    // Tasteful, balanced brand colours for floating webOS glyphs on dark charcoal.
     const WEBOS_GLYPH_STYLE = {
-      'nz-herald':   { pebble: 'linear-gradient(180deg, #f8fafd 0%, #c8d2de 100%)', ink: '#14181e', size: 22 },
-      'rnz':         { pebble: 'linear-gradient(180deg, #f24a42 0%, #9e1414 100%)', ink: '#ffffff', size: 25, orb: true },
-      'stuff':       { pebble: 'linear-gradient(180deg, #986ef0 0%, #4b2396 100%)', ink: '#ffffff', size: 21 },
-      'the-spinoff': { pebble: 'linear-gradient(180deg, #43a1ff 0%, #0d4db5 100%)', ink: '#ffffff', size: 24, orb: true },
-      '1news-motif': { pebble: 'linear-gradient(180deg, #ff6c45 0%, #b82414 100%)', ink: '#ffffff', size: 25, orb: true },
-      'at-mobile':   { pebble: 'linear-gradient(180deg, #4cc7f5 0%, #0b69ad 100%)', ink: '#ffffff', size: 25, orb: true },
+      'nz-herald':   { ink: '#edf1f7', size: 22 },
+      'rnz':         { ink: '#e05650', size: 26 },
+      'stuff':       { ink: '#a48ae6', size: 22 },
+      'the-spinoff': { ink: '#5a9ee8', size: 24 },
+      '1news-motif': { ink: '#e66747', size: 26 },
+      'at-mobile':   { ink: '#55b4e8', size: 26 },
     };
 
     function webosGlyph(item) {
       const p = publisher(item.app);
+      const wrap = make('div', 'w-glyph-wrap');
       const maskFile = p.smallGlyph || (!p.colourGlyph && p.glyph);
-      const st = maskFile && WEBOS_GLYPH_STYLE[maskFile];
-      const pebble = make('div', 'w-icon-pebble' + (st && st.orb ? ' is-orb' : ''));
       if (maskFile) {
-        if (st) pebble.style.setProperty('--w-pebble', st.pebble);
         const g = make('span', 'w-glyph-mask');
         g.style.setProperty('--src', `url("svgs/glyphs/${maskFile}.svg")`);
+        const st = WEBOS_GLYPH_STYLE[maskFile];
         if (st) {
           g.style.setProperty('--w-ink', st.ink);
           g.style.setProperty('--w-size', st.size + 'px');
         }
-        pebble.append(g);
+        wrap.append(g);
       } else if (p.glyph) {
-        pebble.style.setProperty('--w-pebble', 'linear-gradient(180deg, #273244 0%, #101620 100%)');
         const img = make('img', 'w-glyph-img');
         img.src = `svgs/glyphs/${p.glyph}.svg`;
         img.alt = '';
-        pebble.append(img);
+        wrap.append(img);
       } else if (p.icon) {
         const img = make('img', 'w-glyph-photo');
         img.src = `icons/${p.icon}.png`;
         img.alt = '';
         img.decoding = 'async';
         img.addEventListener('error', () => img.replaceWith(make('span', 'w-glyph-initials', initials(item.app))), { once: true });
-        pebble.append(img);
+        wrap.append(img);
       } else {
-        pebble.style.setProperty('--w-pebble', `linear-gradient(180deg, ${p.colour}, #1b1e24)`);
-        pebble.append(make('span', 'w-glyph-initials', initials(item.app)));
+        const init = make('span', 'w-glyph-initials', initials(item.app));
+        init.style.background = p.colour;
+        wrap.append(init);
       }
-      return pebble;
+      return wrap;
     }
 
     function buildWebOS(item) {
@@ -4770,10 +4691,6 @@
       syncWpQuickActions();
       syncFeedBar();
       render();
-      if (theme === 'webos') {
-        const latest = tabItems()[0] || items[0];
-        if (latest) showWebosTicker(latest);
-      }
       toast(THEME_NAMES[theme] + ' theme');   // swatch names are hover-only, so say it on touch screens too
     });
     syncTheme();
