@@ -106,6 +106,21 @@
       else if (['ios', 'nougat', 'marshmallow'].includes(skinParam)) skin = skinParam;
       if (!skin) { try { skin = localStorage.getItem('pushFeedSkin'); } catch (e) { /* fine */ } }
       if (['material', 'nougat', 'marshmallow', 'wp'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
+
+      // Restore Windows Phone accent colour and light/dark background before paint.
+      try {
+        var wpAccents = {
+          cyan: '#1ba1e2', cobalt: '#0050ef', magenta: '#d80073', lime: '#a4c400',
+          orange: '#fa6800', emerald: '#008a00', violet: '#aa00ff', crimson: '#a20025'
+        };
+        var savedAccent = localStorage.getItem('pushFeedWpAccent');
+        if (savedAccent && wpAccents[savedAccent]) {
+          document.documentElement.style.setProperty('--wp-accent', wpAccents[savedAccent]);
+        }
+        if (localStorage.getItem('pushFeedWpLight') === 'light') {
+          document.documentElement.classList.add('wp-light');
+        }
+      } catch (e) { /* fine */ }
     })();
   </script>
 
@@ -1614,41 +1629,124 @@
 
     /* ════════════════════════════════════════════════════════════════════
        9. WINDOWS PHONE SKIN (html.skin-wp): Metro / WP 8.1 Action Center.
-       Pure OLED black, zero border-radius, crisp Segoe UI typography,
-       lowercase Pivot tabs, flat square publisher tiles, and outlined
-       Metro action buttons when expanded.
+       Pure OLED black (or crisp white with .wp-light), zero border-radius,
+       Segoe UI typography, Action Center Quick Actions, lowercase Pivot
+       tabs, Jump-List day squares, 5-dot progress bar, 3D turnstile &
+       pivot animations, live-tile flips, and pointer-aware 3D tilt.
        ════════════════════════════════════════════════════════════════════ */
+    .wp-progress,
+    .wp-eyebrow,
+    .wp-quick-actions { display: none; }
+
     html.skin-wp:not(.display-mode) {
       --wp-accent: #1ba1e2;
-      --bg: #000000;
-      --card: #000000;
-      --control: #1a1a1a;
-      --control-on: #1ba1e2;
-      --text: #ffffff;
-      --text-soft: #999999;
-      --hairline: #1f1f1f;
+      --wp-bg: #000000;
+      --wp-surface: #1f1f1f;
+      --wp-surface-hover: #2d2d2d;
+      --wp-fg: #ffffff;
+      --wp-fg-body: #f2f2f2;
+      --wp-fg-sub: #bdbdbd;
+      --wp-fg-muted: #999999;
+      --wp-fg-dim: #666666;
+      --wp-border: #222222;
+      --wp-input-border: rgba(255, 255, 255, 0.55);
+      --wp-tile-rim: rgba(255, 255, 255, 0.14);
+      --wp-ease: cubic-bezier(0.1, 0.9, 0.2, 1);
+
+      --bg: var(--wp-bg);
+      --card: var(--wp-bg);
+      --control: var(--wp-surface);
+      --control-on: var(--wp-accent);
+      --text: var(--wp-fg);
+      --text-soft: var(--wp-fg-muted);
+      --hairline: var(--wp-border);
       --ok: #339933;
       --warn: #f09609;
       --bad: #e51400;
-      --focus: #1ba1e2;
-      --tooltip-bg: #1f1f1f;
+      --focus: var(--wp-accent);
+      --tooltip-bg: #1a1a1a;
       --tooltip-text: #ffffff;
       --font: "Segoe WP", "Segoe UI", "Open Sans", system-ui, sans-serif;
       --font-display: "Segoe WP Light", "Segoe UI Light", "Segoe UI", "Open Sans", system-ui, sans-serif;
       color-scheme: dark;
     }
+    html.skin-wp.wp-light:not(.display-mode) {
+      --wp-bg: #ffffff;
+      --wp-surface: #e6e6e6;
+      --wp-surface-hover: #d8d8d8;
+      --wp-fg: #000000;
+      --wp-fg-body: #111111;
+      --wp-fg-sub: #555555;
+      --wp-fg-muted: #666666;
+      --wp-fg-dim: #999999;
+      --wp-border: #e5e5e5;
+      --wp-input-border: rgba(0, 0, 0, 0.52);
+      --wp-tile-rim: rgba(0, 0, 0, 0.1);
+      --tooltip-bg: #1f1f1f;
+      --tooltip-text: #ffffff;
+      color-scheme: light;
+    }
     .skin-wp:not(.display-mode) body {
-      background: #000000;
+      background: var(--wp-bg);
+      color: var(--wp-fg);
       font-size: 15px;
       line-height: 20px;
       letter-spacing: 0;
+      overflow-x: hidden;
+      transition: background-color 0.22s var(--wp-ease), color 0.22s var(--wp-ease);
     }
     .skin-wp:not(.display-mode) .wall,
     .skin-wp:not(.display-mode) body::before,
     .skin-wp:not(.display-mode) #slideshow-toggle { display: none; }
 
-    /* Header & status bar */
-    .skin-wp:not(.display-mode) .site-header { padding: 18px 0 2px; text-shadow: none; }
+    /* Classic 5-dot Metro indeterminate progress bar across the very top edge */
+    html.skin-wp.wp-busy:not(.display-mode) .wp-progress {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      z-index: 120;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .skin-wp:not(.display-mode) .wp-progress i {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 4px;
+      background: var(--wp-accent);
+      opacity: 0;
+      animation: wp-dot-run 2.5s infinite;
+    }
+    .skin-wp:not(.display-mode) .wp-progress i:nth-child(1) { animation-delay: 0s; }
+    .skin-wp:not(.display-mode) .wp-progress i:nth-child(2) { animation-delay: 0.13s; }
+    .skin-wp:not(.display-mode) .wp-progress i:nth-child(3) { animation-delay: 0.26s; }
+    .skin-wp:not(.display-mode) .wp-progress i:nth-child(4) { animation-delay: 0.39s; }
+    .skin-wp:not(.display-mode) .wp-progress i:nth-child(5) { animation-delay: 0.52s; }
+    @keyframes wp-dot-run {
+      0%   { transform: translateX(-8px); opacity: 0; animation-timing-function: cubic-bezier(0.12, 0.88, 0.32, 1); }
+      6%   { opacity: 1; }
+      36%  { transform: translateX(38vw); animation-timing-function: linear; }
+      64%  { transform: translateX(62vw); animation-timing-function: cubic-bezier(0.68, 0, 0.88, 0.12); }
+      93%  { opacity: 1; }
+      100% { transform: translateX(calc(100vw + 8px)); opacity: 0; }
+    }
+
+    /* Header, Metro app eyebrow & status bar */
+    .skin-wp:not(.display-mode) .site-header { padding: 14px 0 4px; text-shadow: none; }
+    .skin-wp:not(.display-mode) .wp-eyebrow {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--wp-fg);
+      opacity: 0.85;
+    }
     .skin-wp:not(.display-mode) .status {
       padding: 0;
       gap: 7px;
@@ -1658,37 +1756,91 @@
       backdrop-filter: none;
       font-size: 12.5px;
       font-weight: 400;
-      color: #a6a6a6;
+      color: var(--wp-fg-muted);
     }
     .skin-wp:not(.display-mode) .dot { width: 7px; height: 7px; border-radius: 0; }
     .skin-wp:not(.display-mode) .dot.is-ok { box-shadow: none; }
     .skin-wp:not(.display-mode) .theme-slider {
       border-radius: 0;
-      background: #000;
-      box-shadow: inset 0 0 0 1px #333;
+      background: var(--wp-bg);
+      box-shadow: inset 0 0 0 1px var(--wp-border);
     }
     .skin-wp:not(.display-mode) .theme-thumb {
       border-radius: 0;
-      background: #1f1f1f;
+      background: var(--wp-surface);
       box-shadow: inset 0 0 0 1.5px var(--wp-accent);
     }
     .skin-wp:not(.display-mode) .theme-slider label:has(input:focus-visible) { border-radius: 0; }
 
-    /* Sticky toolbar: opaque black, crisp bottom hairline when pinned */
+    /* WP 8.1 Action Center Quick Actions strip */
+    .skin-wp:not(.display-mode) .wp-quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .skin-wp:not(.display-mode) .wp-qa {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+      height: 56px;
+      padding: 8px 9px 7px;
+      border: 0;
+      border-radius: 0;
+      background: var(--wp-surface);
+      color: var(--wp-fg);
+      font: 400 11px/1 var(--font);
+      text-transform: lowercase;
+      cursor: pointer;
+      user-select: none;
+      transform-origin: center;
+      transition: background-color 0.16s var(--wp-ease), color 0.16s var(--wp-ease), transform 0.14s var(--wp-ease);
+    }
+    .skin-wp:not(.display-mode) .wp-qa:hover { background: var(--wp-surface-hover); }
+    .skin-wp:not(.display-mode) .wp-qa[aria-pressed="true"],
+    .skin-wp:not(.display-mode) .wp-qa.is-accent {
+      background: var(--wp-accent);
+      color: #ffffff;
+    }
+    .skin-wp:not(.display-mode) .wp-qa:focus-visible { outline: 2px solid var(--wp-accent); outline-offset: 2px; }
+    .skin-wp:not(.display-mode) .wp-qa svg { width: 19px; height: 19px; flex: none; }
+    .skin-wp:not(.display-mode) .wp-qa.is-spinning svg { animation: wp-spin 0.65s var(--wp-ease); }
+    @keyframes wp-spin { to { transform: rotate(360deg); } }
+    .skin-wp:not(.display-mode) .wp-qa span {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .skin-wp:not(.display-mode) .wp-quick-actions.wp-qa-enter .wp-qa {
+      animation: wp-qa-drop 0.36s var(--wp-ease) backwards;
+    }
+    .skin-wp:not(.display-mode) .wp-quick-actions.wp-qa-enter .wp-qa:nth-child(2) { animation-delay: 40ms; }
+    .skin-wp:not(.display-mode) .wp-quick-actions.wp-qa-enter .wp-qa:nth-child(3) { animation-delay: 80ms; }
+    .skin-wp:not(.display-mode) .wp-quick-actions.wp-qa-enter .wp-qa:nth-child(4) { animation-delay: 120ms; }
+    @keyframes wp-qa-drop {
+      from { opacity: 0; transform: perspective(600px) rotateX(-40deg) translateY(-10px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Sticky toolbar: opaque Metro background, crisp bottom hairline when pinned */
     .skin-wp:not(.display-mode) .toolbar {
       padding: 8px 0 14px;
       margin-bottom: 0;
     }
     .skin-wp:not(.display-mode) .toolbar::before {
-      background: #000000;
+      background: var(--wp-bg);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
       -webkit-mask-image: none;
       mask-image: none;
-      border-bottom: 1px solid #262626;
+      border-bottom: 1px solid var(--wp-border);
     }
 
-    /* Pivot tabs: huge, light-weight lowercase headings */
+    /* Pivot tabs: huge, light-weight lowercase headings with Pivot nudge */
     .skin-wp:not(.display-mode) .tabs {
       gap: 22px;
       padding: 0;
@@ -1701,23 +1853,28 @@
       scrollbar-width: none;
     }
     .skin-wp:not(.display-mode) .tabs::-webkit-scrollbar { display: none; }
+    .skin-wp:not(.display-mode) .tabs.wp-pivot-next { animation: wp-pivot-hd-next 0.34s var(--wp-ease); }
+    .skin-wp:not(.display-mode) .tabs.wp-pivot-prev { animation: wp-pivot-hd-prev 0.34s var(--wp-ease); }
+    @keyframes wp-pivot-hd-next { from { transform: translateX(22px); } to { transform: none; } }
+    @keyframes wp-pivot-hd-prev { from { transform: translateX(-22px); } to { transform: none; } }
+
     .skin-wp:not(.display-mode) .tabs button {
       flex: none;
       padding: 0 0 2px;
       border-radius: 0;
       font-family: var(--font-display);
-      font-size: 34px;
+      font-size: 36px;
       font-weight: 300;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
       text-transform: lowercase;
-      color: #666666;
-      transition: color 0.15s;
+      color: var(--wp-fg-dim);
+      transition: color 0.18s var(--wp-ease), transform 0.14s var(--wp-ease);
     }
-    .skin-wp:not(.display-mode) .tabs button:hover { color: #b3b3b3; }
+    .skin-wp:not(.display-mode) .tabs button:hover { color: var(--wp-fg-muted); }
     .skin-wp:not(.display-mode) .tabs button[aria-selected="true"] {
       font-weight: 300;
-      color: #ffffff;
+      color: var(--wp-fg);
       background: none;
       box-shadow: none;
     }
@@ -1727,7 +1884,7 @@
       font-weight: 600;
       letter-spacing: 0;
       margin-left: 6px;
-      color: #555555;
+      color: var(--wp-fg-dim);
       vertical-align: 2px;
     }
     .skin-wp:not(.display-mode) .tabs button[aria-selected="true"] .count { color: var(--wp-accent); }
@@ -1738,36 +1895,41 @@
     .skin-wp:not(.display-mode) .controls select {
       height: 38px;
       border-radius: 0;
-      background-color: #000000;
-      border: 2px solid rgba(255, 255, 255, 0.55);
-      color: #ffffff;
+      background-color: var(--wp-bg);
+      border: 2px solid var(--wp-input-border);
+      color: var(--wp-fg);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
+      transition: border-color 0.15s var(--wp-ease), background-color 0.2s var(--wp-ease);
     }
     .skin-wp:not(.display-mode) .controls input {
       padding: 0 10px 0 34px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23999999' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23888888' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E");
       background-position: 10px center;
     }
-    .skin-wp:not(.display-mode) .controls input::placeholder { color: #808080; }
+    .skin-wp:not(.display-mode) .controls input::placeholder { color: var(--wp-fg-muted); }
+    .skin-wp.wp-light:not(.display-mode) .controls input::-webkit-search-cancel-button { filter: none; }
     .skin-wp:not(.display-mode) .controls select {
       font-size: 14px;
       padding: 0 28px 0 10px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23999999' stroke-width='2'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23888888' stroke-width='2'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
       background-position: right 10px center;
     }
-    .skin-wp:not(.display-mode) .controls select option { background: #141414; color: #ffffff; }
+    .skin-wp:not(.display-mode) .controls select option { background: var(--wp-bg); color: var(--wp-fg); }
     .skin-wp:not(.display-mode) .controls input:focus,
     .skin-wp:not(.display-mode) .controls select:focus {
       outline: none;
       border-color: var(--wp-accent);
     }
 
-    /* Metro lowercase accent day headers */
+    /* Metro Jump-List day headers: solid accent square + lowercase light label */
     .skin-wp:not(.display-mode) .day-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin: 22px 0 6px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #222222;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--wp-border);
       font-family: var(--font-display);
       font-size: 20px;
       font-weight: 300;
@@ -1776,31 +1938,94 @@
       color: var(--wp-accent);
       text-shadow: none;
     }
+    .skin-wp:not(.display-mode) .day-heading::before {
+      content: attr(data-jump);
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      background: var(--wp-accent);
+      color: #ffffff;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+      text-transform: lowercase;
+      font-variant-numeric: tabular-nums;
+      transition: background-color 0.2s var(--wp-ease);
+    }
     .skin-wp:not(.display-mode) main > .day-heading:first-child { margin-top: 8px; }
+
+    /* Turnstile Feather & Pivot Swoop entrance animations */
+    .skin-wp:not(.display-mode) #feed[data-wp-enter="turnstile"] > * {
+      transform-origin: left center;
+      animation: wp-turnstile 0.44s var(--wp-ease) calc(var(--wp-i, 0) * 34ms) backwards;
+    }
+    .skin-wp:not(.display-mode) #feed[data-wp-enter="pivot-next"] > * {
+      transform-origin: right center;
+      animation: wp-pivot-in-next 0.4s var(--wp-ease) calc(var(--wp-i, 0) * 26ms) backwards;
+    }
+    .skin-wp:not(.display-mode) #feed[data-wp-enter="pivot-prev"] > * {
+      transform-origin: left center;
+      animation: wp-pivot-in-prev 0.4s var(--wp-ease) calc(var(--wp-i, 0) * 26ms) backwards;
+    }
+    @keyframes wp-turnstile {
+      from { opacity: 0; transform: perspective(900px) rotateY(-56deg) translateX(-14px); }
+      to   { opacity: 1; transform: perspective(900px) rotateY(0deg) translateX(0); }
+    }
+    @keyframes wp-pivot-in-next {
+      from { opacity: 0; transform: perspective(900px) translateX(52px) rotateY(14deg); }
+      to   { opacity: 1; transform: perspective(900px) translateX(0) rotateY(0deg); }
+    }
+    @keyframes wp-pivot-in-prev {
+      from { opacity: 0; transform: perspective(900px) translateX(-52px) rotateY(-14deg); }
+      to   { opacity: 1; transform: perspective(900px) translateX(0) rotateY(0deg); }
+    }
 
     /* Action Center notification items */
     .skin-wp:not(.display-mode) .stack,
     .skin-wp:not(.display-mode) .stack.has-repeats { margin-bottom: 0; }
     .skin-wp:not(.display-mode) .stack.has-repeats::after { display: none; }
-    .skin-wp:not(.display-mode) .stack.is-new { animation: wp-arrive 0.35s cubic-bezier(.1, .9, .2, 1); }
-    @keyframes wp-arrive {
-      from { opacity: 0; transform: translateX(18px); }
-      to   { opacity: 1; transform: none; }
+    .skin-wp:not(.display-mode) .stack.is-new {
+      transform-origin: left center;
+      animation: wp-arrive 0.46s var(--wp-ease);
     }
-    @media (prefers-reduced-motion: reduce) {
-      .skin-wp:not(.display-mode) .stack.is-new { animation: none; }
+    @keyframes wp-arrive {
+      from { opacity: 0; transform: perspective(800px) rotateY(-42deg) translateX(24px); }
+      to   { opacity: 1; transform: none; }
     }
 
     .skin-wp:not(.display-mode) .wp-item {
       position: relative;
       padding: 13px 0 14px;
-      border-bottom: 1px solid #1f1f1f;
+      border-bottom: 1px solid var(--wp-border);
       cursor: pointer;
+      transition: transform 0.14s var(--wp-ease), border-color 0.2s var(--wp-ease);
+    }
+    .skin-wp:not(.display-mode) .wp-item.is-new::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 12px;
+      bottom: 12px;
+      width: 3px;
+      background: var(--wp-accent);
+      animation: wp-new-bar 2.6s ease-out forwards;
+    }
+    @keyframes wp-new-bar {
+      0%, 40% { opacity: 1; transform: scaleY(1); }
+      100%    { opacity: 0; transform: scaleY(0.2); }
     }
     .skin-wp:not(.display-mode) .wp-item:hover,
     .skin-wp:not(.display-mode) .wp-item:focus-within { z-index: 2; }
     .skin-wp:not(.display-mode) .stack:has(+ .day-heading) .wp-item,
     .skin-wp:not(.display-mode) .stack:last-child .wp-item { border-bottom-color: transparent; }
+
+    /* Pointer-aware 3D Metro Tilt effect on press */
+    .skin-wp:not(.display-mode) .wp-tilt {
+      transform: perspective(700px) rotateX(var(--wp-rx, 0deg)) rotateY(var(--wp-ry, 0deg)) scale(0.985) !important;
+    }
 
     .skin-wp:not(.display-mode) .wp-row {
       display: flex;
@@ -1808,17 +2033,72 @@
       gap: 14px;
     }
 
-    /* Square Live Tile icon (reusing circle() glyph markup, flat & 0px radius) */
+    /* Square Live Tile icon + 3D flip for grouped alerts */
+    .skin-wp:not(.display-mode) .wp-tile-stage {
+      flex: none;
+      width: 38px;
+      height: 38px;
+      margin-top: 2px;
+      perspective: 240px;
+    }
+    .skin-wp:not(.display-mode) .wp-tile-flip {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.35s var(--wp-ease);
+    }
+    .skin-wp:not(.display-mode) .wp-tile-flip.is-live {
+      animation: wp-live-flip 7.5s var(--wp-ease) var(--wp-flip-delay, 1.5s) infinite;
+    }
+    .skin-wp:not(.display-mode) .wp-item:hover .wp-tile-flip:not(.is-live) {
+      transform: rotateY(-14deg) scale(1.04);
+    }
+    @keyframes wp-live-flip {
+      0%, 42%  { transform: rotateX(0deg); }
+      52%, 88% { transform: rotateX(180deg); }
+      98%, 100% { transform: rotateX(360deg); }
+    }
+    .skin-wp:not(.display-mode) .wp-tile-front,
+    .skin-wp:not(.display-mode) .wp-tile-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .skin-wp:not(.display-mode) .wp-tile-back {
+      transform: rotateX(180deg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: inset 0 0 0 1px var(--wp-tile-rim);
+      line-height: 1;
+    }
+    .skin-wp:not(.display-mode) .wp-tile-back strong {
+      font-size: 15px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .skin-wp:not(.display-mode) .wp-tile-back small {
+      margin-top: 1px;
+      font-size: 8px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
     .skin-wp:not(.display-mode) .l-circle {
       flex: none;
-      width: 36px;
-      height: 36px;
-      margin-top: 2px;
+      width: 38px;
+      height: 38px;
       border-radius: 0;
       display: grid;
       place-items: center;
       background: var(--accent);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 0 0 1px var(--wp-tile-rim);
       overflow: hidden;
     }
     .skin-wp:not(.display-mode) .l-circle .l-g {
@@ -1828,7 +2108,7 @@
       -webkit-mask: var(--src) center / contain no-repeat;
       mask: var(--src) center / contain no-repeat;
     }
-    .skin-wp:not(.display-mode) .l-circle.l-colour { background: #ffffff; box-shadow: none; }
+    .skin-wp:not(.display-mode) .l-circle.l-colour { background: #ffffff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
     .skin-wp:not(.display-mode) .l-circle.l-colour img { width: 22px; height: 22px; display: block; }
     .skin-wp:not(.display-mode) .l-circle img.l-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
     .skin-wp:not(.display-mode) .l-circle .l-initials { color: #ffffff; font-size: 14px; font-weight: 600; }
@@ -1848,7 +2128,7 @@
       font-weight: 600;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: #a6a6a6;
+      color: var(--wp-fg-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1868,17 +2148,17 @@
     }
     .skin-wp:not(.display-mode) .when {
       font-size: 12px;
-      color: #8c8c8c;
+      color: var(--wp-fg-muted);
       line-height: 18px;
       border-radius: 0;
     }
     .skin-wp:not(.display-mode) .when:hover,
-    .skin-wp:not(.display-mode) .when:focus { color: #ffffff; }
+    .skin-wp:not(.display-mode) .when:focus { color: var(--wp-fg); }
     .skin-wp:not(.display-mode) .when::after {
       border-radius: 0;
-      border: 1px solid #444444;
-      background: #141414;
-      color: #ffffff;
+      border: 1px solid var(--wp-border);
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
       box-shadow: none;
     }
     .skin-wp:not(.display-mode) .l-expand {
@@ -1892,10 +2172,10 @@
       border: 0;
       border-radius: 0;
       background: transparent;
-      color: #777777;
+      color: var(--wp-fg-dim);
       cursor: pointer;
     }
-    .skin-wp:not(.display-mode) .l-expand svg { width: 16px; height: 16px; fill: currentColor; transition: transform .18s ease; }
+    .skin-wp:not(.display-mode) .l-expand svg { width: 16px; height: 16px; fill: currentColor; transition: transform .18s var(--wp-ease); }
     .skin-wp:not(.display-mode) .l-expand[aria-expanded="true"] { color: var(--wp-accent); }
     .skin-wp:not(.display-mode) .l-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
     .skin-wp:not(.display-mode) .l-expand:focus-visible { outline: 2px solid var(--wp-accent); outline-offset: 1px; }
@@ -1905,7 +2185,7 @@
       font-size: 14px;
       font-weight: 600;
       line-height: 20px;
-      color: #ffffff;
+      color: var(--wp-fg);
       overflow-wrap: anywhere;
     }
     .skin-wp:not(.display-mode) .wp-text {
@@ -1913,7 +2193,7 @@
       font-size: 15px;
       line-height: 21px;
       font-weight: 400;
-      color: #f5f5f5;
+      color: var(--wp-fg-body);
       white-space: pre-line;
       overflow-wrap: anywhere;
       display: -webkit-box;
@@ -1926,54 +2206,97 @@
       margin-top: 2px;
       font-size: 14px;
       line-height: 20px;
-      color: #bdbdbd;
+      color: var(--wp-fg-sub);
     }
     .skin-wp:not(.display-mode) .wp-item.l-open .wp-text {
       -webkit-line-clamp: unset;
       line-clamp: none;
     }
 
-    /* Outlined Metro action buttons (copy / share) */
+    /* Outlined Metro action buttons (copy / share) with crisp 3D unfold */
     .skin-wp:not(.display-mode) .l-acts { display: none; }
     .skin-wp:not(.display-mode) .wp-item.l-open .l-acts {
       display: flex;
       gap: 10px;
-      margin: 12px 0 2px 50px;
+      margin: 12px 0 2px 52px;
+      transform-origin: top center;
+      animation: wp-unfold 0.24s var(--wp-ease);
+    }
+    @keyframes wp-unfold {
+      from { opacity: 0; transform: perspective(500px) rotateX(-34deg) translateY(-6px); }
+      to   { opacity: 1; transform: none; }
     }
     .skin-wp:not(.display-mode) .l-acts button {
       height: 34px;
       padding: 0 14px;
-      border: 2px solid rgba(255, 255, 255, 0.78);
+      border: 2px solid var(--wp-fg);
       border-radius: 0;
       background: transparent;
-      color: #ffffff;
+      color: var(--wp-fg);
       font: 600 13px var(--font);
       text-transform: lowercase;
       cursor: pointer;
-      transition: background 0.12s, border-color 0.12s;
+      transition: background-color 0.12s var(--wp-ease), border-color 0.12s var(--wp-ease), color 0.12s var(--wp-ease), transform 0.12s var(--wp-ease);
     }
     .skin-wp:not(.display-mode) .l-acts button:hover,
     .skin-wp:not(.display-mode) .l-acts button:focus-visible {
       background: var(--wp-accent);
       border-color: var(--wp-accent);
+      color: #ffffff;
       outline: none;
     }
 
+    /* Classic top-edge full-width Windows Phone toast notification banner */
     .skin-wp:not(.display-mode) .theme-toast {
+      top: 0;
+      bottom: auto;
+      left: 50%;
+      width: min(100%, var(--max));
+      transform: translateX(-50%);
+      padding: 11px 16px;
       border-radius: 0;
       background: var(--wp-accent);
       color: #ffffff;
+      font-size: 13.5px;
       font-weight: 600;
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     }
-    .skin-wp:not(.display-mode) footer { color: #777777; }
+    .skin-wp:not(.display-mode) .theme-toast.wp-toast-pop {
+      animation: wp-toast-drop 0.28s var(--wp-ease);
+    }
+    @keyframes wp-toast-drop {
+      from { transform: translate(-50%, -100%); opacity: 0.4; }
+      to   { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .skin-wp:not(.display-mode) footer { color: var(--wp-fg-muted); }
 
     @media (max-width: 420px) {
       .skin-wp:not(.display-mode) .tabs button { font-size: 28px; }
+      .skin-wp:not(.display-mode) .wp-qa { height: 50px; padding: 6px 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skin-wp:not(.display-mode) .wp-progress i,
+      .skin-wp:not(.display-mode) .wp-qa.is-spinning svg,
+      .skin-wp:not(.display-mode) .wp-quick-actions.wp-qa-enter .wp-qa,
+      .skin-wp:not(.display-mode) .tabs.wp-pivot-next,
+      .skin-wp:not(.display-mode) .tabs.wp-pivot-prev,
+      .skin-wp:not(.display-mode) #feed[data-wp-enter] > *,
+      .skin-wp:not(.display-mode) .stack.is-new,
+      .skin-wp:not(.display-mode) .wp-item.is-new::before,
+      .skin-wp:not(.display-mode) .wp-tile-flip.is-live,
+      .skin-wp:not(.display-mode) .wp-item.l-open .l-acts,
+      .skin-wp:not(.display-mode) .theme-toast.wp-toast-pop { animation: none; }
+      .skin-wp:not(.display-mode) .wp-tilt,
+      .skin-wp:not(.display-mode) .wp-item:hover .wp-tile-flip:not(.is-live) { transform: none !important; }
     }
   </style>
 </head>
 
 <body>
+  <!-- Classic Windows Phone 5-dot progress bar (visible only while refreshing in WP skin). -->
+  <div class="wp-progress" id="wp-progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
   <!-- The two wallpaper layers (see .wall in the styles). -->
   <div class="wall is-showing" id="wall-a" aria-hidden="true"></div>
   <div class="wall" id="wall-b" aria-hidden="true"></div>
@@ -1985,6 +2308,7 @@
 
   <header class="site-header">
     <div class="wrap">
+      <span class="wp-eyebrow" aria-hidden="true">PUSH FEED</span>
       <div class="brand-row">
         <!-- Feed health. role="status" lets screen readers announce changes
              politely, without interrupting whatever they're reading. -->
@@ -2044,6 +2368,34 @@
             <input type="checkbox" id="fade-check"> Fade
           </label>
         </div>
+      </div>
+
+      <!-- Windows Phone 8.1 Action Center Quick Actions (WP skin only). -->
+      <div class="wp-quick-actions" id="wp-quick-actions" role="group" aria-label="Windows Phone quick actions">
+        <button type="button" class="wp-qa" data-wp-action="refresh" title="Check for new alerts now">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0 2 5.3"/><path d="M20 4v7h-7"/>
+          </svg>
+          <span>refresh</span>
+        </button>
+        <button type="button" class="wp-qa is-accent" data-wp-action="accent" title="Cycle Windows Phone accent colour">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/>
+          </svg>
+          <span id="wp-accent-label">cyan</span>
+        </button>
+        <button type="button" class="wp-qa" data-wp-action="bg" aria-pressed="false" title="Toggle Windows Phone dark or light background">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>
+          </svg>
+          <span id="wp-bg-label">dark</span>
+        </button>
+        <button type="button" class="wp-qa" data-wp-action="expand" aria-pressed="false" title="Expand or collapse all alerts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h10"/>
+          </svg>
+          <span id="wp-expand-label">expand</span>
+        </button>
       </div>
     </div>
   </header>
@@ -2473,6 +2825,7 @@
     async function refresh() {
       clearTimeout(refreshTimer);
       lastFetchStartedAt = Date.now();
+      pulseWpBusy(true);
 
       try {
         const fresh = combineWithHeld(await fetchFeed());
@@ -2512,6 +2865,7 @@
         lastCheckOk = false;
       }
 
+      pulseWpBusy(false);
       updateStatus();
       scheduleNext();
     }
@@ -2563,15 +2917,31 @@
       }
 
       // Insert a "Today" / "Yesterday" / date heading whenever the day changes.
+      const isWp = currentSkin() === 'wp';
+      const enterMode = isWp ? wpEnterMode : null;
+      wpEnterMode = null;
+      if (enterMode) el.feed.dataset.wpEnter = enterMode;
+      else delete el.feed.dataset.wpEnter;
+
       let currentDay = null;
+      let wpIndex = 0;
       for (const item of visible) {
         const day = dayKey(item.time);
         if (day !== currentDay) {
           currentDay = day;
-          el.feed.append(make('h2', 'day-heading', dayLabel(item.time)));
+          const label = dayLabel(item.time);
+          const heading = make('h2', 'day-heading', label);
+          if (isWp) {
+            heading.dataset.jump = label === 'Today' ? 't' : label === 'Yesterday' ? 'y' : String(Number(day.slice(-2)));
+            if (enterMode) heading.style.setProperty('--wp-i', String(Math.min(wpIndex++, 10)));
+          }
+          el.feed.append(heading);
         }
-        el.feed.append(buildCard(item));
+        const cardNode = buildCard(item);
+        if (isWp && enterMode) cardNode.style.setProperty('--wp-i', String(Math.min(wpIndex++, 10)));
+        el.feed.append(cardNode);
       }
+      if (isWp) syncWpExpandTile();
     }
 
     /* ── Display mode (?display) ──
@@ -3021,6 +3391,7 @@
         if (card.classList.contains('l-open')) expandedIds.add(item.id);
         else expandedIds.delete(item.id);
         sync();
+        if (currentSkin() === 'wp') syncWpExpandTile();
       };
       button.addEventListener('click', event => { event.stopPropagation(); toggle(); });
       card.addEventListener('click', event => {
@@ -3054,13 +3425,31 @@
       body.append(top);
       if (item.byline) body.append(make('div', 'wp-byline', item.byline));
       body.append(make('p', 'wp-text', item.headline));
-      row.append(circle(item, p), body);
+
+      // Live Tile: front shows the monochrome square glyph; grouped alerts
+      // get a two-sided 3D flipping Live Tile with the repeat count on the back.
+      const stage = make('div', 'wp-tile-stage');
+      const flip = make('div', 'wp-tile-flip' + (item.repeats.length ? ' is-live' : ''));
+      const front = make('div', 'wp-tile-front');
+      front.append(circle(item, p));
+      flip.append(front);
+      if (item.repeats.length) {
+        let hash = 0;
+        for (const ch of item.id) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+        flip.style.setProperty('--wp-flip-delay', ((hash % 40) * 0.12 + 0.6).toFixed(2) + 's');
+        const back = make('div', 'wp-tile-back');
+        back.setAttribute('aria-hidden', 'true');
+        back.append(make('strong', '', String(item.repeats.length + 1)), make('small', '', 'alerts'));
+        flip.append(back);
+      }
+      stage.append(flip);
+      row.append(stage, body);
 
       const acts = make('div', 'l-acts');
       const copyBtn = make('button', '', 'copy'), shareBtn = make('button', '', 'share');
       copyBtn.type = shareBtn.type = 'button';
-      copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
-      shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('Headline copied'); else if (res === 'failed') toast('Couldn’t share this headline'); };
+      copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'headline copied' : 'couldn’t copy'); };
+      shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('headline copied'); else if (res === 'failed') toast('couldn’t share this headline'); };
       acts.append(copyBtn, shareBtn);
       n.append(row, acts);
 
@@ -3085,8 +3474,11 @@
     function toast(message) {
       const node = document.getElementById('theme-toast');
       node.textContent = message;
+      node.classList.remove('wp-toast-pop');
+      void node.offsetWidth;
+      if (currentSkin() === 'wp') node.classList.add('wp-toast-pop');
       clearTimeout(themeToastTimer);
-      themeToastTimer = setTimeout(() => { node.textContent = ''; }, 2000);
+      themeToastTimer = setTimeout(() => { node.textContent = ''; node.classList.remove('wp-toast-pop'); }, 2200);
     }
     async function copyHeadline(item) {
       try { await navigator.clipboard.writeText(item.headline); return 'copied'; }
@@ -3238,6 +3630,12 @@
       if (side === onSideTab) return;
       onSideTab = side;
       history.replaceState(null, '', side ? '#side' : location.pathname + location.search);
+      if (currentSkin() === 'wp') {
+        wpEnterMode = side ? 'pivot-next' : 'pivot-prev';
+        el.tabs.classList.remove('wp-pivot-next', 'wp-pivot-prev');
+        void el.tabs.offsetWidth;
+        el.tabs.classList.add(side ? 'wp-pivot-next' : 'wp-pivot-prev');
+      }
       updateTabs();
       updateAppFilter();
       render();
@@ -3495,6 +3893,124 @@
        ════════════════════════════════════════════════════════════════════ */
     const THEMES = ['ios', 'material', 'nougat', 'marshmallow', 'wp'];
     const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow', wp: 'Windows Phone' };
+    const WP_ACCENTS = [
+      { id: 'cyan',    colour: '#1ba1e2' },
+      { id: 'cobalt',  colour: '#0050ef' },
+      { id: 'magenta', colour: '#d80073' },
+      { id: 'lime',    colour: '#a4c400' },
+      { id: 'orange',  colour: '#fa6800' },
+      { id: 'emerald', colour: '#008a00' },
+      { id: 'violet',  colour: '#aa00ff' },
+      { id: 'crimson', colour: '#a20025' },
+    ];
+    let wpAccentIndex = 0;
+    try {
+      const savedAccent = localStorage.getItem('pushFeedWpAccent');
+      const idx = WP_ACCENTS.findIndex(a => a.id === savedAccent);
+      if (idx >= 0) wpAccentIndex = idx;
+    } catch (e) { /* fine */ }
+    let wpEnterMode = 'turnstile';
+    let wpBusyTimer = null;
+    let wpBusyMinUntil = 0;
+
+    function pulseWpBusy(on, minMs = 0) {
+      clearTimeout(wpBusyTimer);
+      if (on) {
+        wpBusyMinUntil = Math.max(wpBusyMinUntil, Date.now() + minMs);
+        document.documentElement.classList.add('wp-busy');
+        if (minMs > 0) {
+          wpBusyTimer = setTimeout(() => {
+            if (Date.now() >= wpBusyMinUntil) document.documentElement.classList.remove('wp-busy');
+          }, minMs);
+        }
+      } else {
+        const wait = Math.max(0, wpBusyMinUntil - Date.now());
+        wpBusyTimer = setTimeout(() => document.documentElement.classList.remove('wp-busy'), wait);
+      }
+    }
+
+    const wpQuickActions = document.getElementById('wp-quick-actions');
+    function syncWpQuickActions() {
+      const accent = WP_ACCENTS[wpAccentIndex];
+      document.documentElement.style.setProperty('--wp-accent', accent.colour);
+      const isLight = document.documentElement.classList.contains('wp-light');
+      document.getElementById('wp-accent-label').textContent = accent.id;
+      document.getElementById('wp-bg-label').textContent = isLight ? 'light' : 'dark';
+      const bgBtn = wpQuickActions.querySelector('[data-wp-action="bg"]');
+      bgBtn.setAttribute('aria-pressed', String(isLight));
+      syncWpExpandTile();
+    }
+    function syncWpExpandTile() {
+      const cards = [...el.feed.querySelectorAll('.wp-item')];
+      const allOpen = cards.length > 0 && cards.every(c => c.classList.contains('l-open'));
+      const btn = wpQuickActions.querySelector('[data-wp-action="expand"]');
+      btn.setAttribute('aria-pressed', String(allOpen));
+      document.getElementById('wp-expand-label').textContent = allOpen ? 'collapse' : 'expand';
+    }
+
+    wpQuickActions.addEventListener('click', event => {
+      const btn = event.target.closest('.wp-qa');
+      if (!btn) return;
+      const action = btn.dataset.wpAction;
+      if (action === 'refresh') {
+        btn.classList.remove('is-spinning');
+        void btn.offsetWidth;
+        btn.classList.add('is-spinning');
+        setTimeout(() => btn.classList.remove('is-spinning'), 700);
+        pulseWpBusy(true, 1200);
+        toast('checking feed…');
+        refresh();
+      } else if (action === 'accent') {
+        wpAccentIndex = (wpAccentIndex + 1) % WP_ACCENTS.length;
+        try { localStorage.setItem('pushFeedWpAccent', WP_ACCENTS[wpAccentIndex].id); } catch (e) { /* fine */ }
+        syncWpQuickActions();
+        toast('accent · ' + WP_ACCENTS[wpAccentIndex].id);
+      } else if (action === 'bg') {
+        const isLight = document.documentElement.classList.toggle('wp-light');
+        try { localStorage.setItem('pushFeedWpLight', isLight ? 'light' : 'dark'); } catch (e) { /* fine */ }
+        syncTheme();
+        syncWpQuickActions();
+        toast(isLight ? 'light background' : 'dark background');
+      } else if (action === 'expand') {
+        const cards = [...el.feed.querySelectorAll('.wp-item')];
+        if (!cards.length) return;
+        const openAll = !cards.every(c => c.classList.contains('l-open'));
+        for (const card of cards) {
+          card.classList.toggle('l-open', openAll);
+          const id = card.closest('.stack')?.dataset.id;
+          if (id) { if (openAll) expandedIds.add(id); else expandedIds.delete(id); }
+          const expBtn = card.querySelector('.l-expand');
+          if (expBtn) expBtn.setAttribute('aria-expanded', String(openAll));
+        }
+        syncWpExpandTile();
+      }
+    });
+
+    // Pointer-aware Metro 3D TiltEffect on press for tiles, items & buttons.
+    let activeTilt = null;
+    function clearTilt() {
+      if (!activeTilt) return;
+      activeTilt.classList.remove('wp-tilt');
+      activeTilt = null;
+    }
+    document.addEventListener('pointerdown', event => {
+      if (currentSkin() !== 'wp' || reducedMotion.matches) return;
+      if (event.target.closest('.when')) return;
+      const target = event.target.closest('.wp-item, .wp-qa, .tabs button, .l-acts button');
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 2));
+      const ny = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 2));
+      const strength = target.classList.contains('wp-item') ? 3.5 : 8;
+      target.style.setProperty('--wp-rx', (-ny * strength).toFixed(2) + 'deg');
+      target.style.setProperty('--wp-ry', (nx * strength).toFixed(2) + 'deg');
+      clearTilt();
+      target.classList.add('wp-tilt');
+      activeTilt = target;
+    }, { passive: true });
+    window.addEventListener('pointerup', clearTilt, { passive: true });
+    window.addEventListener('pointercancel', clearTilt, { passive: true });
+
     const themeSlider = document.querySelector('.theme-slider');
     function currentSkin() {
       if (displayMode) return 'ios';
@@ -3502,13 +4018,14 @@
     }
     function syncTheme() {
       const theme = currentSkin();
+      const wpLight = theme === 'wp' && document.documentElement.classList.contains('wp-light');
       themeSlider.setAttribute('aria-label', 'Theme: ' + THEME_NAMES[theme]);
       themeSlider.style.setProperty('--theme-index', THEMES.indexOf(theme));
       themeSlider.querySelector('input[value="' + theme + '"]').checked = true;
       document.querySelector('meta[name="theme-color"]').content =
-        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f', wp: '#000000' })[theme];
+        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f', wp: wpLight ? '#ffffff' : '#000000' })[theme];
       document.querySelector('meta[name="color-scheme"]').content =
-        theme === 'nougat' || theme === 'marshmallow' ? 'light' : 'dark';
+        (theme === 'nougat' || theme === 'marshmallow' || wpLight) ? 'light' : 'dark';
     }
     themeSlider.addEventListener('change', event => {
       const theme = event.target.value;
@@ -3521,12 +4038,22 @@
         url.searchParams.set('skin', theme);
         history.replaceState(null, '', url);
       }
+      if (theme === 'wp') {
+        wpEnterMode = 'turnstile';
+        wpQuickActions.classList.remove('wp-qa-enter');
+        void wpQuickActions.offsetWidth;
+        wpQuickActions.classList.add('wp-qa-enter');
+        pulseWpBusy(true, 1300);
+      }
       syncTheme();
+      syncWpQuickActions();
       syncFeedBar();
       render();
       toast(THEME_NAMES[theme] + ' theme');   // swatch names are hover-only, so say it on touch screens too
     });
     syncTheme();
+    syncWpQuickActions();
+    if (currentSkin() === 'wp') wpQuickActions.classList.add('wp-qa-enter');
 
     /* ════════════════════════════════════════════════════════════════════
        START
