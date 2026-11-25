@@ -103,9 +103,10 @@
       var skin = null;
       if (skinParam === 'material' || skinParam === 'android') skin = 'material';
       else if (skinParam === 'wp' || skinParam === 'windows' || skinParam === 'windowsphone' || skinParam === 'windows-phone' || skinParam === 'metro') skin = 'wp';
+      else if (skinParam === 'webos' || skinParam === 'palm' || skinParam === 'pre') skin = 'webos';
       else if (['ios', 'nougat', 'marshmallow'].includes(skinParam)) skin = skinParam;
       if (!skin) { try { skin = localStorage.getItem('pushFeedSkin'); } catch (e) { /* fine */ } }
-      if (['material', 'nougat', 'marshmallow', 'wp'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
+      if (['material', 'nougat', 'marshmallow', 'wp', 'webos'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
 
       // Restore Windows Phone accent colour and light/dark background before paint.
       try {
@@ -1381,8 +1382,8 @@
     .header-tools { flex: 1; min-width: 0; }
     html:not(.display-mode) .status { min-width: 0; flex: 0 1 auto; }
     html:not(.display-mode) #status-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .theme-slider { position: relative; flex: 0 0 116px; height: 28px; margin-left: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--control); isolation: isolate; }
-    .theme-thumb { position: absolute; inset: 3px auto 3px 3px; width: calc((100% - 6px) / 5); border-radius: 50%; background: var(--control-on); transform: translateX(calc(var(--theme-index, 0) * 100%)); transition: transform .18s ease; z-index: 0; box-shadow: 0 0 0 1px var(--text-soft), 0 1px 3px #0002; }
+    .theme-slider { position: relative; flex: 0 0 138px; height: 28px; margin-left: auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--control); isolation: isolate; }
+    .theme-thumb { position: absolute; inset: 3px auto 3px 3px; width: calc((100% - 6px) / 6); border-radius: 50%; background: var(--control-on); transform: translateX(calc(var(--theme-index, 0) * 100%)); transition: transform .18s ease; z-index: 0; box-shadow: 0 0 0 1px var(--text-soft), 0 1px 3px #0002; }
     .theme-slider label { position: relative; z-index: 1; display: grid; place-items: center; min-width: 0; cursor: pointer; }
     .theme-slider input { position: absolute; inset: 0; margin: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
     .theme-slider label span { width: 10px; height: 10px; border-radius: 3px; box-shadow: inset 0 0 0 1px #ffffff40, 0 0 0 1px #0002; }
@@ -1397,6 +1398,11 @@
         #1ba1e2;
       border-radius: 0;
       box-shadow: 0 0 0 1px #0004;
+    }
+    .theme-slider label:nth-of-type(6) span {
+      background: linear-gradient(180deg, #434851 0 56%, #0b0c0e 56% 74%, #9ae0ff 74% 88%, #0b0c0e 88%);
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px #ffffff42, 0 0 0 1px #0006;
     }
     .theme-slider label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 1px; border-radius: 50%; }
     .display-mode .theme-slider { display: none; }
@@ -2291,6 +2297,480 @@
       .skin-wp:not(.display-mode) .wp-tilt,
       .skin-wp:not(.display-mode) .wp-item:hover .wp-tile-flip:not(.is-live) { transform: none !important; }
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+       10. PALM WEBOS 1–2 SKIN (html.skin-webos): Pre Synergy Dashboard.
+       Pitch-black surround, curved black-glass card bezel, dark glossy
+       dashboard rows, glossy pill controls, bottom ticker notification
+       banner, and glowing gesture-area light-pipe.
+       ════════════════════════════════════════════════════════════════════ */
+    .webos-ticker,
+    .webos-gesture { display: none; }
+
+    html.skin-webos:not(.display-mode) {
+      --bg: #000000;
+      --card: #181a1e;
+      --control: #14161a;
+      --control-on: #505660;
+      --text: #f0f2f5;
+      --text-soft: #8c95a2;
+      --hairline: rgba(255, 255, 255, 0.08);
+      --ok: #62d96b;
+      --warn: #f5a623;
+      --bad: #ff4d45;
+      --focus: #56b0f5;
+      --tooltip-bg: #121418;
+      --tooltip-text: #f0f2f5;
+      --font: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-display: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color-scheme: dark;
+    }
+    .skin-webos:not(.display-mode) body {
+      background: #000000;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0;
+      padding-bottom: 58px;
+    }
+    .skin-webos:not(.display-mode) .wall,
+    .skin-webos:not(.display-mode) body::before,
+    .skin-webos:not(.display-mode) #slideshow-toggle { display: none; }
+
+    /* Top pitch-black status strip */
+    .skin-webos:not(.display-mode) .site-header {
+      padding: 14px 0 8px;
+      background: #000000;
+      text-shadow: none;
+    }
+    .skin-webos:not(.display-mode) .status {
+      padding: 3px 10px 3px 8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #1b1e23, #0f1114);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.65);
+      font-size: 12px;
+      color: #c2c9d3;
+    }
+    .skin-webos:not(.display-mode) .dot.is-ok { box-shadow: 0 0 7px #62d96b; }
+    .skin-webos:not(.display-mode) .theme-slider {
+      background: linear-gradient(180deg, #1a1d22, #0d0f12);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.13);
+    }
+    .skin-webos:not(.display-mode) .theme-thumb {
+      background: linear-gradient(180deg, #626872, #383c43);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Curved black-glass Synergy Dashboard header bezel */
+    .skin-webos:not(.display-mode) .toolbar {
+      padding: 0;
+      margin-bottom: 0;
+    }
+    .skin-webos:not(.display-mode) .toolbar::before {
+      background: #000000;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .skin-webos:not(.display-mode) .toolbar .wrap {
+      padding: 12px 14px 12px;
+      border-radius: 18px 18px 0 0;
+      background: linear-gradient(180deg, #3c4047 0%, #24272c 48%, #181a1e 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid #000000;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 4px 14px rgba(0, 0, 0, 0.55);
+    }
+    .skin-webos:not(.display-mode) .toolbar.is-stuck .wrap {
+      border-radius: 0;
+      border-top-color: rgba(255, 255, 255, 0.09);
+    }
+
+    /* Glossy pill segmented tabs */
+    .skin-webos:not(.display-mode) .tabs {
+      padding: 2px;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: #101215;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.78);
+    }
+    .skin-webos:not(.display-mode) .tabs button {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ea6b2;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+    }
+    .skin-webos:not(.display-mode) .tabs button[aria-selected="true"] {
+      color: #ffffff;
+      background: linear-gradient(180deg, #626872, #383c43);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    .skin-webos:not(.display-mode) .tabs .count { color: inherit; opacity: 0.78; }
+
+    /* Recessed dark pill search & filter controls */
+    .skin-webos:not(.display-mode) .controls input,
+    .skin-webos:not(.display-mode) .controls select {
+      height: 34px;
+      border-radius: 999px;
+      background-color: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
+      color: #edf1f6;
+      font-size: 14px;
+    }
+    .skin-webos:not(.display-mode) .controls input { padding: 0 12px 0 34px; }
+    .skin-webos:not(.display-mode) .controls input::placeholder { color: #8c95a2; }
+    .skin-webos:not(.display-mode) .controls select { padding: 0 28px 0 12px; font-weight: 600; }
+    .skin-webos:not(.display-mode) .controls select option { background: #181a1e; color: #f0f2f5; }
+    .skin-webos:not(.display-mode) .controls input:focus,
+    .skin-webos:not(.display-mode) .controls select:focus {
+      outline: none;
+      border-color: #56b0f5;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72), 0 0 0 2px rgba(86, 176, 245, 0.28);
+    }
+
+    /* Synergy Dashboard feed card body */
+    .skin-webos:not(.display-mode) main.wrap {
+      padding: 0;
+      border-radius: 0 0 18px 18px;
+      background: linear-gradient(180deg, #1a1c20, #111316);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-top: 0;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+    }
+    .skin-webos:not(.display-mode) .day-heading {
+      margin: 0;
+      padding: 7px 14px;
+      font-family: var(--font);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8892a0;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.8);
+      background: linear-gradient(180deg, #272a30, #1d2025);
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      border-bottom: 1px solid #090a0c;
+    }
+    .skin-webos:not(.display-mode) main > .day-heading:first-child { margin-top: 0; border-top: 0; }
+
+    .skin-webos:not(.display-mode) .stack,
+    .skin-webos:not(.display-mode) .stack.has-repeats { margin-bottom: 0; }
+    .skin-webos:not(.display-mode) .stack.has-repeats::after { display: none; }
+    .skin-webos:not(.display-mode) .stack.is-new { animation: webos-arrive 0.38s cubic-bezier(0.2, 0.9, 0.25, 1); }
+    @keyframes webos-arrive {
+      from { opacity: 0; transform: translateY(-10px) scale(0.985); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Dark glossy dashboard rows */
+    .skin-webos:not(.display-mode) .w-row {
+      position: relative;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.04));
+      border-bottom: 1px solid #090a0c;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.14s ease;
+    }
+    .skin-webos:not(.display-mode) .w-row:hover,
+    .skin-webos:not(.display-mode) .w-row:focus-within { z-index: 2; }
+    .skin-webos:not(.display-mode) .stack:last-child .w-row {
+      border-bottom: 0;
+      border-radius: 0 0 17px 17px;
+    }
+    .skin-webos:not(.display-mode) .w-row.l-open {
+      background: linear-gradient(180deg, #2b3440, #1f2630);
+      box-shadow: inset 0 1px 0 rgba(120, 196, 255, 0.28);
+    }
+    .skin-webos:not(.display-mode) .w-row-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .skin-webos:not(.display-mode) .w-ic {
+      position: relative;
+      flex: none;
+      width: 38px;
+      height: 38px;
+      margin-top: 1px;
+    }
+    .skin-webos:not(.display-mode) .w-ic img,
+    .skin-webos:not(.display-mode) .w-ic .initials {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 9px;
+      object-fit: cover;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+    }
+    .skin-webos:not(.display-mode) .w-ic .initials {
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .skin-webos:not(.display-mode) .w-ic::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 9px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.03) 48%, transparent 50%);
+      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.35);
+    }
+    .skin-webos:not(.display-mode) .w-count {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      z-index: 2;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #74c2ff, #2678c9);
+      border: 1.5px solid #090a0c;
+      color: #ffffff;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 15px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+    .skin-webos:not(.display-mode) .w-bd { flex: 1; min-width: 0; }
+    .skin-webos:not(.display-mode) .w-top {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 20px;
+    }
+    .skin-webos:not(.display-mode) .w-app {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .skin-webos:not(.display-mode) .when {
+      font-size: 12px;
+      color: #8c95a2;
+      line-height: 18px;
+    }
+    .skin-webos:not(.display-mode) .when:hover,
+    .skin-webos:not(.display-mode) .when:focus { color: #ffffff; }
+    .skin-webos:not(.display-mode) .when::after {
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(180deg, #25282e, #121418);
+      color: #f0f2f5;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+    }
+    .skin-webos:not(.display-mode) .l-expand {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      margin: -2px -4px -2px 0;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #7d8794;
+      cursor: pointer;
+    }
+    .skin-webos:not(.display-mode) .l-expand svg { width: 16px; height: 16px; fill: currentColor; transition: transform 0.18s ease; }
+    .skin-webos:not(.display-mode) .l-expand[aria-expanded="true"] { color: #74c2ff; }
+    .skin-webos:not(.display-mode) .l-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .skin-webos:not(.display-mode) .l-expand:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+    .skin-webos:not(.display-mode) .w-byline {
+      margin-top: 1px;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 18px;
+      color: #74c2ff;
+      overflow-wrap: anywhere;
+    }
+    .skin-webos:not(.display-mode) .w-text {
+      margin: 2px 0 0;
+      font-size: 13.5px;
+      line-height: 19px;
+      color: #c8cfd8;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+    .skin-webos:not(.display-mode) .w-row.l-open .w-text {
+      -webkit-line-clamp: unset;
+      line-clamp: none;
+      color: #edf1f6;
+    }
+
+    /* Glossy pill Copy / Share actions */
+    .skin-webos:not(.display-mode) .l-acts { display: none; }
+    .skin-webos:not(.display-mode) .w-row.l-open .l-acts {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0 1px 50px;
+    }
+    .skin-webos:not(.display-mode) .l-acts button {
+      height: 29px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: linear-gradient(180deg, #525760, #2b2f35);
+      color: #ffffff;
+      font: 600 12px/1 var(--font);
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.55);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 1px 3px rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+    .skin-webos:not(.display-mode) .l-acts button:first-child {
+      border-color: #3a92d8;
+      background: linear-gradient(180deg, #56b0f5, #1e73bc);
+    }
+    .skin-webos:not(.display-mode) .l-acts button:hover { filter: brightness(1.08); }
+    .skin-webos:not(.display-mode) .l-acts button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    /* Classic Palm Pre bottom ticker notification banner */
+    .skin-webos:not(.display-mode) .webos-ticker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      z-index: 90;
+      width: min(100%, var(--max));
+      height: 44px;
+      padding: 0 12px;
+      background: linear-gradient(180deg, #2b2e33, #0e1013);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 0;
+      border-radius: 12px 12px 0 0;
+      color: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 -8px 24px rgba(0, 0, 0, 0.7);
+      transform: translate(-50%, 130%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.2s ease;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker.is-open {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker-ic {
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      object-fit: cover;
+      flex: none;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker-text {
+      flex: 1;
+      min-width: 0;
+      font-size: 12.5px;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker-app {
+      color: #74c2ff;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker-close {
+      flex: none;
+      width: 22px;
+      height: 22px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      font: 700 13px/1 var(--font);
+      cursor: pointer;
+    }
+    .skin-webos:not(.display-mode) .webos-ticker-close:hover { background: rgba(255, 255, 255, 0.26); }
+
+    /* Fixed bottom gesture area + glowing white light-pipe */
+    .skin-webos:not(.display-mode) .webos-gesture {
+      display: grid;
+      place-items: center;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 32px;
+      z-index: 95;
+      background: linear-gradient(180deg, #0d0e10, #000000);
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      cursor: pointer;
+    }
+    .skin-webos:not(.display-mode) .webos-lightpipe {
+      width: 64px;
+      height: 3px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+      transition: width 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .skin-webos:not(.display-mode) .webos-gesture:hover .webos-lightpipe {
+      width: 80px;
+      background: #ffffff;
+      box-shadow: 0 0 12px rgba(154, 224, 255, 0.8);
+    }
+    .skin-webos:not(.display-mode) .webos-gesture.is-pulsing .webos-lightpipe {
+      width: 108px;
+      background: #ffffff;
+      box-shadow: 0 0 14px 3px rgba(180, 230, 255, 0.95), 0 0 28px rgba(56, 163, 235, 0.85);
+      animation: webos-pipe 1.3s ease-in-out 2;
+    }
+    @keyframes webos-pipe {
+      0%, 100% { opacity: 0.68; transform: scaleX(0.9); }
+      50%      { opacity: 1; transform: scaleX(1.12); }
+    }
+
+    .skin-webos:not(.display-mode) .theme-toast {
+      bottom: 44px;
+      border-radius: 999px;
+      padding: 8px 16px;
+      background: linear-gradient(180deg, #2d323a, #171a1f);
+      border: 1px solid rgba(116, 194, 255, 0.35);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .skin-webos:not(.display-mode) footer { color: #6e7784; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .skin-webos:not(.display-mode) .stack.is-new,
+      .skin-webos:not(.display-mode) .webos-gesture.is-pulsing .webos-lightpipe { animation: none; }
+      .skin-webos:not(.display-mode) .webos-ticker,
+      .skin-webos:not(.display-mode) .l-expand svg { transition: none; }
+    }
   </style>
 </head>
 
@@ -2335,6 +2815,7 @@
             <label title="Nougat"><input type="radio" name="theme" value="nougat" aria-label="Nougat"><span aria-hidden="true"></span></label>
             <label title="Marshmallow"><input type="radio" name="theme" value="marshmallow" aria-label="Marshmallow"><span aria-hidden="true"></span></label>
             <label title="Windows Phone"><input type="radio" name="theme" value="wp" aria-label="Windows Phone"><span aria-hidden="true"></span></label>
+            <label title="Palm webOS"><input type="radio" name="theme" value="webos" aria-label="Palm webOS"><span aria-hidden="true"></span></label>
           </div>
 
           <!-- Wallpaper slideshow on/off. -->
@@ -2443,6 +2924,16 @@
   </main>
 
   <div id="theme-toast" class="theme-toast" role="status" aria-live="polite"></div>
+
+  <!-- Palm webOS bottom ticker banner & gesture-area light-pipe (webOS skin only). -->
+  <div id="webos-ticker" class="webos-ticker" role="status" aria-live="polite">
+    <img id="webos-ticker-ic" class="webos-ticker-ic" alt="" hidden>
+    <div class="webos-ticker-text"><span id="webos-ticker-app" class="webos-ticker-app"></span><span id="webos-ticker-msg"></span></div>
+    <button type="button" id="webos-ticker-close" class="webos-ticker-close" aria-label="Dismiss notification banner">×</button>
+  </div>
+  <div id="webos-gesture" class="webos-gesture" title="Tap light-pipe to replay latest alert banner" aria-hidden="true">
+    <div class="webos-lightpipe"></div>
+  </div>
 
   <footer>
     <div class="wrap">
@@ -2850,6 +3341,10 @@
         if (!arrivals.length) {
           show();
           render();
+          if (currentSkin() === 'webos') {
+            const newestNew = fresh.find(item => item.isNew);
+            if (newestNew) showWebosTicker(newestNew);
+          }
         } else {
           const takeover = takeoverWanted() ? await showTakeover(arrivals) : null;
           const before = displayPositions();
@@ -3457,6 +3952,53 @@
       return n;
     }
 
+    function buildWebOS(item) {
+      const n = make('article', 'w-row' + (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
+      const main = make('div', 'w-row-main');
+
+      const ic = make('div', 'w-ic');
+      const src = CONFIG.ICONS[item.app.toLowerCase()];
+      if (src) {
+        const img = make('img');
+        img.src = src;
+        img.alt = item.app;
+        img.width = img.height = 38;
+        img.decoding = 'async';
+        img.addEventListener('error', () => img.replaceWith(initialsTile(item)), { once: true });
+        ic.append(img);
+      } else {
+        ic.append(initialsTile(item));
+      }
+      if (item.repeats.length) ic.append(make('span', 'w-count', String(item.repeats.length + 1)));
+
+      const bd = make('div', 'w-bd');
+      const top = make('div', 'w-top');
+      const t = make('time', 'when', notificationTime(item.time));
+      t.dataset.time = item.time;
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = fullTime(item);
+      t.dataset.full = t.title;
+      t.tabIndex = 0;
+      t.setAttribute('aria-label', t.title);
+      top.append(make('span', 'w-app', item.app), t);
+
+      bd.append(top);
+      if (item.byline) bd.append(make('div', 'w-byline', item.byline));
+      bd.append(make('p', 'w-text', item.headline));
+      main.append(ic, bd);
+
+      const acts = make('div', 'l-acts');
+      const copyBtn = make('button', '', 'Copy'), shareBtn = make('button', '', 'Share');
+      copyBtn.type = shareBtn.type = 'button';
+      copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
+      shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('Headline copied'); else if (res === 'failed') toast('Couldn’t share this headline'); };
+      acts.append(copyBtn, shareBtn);
+      n.append(main, acts);
+
+      wireLegacyExpansion(n, item, top);
+      return n;
+    }
+
     function buildLegacyCard(item) {
       const stack = make('div', 'stack' + (item.isNew ? ' is-new' : ''));
       stack.dataset.id = item.id;
@@ -3466,6 +4008,7 @@
       stack.append(
         skin === 'nougat' ? buildNougat(item) :
         skin === 'wp' ? buildWindowsPhone(item) :
+        skin === 'webos' ? buildWebOS(item) :
         buildMarshmallow(item)
       );
       return stack;
@@ -3498,7 +4041,7 @@
     // Hidden repeats show as a stacked card underneath plus a red badge.
     function buildCard(item) {
       const skin = currentSkin();
-      if (skin === 'nougat' || skin === 'marshmallow' || skin === 'wp') return buildLegacyCard(item);
+      if (skin === 'nougat' || skin === 'marshmallow' || skin === 'wp' || skin === 'webos') return buildLegacyCard(item);
       const stack = make('div', 'stack' +
         (item.repeats.length ? ' has-repeats' : '') +
         (item.isNew ? ' is-new' : ''));
@@ -3721,7 +4264,7 @@
     function notificationTime(ms) {
       const skin = currentSkin();
       if (skin === 'marshmallow') return clockTime(ms).toUpperCase();
-      if (skin === 'wp') return clockTime(ms).toLowerCase();
+      if (skin === 'wp' || skin === 'webos') return clockTime(ms).toLowerCase();
       const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
       if (mins < 1)  return 'now';
       if (materialSkin() || skin === 'nougat') {   // Android's short form: "12m", "3h"
@@ -3887,12 +4430,12 @@
     try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
 
     /* ════════════════════════════════════════════════════════════════════
-       THEME SLIDER: iOS, Material, Nougat, Marshmallow and Windows Phone.
-       Saved in this browser; ?skin=ios|material|nougat|marshmallow|wp
+       THEME SLIDER: iOS, Material, Nougat, Marshmallow, Windows Phone and
+       Palm webOS. Saved in this browser; ?skin=ios|material|nougat|marshmallow|wp|webos
        overrides it on load (see the script in <head>).
        ════════════════════════════════════════════════════════════════════ */
-    const THEMES = ['ios', 'material', 'nougat', 'marshmallow', 'wp'];
-    const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow', wp: 'Windows Phone' };
+    const THEMES = ['ios', 'material', 'nougat', 'marshmallow', 'wp', 'webos'];
+    const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow', wp: 'Windows Phone', webos: 'Palm webOS' };
     const WP_ACCENTS = [
       { id: 'cyan',    colour: '#1ba1e2' },
       { id: 'cobalt',  colour: '#0050ef' },
@@ -4011,6 +4554,43 @@
     window.addEventListener('pointerup', clearTilt, { passive: true });
     window.addEventListener('pointercancel', clearTilt, { passive: true });
 
+    const webosTicker = {
+      root: document.getElementById('webos-ticker'),
+      icon: document.getElementById('webos-ticker-ic'),
+      app: document.getElementById('webos-ticker-app'),
+      msg: document.getElementById('webos-ticker-msg'),
+      close: document.getElementById('webos-ticker-close'),
+      gesture: document.getElementById('webos-gesture'),
+      timer: null,
+    };
+    function hideWebosTicker() {
+      clearTimeout(webosTicker.timer);
+      webosTicker.root.classList.remove('is-open');
+      webosTicker.gesture.classList.remove('is-pulsing');
+    }
+    function showWebosTicker(item) {
+      if (!item || currentSkin() !== 'webos') return;
+      const src = CONFIG.ICONS[item.app.toLowerCase()];
+      if (src) { webosTicker.icon.src = src; webosTicker.icon.hidden = false; }
+      else { webosTicker.icon.hidden = true; }
+      webosTicker.app.textContent = item.app;
+      webosTicker.msg.textContent = item.headline;
+      webosTicker.root.classList.add('is-open');
+      webosTicker.gesture.classList.remove('is-pulsing');
+      void webosTicker.gesture.offsetWidth;
+      webosTicker.gesture.classList.add('is-pulsing');
+      clearTimeout(webosTicker.timer);
+      webosTicker.timer = setTimeout(hideWebosTicker, 4800);
+    }
+    webosTicker.close.addEventListener('click', hideWebosTicker);
+    webosTicker.gesture.addEventListener('click', () => {
+      if (webosTicker.root.classList.contains('is-open')) hideWebosTicker();
+      else {
+        const latest = tabItems()[0] || items[0];
+        if (latest) showWebosTicker(latest);
+      }
+    });
+
     const themeSlider = document.querySelector('.theme-slider');
     function currentSkin() {
       if (displayMode) return 'ios';
@@ -4023,7 +4603,7 @@
       themeSlider.style.setProperty('--theme-index', THEMES.indexOf(theme));
       themeSlider.querySelector('input[value="' + theme + '"]').checked = true;
       document.querySelector('meta[name="theme-color"]').content =
-        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f', wp: wpLight ? '#ffffff' : '#000000' })[theme];
+        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f', wp: wpLight ? '#ffffff' : '#000000', webos: '#000000' })[theme];
       document.querySelector('meta[name="color-scheme"]').content =
         (theme === 'nougat' || theme === 'marshmallow' || wpLight) ? 'light' : 'dark';
     }
@@ -4045,10 +4625,15 @@
         wpQuickActions.classList.add('wp-qa-enter');
         pulseWpBusy(true, 1300);
       }
+      if (theme !== 'webos') hideWebosTicker();
       syncTheme();
       syncWpQuickActions();
       syncFeedBar();
       render();
+      if (theme === 'webos') {
+        const latest = tabItems()[0] || items[0];
+        if (latest) showWebosTicker(latest);
+      }
       toast(THEME_NAMES[theme] + ' theme');   // swatch names are hover-only, so say it on touch screens too
     });
     syncTheme();
@@ -4082,7 +4667,11 @@
       side.replaceChildren(sideLabel, make('span', 'count', tabCount(el.tabSide)));
       news.setAttribute('aria-checked', String(!onSideTab));
       side.setAttribute('aria-checked', String(onSideTab));
-      el.search.placeholder = currentSkin() === 'marshmallow' ? 'Search ' + name : currentSkin() === 'wp' ? 'search alerts' : 'Search alerts…';
+      el.search.placeholder =
+        currentSkin() === 'marshmallow' ? 'Search ' + name :
+        currentSkin() === 'wp' ? 'search alerts' :
+        currentSkin() === 'webos' ? 'Just type to filter…' :
+        'Search alerts…';
     }
     function openFeedMenu(open) {
       feedBar.menu.hidden = !open;

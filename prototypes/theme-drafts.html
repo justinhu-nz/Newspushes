@@ -1,0 +1,1336 @@
+<!doctype html>
+<!--
+  PROTOTYPE: six theme drafts for Push Feed, side by side in phone frames
+  with realistic dummy alerts — covering SynCloudOS's Atmo variants (using
+  its textures from ../SynCloudOS-master/) plus two Palm / HP webOS styles.
+  For appraisal only; not part of the live site.
+
+    A  Atmo Light       SynCloudOS default: NSETileCotton + brushed-metal header
+                        + glossy Aqua buttons + 3D sliced-cube banner
+    B  Atmo Dark        SynCloudOS dark scheme: #1b222c slate, #78acde accent,
+                        gunmetal gloss & inset wells
+    C  Atmo Linen       SynCloudOS linen.webp material: iOS 5 / Mountain Lion
+                        Notification Centre with etched grooves & pull handle
+    D  Atmo HUD         SynCloudOS HUD chrome: smoked translucent glass over
+                        wallpaper with crisp specular rims
+    E  Palm webOS 1–2   Pre / Pixi Synergy Dashboard: curved dark glass bezel,
+                        glossy notification rows, bottom ticker & light-pipe
+    F  HP webOS 3       TouchPad / Enyo Onyx: brushed silver canvas, tactile
+                        paper-white cards, charcoal chrome & cyan glow
+
+  Tap any alert to expand it and reveal actions. Use "Simulate incoming alert"
+  at the top to trigger each theme's signature arrival banner (3D cube flip on
+  Atmo, bottom ticker + light-pipe pulse on webOS).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>SynCloudOS Atmo &amp; webOS theme drafts</title>
+  <style>
+    * { box-sizing: border-box; }
+    html { background: #dce1e8; }
+    body {
+      margin: 0;
+      font: 14px/20px "Lucida Grande", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+      color: #1c2633;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Appraisal page chrome ── */
+    .page-head {
+      max-width: 1620px;
+      margin: 0 auto;
+      padding: 28px 24px 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .page-head h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+    .page-head p { margin: 5px 0 0; color: #4c5a6b; max-width: 68ch; font-size: 13.5px; }
+    .page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .page-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      height: 34px; padding: 0 14px;
+      border: 1px solid #9aa8b8; border-radius: 7px;
+      background: linear-gradient(180deg, #ffffff, #e5ebf2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(0,0,0,.1);
+      font: 600 13px/1 inherit; color: #1a2636; cursor: pointer;
+    }
+    .page-btn:hover { filter: brightness(1.03); }
+    .page-btn:active { background: linear-gradient(180deg, #dce4ed, #eef2f7); }
+    .page-btn.is-primary {
+      border-color: #165a96;
+      background: linear-gradient(180deg, #4b9ce2, #1c70b9);
+      color: #fff;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 1px 3px rgba(0,0,0,.22);
+    }
+
+    .grid {
+      max-width: 1620px;
+      margin: 0 auto;
+      padding: 16px 24px 56px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(364px, 1fr));
+      gap: 36px 24px;
+      justify-items: center;
+    }
+    figure { margin: 0; }
+    figcaption { margin: 14px 4px 0; max-width: 360px; }
+    figcaption b { display: block; font-size: 15.5px; font-weight: 600; color: #192433; }
+    figcaption span { display: block; margin-top: 3px; color: #4e5b6c; font-size: 13px; line-height: 1.45; }
+
+    /* ── Phone frame ── */
+    .phone {
+      width: 360px;
+      height: 760px;
+      border-radius: 38px;
+      padding: 10px;
+      background: linear-gradient(160deg, #2b2e34, #141619);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 24px 54px rgba(14, 22, 34, 0.28);
+    }
+    .screen {
+      position: relative;
+      height: 100%;
+      border-radius: 29px;
+      overflow: hidden;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+    }
+    .scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    /* ── Shared statusbar & icons ── */
+    .statusbar {
+      flex: none;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 28px; padding: 0 16px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .sb-icons { display: flex; gap: 6px; align-items: center; }
+    .sb-icons svg { width: 13px; height: 13px; fill: currentColor; display: block; }
+
+    /* ════════════════════════════════════════════════════════════════════
+       SYNCLOUDOS ATMO SHARED STRUCTURE (Drafts A, B, C, D)
+       ════════════════════════════════════════════════════════════════════ */
+    .atmo-screen {
+      font-family: "Lucida Grande", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    }
+
+    /* 3D Sliced-Cube Incoming Banner (from Atmo atmo.notifications.css &
+       NotificationCentre.transitions.ts: rotateX(92deg) -> 0deg rotor) */
+    .atmo-cube-stage {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 20;
+      padding: 8px 10px 10px;
+      perspective: 720px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.16s ease;
+    }
+    .atmo-cube-stage.is-live {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .atmo-cube-void {
+      position: relative;
+      border-radius: 11px;
+      padding: 2px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0) 13%),
+        radial-gradient(ellipse at 50% 50%, rgba(16,18,22,.98), rgba(1,2,4,.98) 72%),
+        #000;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        inset 0 -16px 26px rgba(0,0,0,.8),
+        0 14px 32px rgba(0,0,0,.48);
+    }
+    .atmo-cube-rotor {
+      transform-origin: center top;
+      transform: rotateX(-92deg);
+      transition: transform 0.44s cubic-bezier(0.2, 0, 0.12, 1);
+      backface-visibility: hidden;
+    }
+    .atmo-cube-stage.is-open .atmo-cube-rotor {
+      transform: rotateX(0deg);
+    }
+    .atmo-cube-bezel {
+      position: relative;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 36px 10px 11px;
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,.58);
+      color: #182232;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(217,226,235,.92)),
+        url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/workspace/NSETileCotton.jpg") 0 0 / 260px auto repeat;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.92),
+        inset 0 -1px 0 rgba(24,32,42,.22),
+        0 12px 28px rgba(0,0,0,.42);
+    }
+    .atmo-cube-bezel img.app-ic {
+      width: 34px; height: 34px; border-radius: 8px; flex: none;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,.28));
+    }
+    .atmo-cube-copy { min-width: 0; flex: 1; }
+    .atmo-cube-kicker { font-size: 10.5px; font-weight: 600; color: #526175; text-transform: uppercase; letter-spacing: 0.04em; }
+    .atmo-cube-title { font-size: 12.5px; font-weight: 700; color: #172232; line-height: 1.25; }
+    .atmo-cube-msg { font-size: 12px; color: #2b3748; line-height: 1.3; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .atmo-cube-close {
+      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+      width: 28px; height: 28px; border: 0; padding: 0; cursor: pointer;
+      background: url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/workspace/notification-delete-up.png") center / 28px 28px no-repeat;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,.32));
+    }
+    .atmo-cube-close:active {
+      background-image: url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/workspace/notification-delete-down.png");
+    }
+
+    /* Atmo shared header / controls / cards */
+    .atmo-header {
+      flex: none;
+      padding: 6px 12px 11px;
+      border-bottom: 1px solid rgba(0,0,0,.35);
+    }
+    .atmo-head-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 9px;
+    }
+    .atmo-brand { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .atmo-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px 3px 7px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+    }
+    .atmo-dot { width: 7px; height: 7px; border-radius: 50%; background: #34c759; box-shadow: 0 0 6px rgba(52,199,89,.75); }
+
+    .atmo-seg {
+      display: flex;
+      height: 29px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .atmo-seg button {
+      flex: 1;
+      border: 0;
+      font: 600 12px/1 inherit;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .atmo-seg .cnt { font-weight: 400; opacity: 0.78; }
+
+    .atmo-controls { display: flex; gap: 6px; }
+    .atmo-search, .atmo-filter {
+      height: 29px;
+      border-radius: 15px;
+      font: 12px/1 inherit;
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 10px;
+    }
+    .atmo-search { flex: 1; min-width: 0; }
+    .atmo-filter { flex: none; border-radius: 6px; padding: 0 9px; font-weight: 600; }
+    .atmo-controls svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.72; flex: none; }
+
+    .atmo-day {
+      margin: 12px 12px 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .atmo-group {
+      margin: 0 10px 6px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .atmo-row {
+      position: relative;
+      padding: 10px 11px;
+      cursor: pointer;
+      transition: background 0.14s ease;
+    }
+    .atmo-row-main { display: flex; align-items: flex-start; gap: 10px; }
+    .atmo-ic {
+      position: relative;
+      flex: none; width: 34px; height: 34px; margin-top: 1px;
+    }
+    .atmo-ic img {
+      display: block; width: 100%; height: 100%; border-radius: 7px; object-fit: cover;
+      box-shadow: 0 2px 5px rgba(0,0,0,.3);
+    }
+    .atmo-ic::after { /* subtle iOS 5/6 gloss sheen on app icons */
+      content: ''; position: absolute; inset: 0; border-radius: 7px; pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.06) 46%, transparent 48%);
+      box-shadow: inset 0 0.5px 0 rgba(255,255,255,.55);
+    }
+    .atmo-badge {
+      position: absolute; top: -5px; right: -5px; z-index: 2;
+      min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+      background: linear-gradient(180deg, #e75c55, #a52d28);
+      border: 1.5px solid #fff;
+      color: #fff; font-size: 10px; font-weight: 700; line-height: 14px; text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,.35);
+    }
+    .atmo-bd { flex: 1; min-width: 0; }
+    .atmo-top { display: flex; align-items: baseline; gap: 6px; }
+    .atmo-app { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .atmo-time { flex: none; font-size: 11px; }
+    .atmo-byline { font-size: 11.5px; font-weight: 600; margin-top: 1px; }
+    .atmo-text {
+      margin: 2px 0 0; font-size: 12.5px; line-height: 1.38;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .atmo-row.open .atmo-text { -webkit-line-clamp: unset; }
+    .atmo-acts { display: none; gap: 7px; margin: 9px 0 1px 44px; }
+    .atmo-row.open .atmo-acts { display: flex; }
+    .atmo-acts button {
+      height: 26px; padding: 0 11px; border-radius: 6px;
+      font: 600 11.5px/1 inherit; cursor: pointer;
+    }
+
+    /* ════ A · Atmo Light (Cotton & Brushed Metal) ════ */
+    .vA {
+      color: #1b2738;
+      background:
+        linear-gradient(180deg, rgba(244,248,252,.92), rgba(210,220,232,.90)),
+        url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/workspace/NSETileCotton.jpg") 0 0 / 300px auto repeat;
+    }
+    .vA .statusbar {
+      background: linear-gradient(180deg, #4b5d73, #2b384b);
+      color: #f4f7fb;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.55);
+    }
+    .vA .atmo-header {
+      color: #f6f8fb;
+      background:
+        linear-gradient(180deg, rgba(67,82,102,.94), rgba(27,37,52,.97)),
+        url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/workspace/brushed-metal.webp") center / cover;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 3px 10px rgba(0,0,0,.22);
+    }
+    .vA .atmo-brand { text-shadow: 0 -1px 0 rgba(0,0,0,.55); }
+    .vA .atmo-status {
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
+    }
+    .vA .atmo-seg {
+      border: 1px solid rgba(0,0,0,.45);
+      box-shadow: 0 1px 0 rgba(255,255,255,.2);
+    }
+    .vA .atmo-seg button {
+      background: linear-gradient(180deg, #5d7088, #33445b);
+      color: rgba(255,255,255,.88);
+      text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .vA .atmo-seg button + button { border-left: 1px solid rgba(0,0,0,.38); }
+    .vA .atmo-seg button.on {
+      background: linear-gradient(180deg, #4f9be0, #1c70b9);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.48);
+    }
+    .vA .atmo-search {
+      background: linear-gradient(180deg, #eef2f6, #ffffff);
+      border: 1px solid rgba(0,0,0,.42);
+      color: #4f5d6d;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.22), 0 1px 0 rgba(255,255,255,.2);
+    }
+    .vA .atmo-filter {
+      background: linear-gradient(180deg, #f9fbfd, #ced8e4);
+      border: 1px solid rgba(0,0,0,.4);
+      color: #1f2b3a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .vA .atmo-day { color: #4d5d72; text-shadow: 0 1px 0 rgba(255,255,255,.8); }
+    .vA .atmo-group {
+      border: 1px solid rgba(75, 92, 114, 0.28);
+      background: rgba(255,255,255,.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 2px 7px rgba(24,36,52,.12);
+    }
+    .vA .atmo-row + .atmo-row { border-top: 1px solid rgba(90,104,122,.22); }
+    .vA .atmo-row.open { background: rgba(255,255,255,.86); box-shadow: inset 0 0 0 1px rgba(28,112,185,.28); }
+    .vA .atmo-app { color: #192538; }
+    .vA .atmo-time { color: #647287; }
+    .vA .atmo-byline { color: #1c70b9; }
+    .vA .atmo-text { color: #2b3748; }
+    .vA .atmo-acts button {
+      border: 1px solid rgba(28,44,66,.35);
+      background: linear-gradient(180deg, #ffffff, #cdd8e5);
+      color: #172232;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(0,0,0,.15);
+    }
+    .vA .atmo-acts button.is-primary {
+      border-color: #15558d;
+      background: linear-gradient(180deg, #4b9ae0, #1c70b9);
+      color: #fff;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+    }
+
+    /* ════ B · Atmo Dark (Slate & Aqua Glass) ════ */
+    .vB {
+      color: #dde3ea;
+      background: linear-gradient(180deg, #212934, #171d26);
+    }
+    .vB .atmo-cube-bezel {
+      border-color: rgba(140,185,230,.38);
+      color: #e7ecf2;
+      background: linear-gradient(180deg, #323c4a, #1d242e);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 14px 30px rgba(0,0,0,.6);
+    }
+    .vB .atmo-cube-kicker { color: #78acde; }
+    .vB .atmo-cube-title { color: #f1f4f8; }
+    .vB .atmo-cube-msg { color: #c3ccd7; }
+    .vB .statusbar {
+      background: linear-gradient(180deg, #28303b, #1c222b);
+      color: #dfe5ec;
+    }
+    .vB .atmo-header {
+      background: linear-gradient(180deg, #2c3542, #1d242f);
+      border-bottom-color: rgba(0,0,0,.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 10px rgba(0,0,0,.35);
+    }
+    .vB .atmo-status {
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.11);
+      color: #c3ccd7;
+    }
+    .vB .atmo-seg {
+      border: 1px solid rgba(0,0,0,.6);
+      box-shadow: 0 1px 0 rgba(255,255,255,.08);
+    }
+    .vB .atmo-seg button {
+      background: linear-gradient(180deg, #3a4350, #272e38);
+      color: #c3ccd7;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .vB .atmo-seg button + button { border-left: 1px solid rgba(0,0,0,.5); }
+    .vB .atmo-seg button.on {
+      background: linear-gradient(180deg, #8ec0ee, #528dc8);
+      color: #0d1a2a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
+    }
+    .vB .atmo-search {
+      background: #141920;
+      border: 1px solid rgba(255,255,255,.13);
+      color: #9ba8b8;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.55);
+    }
+    .vB .atmo-filter {
+      background: linear-gradient(180deg, #3c4552, #29303b);
+      border: 1px solid rgba(0,0,0,.55);
+      color: #e3e8ee;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .vB .atmo-day { color: #78acde; }
+    .vB .atmo-group {
+      border: 1px solid rgba(255,255,255,.11);
+      background: #1d2229;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 4px 12px rgba(0,0,0,.35);
+    }
+    .vB .atmo-row + .atmo-row { border-top: 1px solid rgba(255,255,255,.08); }
+    .vB .atmo-row.open { background: rgba(120,172,222,.11); }
+    .vB .atmo-app { color: #f1f4f8; }
+    .vB .atmo-time { color: #8c9aab; }
+    .vB .atmo-byline { color: #78acde; }
+    .vB .atmo-text { color: #cbd4df; }
+    .vB .atmo-acts button {
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, #3d4654, #28303b);
+      color: #e7ecf2;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+    }
+    .vB .atmo-acts button.is-primary {
+      border-color: #78acde;
+      background: linear-gradient(180deg, #8ec0ee, #558ec7);
+      color: #0d1a2a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+    }
+
+    /* ════ C · Atmo Linen (iOS 5 / Mountain Lion Notification Centre) ════ */
+    .vC {
+      color: #eef2f7;
+      background:
+        linear-gradient(180deg, rgba(16,18,22,.28), rgba(10,12,16,.44)),
+        url("../SynCloudOS-master/src/Themes/Atmo.scostheme/Contents/Resources/materials/linen.webp") 0 0 / 260px auto repeat,
+        #2b3038;
+    }
+    .vC .statusbar {
+      background: linear-gradient(180deg, #3b3e42, #1b1d20);
+      color: #eceff4;
+      border-bottom: 1px solid #000;
+    }
+    .vC .atmo-header {
+      background: linear-gradient(180deg, rgba(56,60,67,.92), rgba(28,31,36,.95));
+      border-bottom: 1px solid #000;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.45);
+    }
+    .vC .atmo-brand { text-shadow: 0 -1px 0 #000; }
+    .vC .atmo-status {
+      background: rgba(0,0,0,.42);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #d0d6df;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
+    }
+    .vC .atmo-seg {
+      border: 1px solid #0e1013;
+      box-shadow: 0 1px 0 rgba(255,255,255,.12);
+    }
+    .vC .atmo-seg button {
+      background: linear-gradient(180deg, #4b5058, #2d3036);
+      color: #cfd5dd;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.7);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2);
+    }
+    .vC .atmo-seg button + button { border-left: 1px solid #121417; }
+    .vC .atmo-seg button.on {
+      background: linear-gradient(180deg, #212429, #343940);
+      color: #fff;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.65);
+    }
+    .vC .atmo-search {
+      background: rgba(12,14,17,.65);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #a8b0bc;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,.75);
+    }
+    .vC .atmo-filter {
+      background: linear-gradient(180deg, #484d55, #292d33);
+      border: 1px solid #0e1013;
+      color: #e7ecf2;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+    }
+    .vC .atmo-day {
+      margin: 0;
+      padding: 6px 14px;
+      background: linear-gradient(180deg, rgba(72,78,86,.78), rgba(44,48,54,.84));
+      border-top: 1px solid rgba(255,255,255,.14);
+      border-bottom: 1px solid rgba(0,0,0,.65);
+      color: #e4e8ee;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.85);
+      box-shadow: 0 2px 5px rgba(0,0,0,.28);
+    }
+    .vC .atmo-group {
+      margin: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .vC .atmo-row {
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(0,0,0,.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+    }
+    .vC .atmo-row.open { background: rgba(0,0,0,.24); }
+    .vC .atmo-app { color: #ffffff; text-shadow: 0 -1px 0 rgba(0,0,0,.75); }
+    .vC .atmo-time { color: #aeb6c2; text-shadow: 0 -1px 0 rgba(0,0,0,.7); }
+    .vC .atmo-byline { color: #8ec5ff; }
+    .vC .atmo-text { color: #dfe4ec; text-shadow: 0 -1px 0 rgba(0,0,0,.7); }
+    .vC .atmo-acts button {
+      border: 1px solid #0d0f12;
+      background: linear-gradient(180deg, #565c66, #2d3138);
+      color: #fff;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.7);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 1px 2px rgba(0,0,0,.4);
+    }
+    .vC .atmo-acts button.is-primary {
+      background: linear-gradient(180deg, #4b9ce2, #1c70b9);
+      border-color: #104270;
+    }
+    .linen-handle {
+      flex: none;
+      height: 22px;
+      display: grid; place-items: center;
+      background: linear-gradient(180deg, #3c4047, #1d2024);
+      border-top: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.45);
+    }
+    .linen-handle span {
+      width: 34px; height: 5px; border-radius: 3px;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,.28) 0 1px, rgba(0,0,0,.6) 1px 2px);
+    }
+
+    /* ════ D · Atmo HUD (Smoked Translucent Panel) ════ */
+    .vD {
+      color: #f3f6fa;
+      background: #0d131d;
+    }
+    .vD::before {
+      content: ''; position: absolute; inset: -24px; z-index: -2;
+      background: url("../images/wallpapers/wwdc-2022.jpg") center / cover;
+      filter: blur(12px) saturate(118%) brightness(0.62);
+    }
+    .vD::after {
+      content: ''; position: absolute; inset: 0; z-index: -1;
+      background: linear-gradient(180deg, rgba(16,20,28,.64), rgba(10,13,19,.80));
+    }
+    .vD .atmo-cube-bezel {
+      border-color: rgba(255,255,255,.28);
+      color: #f4f7fb;
+      background: linear-gradient(180deg, rgba(36,44,56,.92), rgba(18,22,30,.94));
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+    }
+    .vD .atmo-cube-kicker { color: #7ec4ff; }
+    .vD .atmo-cube-title { color: #fff; }
+    .vD .atmo-cube-msg { color: rgba(235,242,250,.82); }
+    .vD .statusbar { background: rgba(10,13,18,.55); color: rgba(255,255,255,.88); }
+    .vD .atmo-header {
+      background: linear-gradient(180deg, rgba(34,40,50,.72), rgba(18,22,28,.78));
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    .vD .atmo-status {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+    }
+    .vD .atmo-seg {
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(0,0,0,.3);
+    }
+    .vD .atmo-seg button { background: transparent; color: rgba(255,255,255,.72); }
+    .vD .atmo-seg button + button { border-left: 1px solid rgba(255,255,255,.16); }
+    .vD .atmo-seg button.on {
+      background: linear-gradient(180deg, rgba(120,188,255,.45), rgba(46,122,210,.55));
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .vD .atmo-search {
+      background: rgba(0,0,0,.38);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.68);
+    }
+    .vD .atmo-filter {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.22);
+      color: #fff;
+    }
+    .vD .atmo-day { color: rgba(255,255,255,.76); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+    .vD .atmo-group {
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(18,22,30,.64);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 10px 26px rgba(0,0,0,.38);
+    }
+    .vD .atmo-row + .atmo-row { border-top: 1px solid rgba(255,255,255,.1); }
+    .vD .atmo-row.open { background: rgba(120,188,255,.14); }
+    .vD .atmo-app { color: #fff; }
+    .vD .atmo-time { color: rgba(220,230,242,.66); }
+    .vD .atmo-byline { color: #7ec4ff; }
+    .vD .atmo-text { color: rgba(242,246,252,.9); }
+    .vD .atmo-acts button {
+      border: 1px solid rgba(255,255,255,.28);
+      background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+      color: #fff;
+    }
+    .vD .atmo-acts button.is-primary {
+      border-color: rgba(126,196,255,.65);
+      background: linear-gradient(180deg, rgba(96,174,248,.65), rgba(28,112,185,.78));
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       PALM / HP WEBOS SHARED ELEMENTS (Drafts E & F)
+       ════════════════════════════════════════════════════════════════════ */
+    .webos-screen {
+      font-family: "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    /* Bottom gesture area + iconic glowing white light-pipe */
+    .webos-gesture {
+      flex: none;
+      position: relative;
+      height: 30px;
+      background: linear-gradient(180deg, #0d0e10, #000000);
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: grid; place-items: center;
+    }
+    .webos-lightpipe {
+      width: 56px; height: 3px; border-radius: 99px;
+      background: rgba(255,255,255,.55);
+      box-shadow: 0 0 8px rgba(255,255,255,.45);
+      transition: box-shadow 0.25s, background 0.25s, width 0.25s;
+    }
+    .webos-gesture.is-pulsing .webos-lightpipe {
+      width: 96px;
+      background: #ffffff;
+      box-shadow: 0 0 14px 3px rgba(180,230,255,.95), 0 0 28px rgba(56,163,235,.85);
+      animation: webos-pipe 1.4s ease-in-out 2;
+    }
+    @keyframes webos-pipe {
+      0%, 100% { opacity: 0.65; transform: scaleX(0.9); }
+      50%      { opacity: 1; transform: scaleX(1.12); }
+    }
+
+    /* Classic webOS bottom notification ticker banner (rises above gesture area) */
+    .webos-ticker {
+      position: absolute;
+      left: 0; right: 0; bottom: 30px; z-index: 20;
+      display: flex; align-items: center; gap: 9px;
+      height: 44px; padding: 0 12px;
+      background: linear-gradient(180deg, #27292d, #0d0e10);
+      border-top: 1px solid rgba(255,255,255,.22);
+      color: #ffffff;
+      box-shadow: 0 -6px 20px rgba(0,0,0,.55);
+      transform: translateY(115%);
+      transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.25, 1);
+      pointer-events: none;
+    }
+    .webos-ticker.is-open {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .webos-ticker img { width: 24px; height: 24px; border-radius: 5px; flex: none; }
+    .webos-ticker-text {
+      flex: 1; min-width: 0;
+      font-size: 12px; line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .webos-ticker-text strong { color: #72c4ff; margin-right: 5px; }
+    .webos-ticker button {
+      border: 0; background: rgba(255,255,255,.14); color: #fff;
+      width: 22px; height: 22px; border-radius: 50%;
+      font: 700 12px/1 inherit; cursor: pointer; flex: none;
+    }
+
+    /* ════ E · Palm webOS 1–2 (Pre Synergy Dashboard) ════ */
+    .vE {
+      background: #000000;
+      color: #f0f2f5;
+    }
+    .vE .statusbar {
+      background: #000;
+      color: #d6dae0;
+      font-weight: 500;
+    }
+    .vE .w-curved-top {
+      flex: none;
+      margin: 0 4px;
+      padding: 10px 12px 10px;
+      border-radius: 16px 16px 0 0;
+      background: linear-gradient(180deg, #3c4047 0%, #24272c 48%, #181a1e 100%);
+      border: 1px solid rgba(255,255,255,.14);
+      border-bottom: 1px solid #000;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+    }
+    .vE .w-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+    .vE .w-brand { margin: 0; font-size: 16px; font-weight: 600; color: #fff; text-shadow: 0 -1px 0 #000; }
+    .vE .w-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 99px;
+      background: rgba(0,0,0,.48);
+      border: 1px solid rgba(255,255,255,.12);
+      font-size: 11px; color: #b8c0ca;
+    }
+    .vE .w-pill i { width: 6px; height: 6px; border-radius: 50%; background: #62d96b; box-shadow: 0 0 6px #62d96b; }
+    .vE .w-tabs {
+      display: flex; height: 28px; border-radius: 14px; overflow: hidden;
+      background: #101215; border: 1px solid rgba(255,255,255,.12);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.75);
+      margin-bottom: 8px;
+    }
+    .vE .w-tabs button {
+      flex: 1; border: 0; background: none; color: #9ea6b2;
+      font: 600 12px/1 inherit; cursor: pointer;
+    }
+    .vE .w-tabs button.on {
+      background: linear-gradient(180deg, #626872, #383c43);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.32);
+    }
+    .vE .w-controls { display: flex; gap: 6px; }
+    .vE .w-search, .vE .w-filter {
+      height: 28px; padding: 0 10px; border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.14);
+      color: #a4acb8; font-size: 12px;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.7);
+    }
+    .vE .w-search { flex: 1; }
+    .vE .w-filter { color: #e2e6ec; font-weight: 600; }
+    .vE .w-controls svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.72; }
+
+    .vE .scroll {
+      margin: 0 4px 4px;
+      border-radius: 0 0 16px 16px;
+      background: linear-gradient(180deg, #1a1c20, #111316);
+      border: 1px solid rgba(255,255,255,.11);
+      border-top: 0;
+    }
+    .vE .w-day {
+      padding: 6px 12px;
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #8892a0;
+      background: linear-gradient(180deg, #272a30, #1d2025);
+      border-top: 1px solid rgba(255,255,255,.07);
+      border-bottom: 1px solid #090a0c;
+    }
+    .vE .w-row {
+      padding: 10px 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.04));
+      border-bottom: 1px solid #090a0c;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      cursor: pointer;
+    }
+    .vE .w-row.open {
+      background: linear-gradient(180deg, #2b3440, #1f2630);
+      box-shadow: inset 0 1px 0 rgba(120,196,255,.28);
+    }
+    .vE .w-row-main { display: flex; align-items: flex-start; gap: 10px; }
+    .vE .w-ic { position: relative; flex: none; width: 34px; height: 34px; margin-top: 1px; }
+    .vE .w-ic img { width: 100%; height: 100%; border-radius: 8px; display: block; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,.6); }
+    .vE .w-count {
+      position: absolute; bottom: -3px; right: -4px;
+      min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+      background: linear-gradient(180deg, #74c2ff, #2678c9);
+      border: 1px solid #000;
+      color: #fff; font-size: 10px; font-weight: 700; line-height: 14px; text-align: center;
+    }
+    .vE .w-bd { flex: 1; min-width: 0; }
+    .vE .w-top { display: flex; align-items: baseline; gap: 6px; }
+    .vE .w-app { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vE .w-time { flex: none; font-size: 11px; color: #8c95a2; }
+    .vE .w-byline { font-size: 11.5px; font-weight: 600; color: #74c2ff; margin-top: 1px; }
+    .vE .w-text {
+      margin: 2px 0 0; font-size: 12.5px; line-height: 1.38; color: #c8cfd8;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    }
+    .vE .w-row.open .w-text { -webkit-line-clamp: unset; color: #edf1f6; }
+    .vE .w-acts { display: none; gap: 8px; margin: 9px 0 1px 44px; }
+    .vE .w-row.open .w-acts { display: flex; }
+    .vE .w-acts button {
+      height: 26px; padding: 0 12px; border-radius: 13px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: linear-gradient(180deg, #525760, #2b2f35);
+      color: #fff; font: 600 11.5px/1 inherit; cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
+    }
+    .vE .w-acts button.is-primary {
+      border-color: #3a92d8;
+      background: linear-gradient(180deg, #56b0f5, #1e73bc);
+    }
+
+    /* ════ F · HP webOS 3 (TouchPad / Enyo Onyx Cards) ════ */
+    .vF {
+      background: linear-gradient(180deg, #cfd3d8, #bcc2ca);
+      color: #1f2328;
+    }
+    .vF .statusbar {
+      background: linear-gradient(180deg, #2a2c30, #16181b);
+      color: #e2e6ec;
+    }
+    .vF .o-header {
+      flex: none;
+      padding: 9px 12px 11px;
+      background: linear-gradient(180deg, #474a50, #2c2f34);
+      border-bottom: 1px solid #16181b;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 6px rgba(0,0,0,.28);
+      color: #fff;
+    }
+    .vF .o-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+    .vF .o-brand { margin: 0; font-size: 16.5px; font-weight: 600; text-shadow: 0 -1px 0 rgba(0,0,0,.6); }
+    .vF .o-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 8px; border-radius: 5px;
+      background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.14);
+      font-size: 11px; color: #d5dae0;
+    }
+    .vF .o-pill i { width: 6px; height: 6px; border-radius: 50%; background: #4cd964; }
+    .vF .o-tabs {
+      display: flex; height: 30px; border-radius: 6px; overflow: hidden;
+      border: 1px solid #17191c;
+      box-shadow: 0 1px 0 rgba(255,255,255,.15);
+      margin-bottom: 8px;
+    }
+    .vF .o-tabs button {
+      flex: 1; border: 0;
+      background: linear-gradient(180deg, #565a61, #383b41);
+      color: #d6dbe2; font: 600 12px/1 inherit; cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    .vF .o-tabs button + button { border-left: 1px solid #1a1c20; }
+    .vF .o-tabs button.on {
+      background: linear-gradient(180deg, #4ab3f4, #2080c8);
+      color: #fff;
+      text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 0 0 10px rgba(56,163,235,.4);
+    }
+    .vF .o-controls { display: flex; gap: 6px; }
+    .vF .o-search, .vF .o-filter {
+      height: 29px; padding: 0 10px; border-radius: 5px;
+      font-size: 12px; display: flex; align-items: center; gap: 6px;
+    }
+    .vF .o-search {
+      flex: 1; background: #fff; color: #646b75;
+      border: 1px solid #1c1f23;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.22);
+    }
+    .vF .o-filter {
+      background: linear-gradient(180deg, #f4f6f8, #d2d7dd);
+      border: 1px solid #1c1f23; color: #20252b; font-weight: 600;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .vF .o-controls svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.65; }
+
+    .vF .scroll { padding: 4px 10px 16px; }
+    .vF .o-day {
+      margin: 12px 4px 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #4a525d; text-shadow: 0 1px 0 rgba(255,255,255,.7);
+    }
+    .vF .o-card {
+      margin-bottom: 8px;
+      padding: 11px 12px;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #ffffff, #f2f4f7);
+      border: 1px solid rgba(30,36,44,.26);
+      box-shadow: inset 0 1px 0 #ffffff, 0 2px 5px rgba(0,0,0,.14);
+      cursor: pointer;
+      transition: box-shadow 0.14s, border-color 0.14s;
+    }
+    .vF .o-card.open {
+      border-color: #2b92dc;
+      box-shadow: inset 0 1px 0 #fff, 0 0 0 2px rgba(56,163,235,.28), 0 4px 10px rgba(0,0,0,.16);
+    }
+    .vF .o-card-main { display: flex; align-items: flex-start; gap: 10px; }
+    .vF .o-ic { position: relative; flex: none; width: 34px; height: 34px; margin-top: 1px; }
+    .vF .o-ic img { width: 100%; height: 100%; border-radius: 7px; display: block; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,.28); }
+    .vF .o-badge {
+      position: absolute; top: -5px; right: -5px;
+      min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+      background: linear-gradient(180deg, #4db7f6, #1d7ec4);
+      border: 1.5px solid #fff; color: #fff;
+      font-size: 10px; font-weight: 700; line-height: 14px; text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+    .vF .o-bd { flex: 1; min-width: 0; }
+    .vF .o-top { display: flex; align-items: baseline; gap: 6px; }
+    .vF .o-app { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: #1b2026; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vF .o-time { flex: none; font-size: 11px; color: #67707c; }
+    .vF .o-byline { font-size: 11.5px; font-weight: 600; color: #2080c8; margin-top: 1px; }
+    .vF .o-text {
+      margin: 2px 0 0; font-size: 12.5px; line-height: 1.38; color: #313842;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    }
+    .vF .o-card.open .o-text { -webkit-line-clamp: unset; }
+    .vF .o-acts { display: none; gap: 7px; margin: 9px 0 0 44px; }
+    .vF .o-card.open .o-acts { display: flex; }
+    .vF .o-acts button {
+      height: 26px; padding: 0 11px; border-radius: 5px;
+      border: 1px solid #aeb6c0;
+      background: linear-gradient(180deg, #ffffff, #dde2e8);
+      color: #20252b; font: 600 11.5px/1 inherit; cursor: pointer;
+      box-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(0,0,0,.1);
+    }
+    .vF .o-acts button.is-primary {
+      border-color: #196eab;
+      background: linear-gradient(180deg, #4db7f6, #1f7fc5);
+      color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,.3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .atmo-cube-rotor, .webos-ticker { transition: none; }
+      .webos-gesture.is-pulsing .webos-lightpipe { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <div>
+      <h1>SynCloudOS Atmo &amp; Palm webOS theme drafts</h1>
+      <p>Six phone-framed drafts using the Atmo textures from <code>SynCloudOS-master</code> alongside two Palm / HP webOS styles. Tap any alert to expand it, switch tabs, or trigger a live incoming alert to compare banners.</p>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="page-btn is-primary" id="btn-simulate">Simulate incoming alert</button>
+      <button type="button" class="page-btn" id="btn-expand-all">Expand all alerts</button>
+    </div>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+  <script>
+    const DRAFTS = [
+      {
+        id: 'A',
+        kind: 'atmo',
+        name: 'A · Atmo Light (Cotton & Brushed Metal)',
+        note: 'Straight from SynCloudOS’s Notification Centre: NSETileCotton.jpg backdrop, dark brushed-metal header, Aqua glossy segmented pills, and the sliced-3d rolling cube banner at the top.',
+      },
+      {
+        id: 'B',
+        kind: 'atmo',
+        name: 'B · Atmo Dark (Slate & Aqua Glass)',
+        note: 'SynCloudOS Atmo’s official dark scheme (#1b222c slate, #1d2229 inset wells, #78acde Aqua sky-blue accent, gunmetal gloss buttons, and dark 3D cube banner).',
+      },
+      {
+        id: 'C',
+        kind: 'atmo',
+        linen: true,
+        name: 'C · Atmo Linen (iOS 5 / Mountain Lion)',
+        note: 'Built around SynCloudOS’s linen.webp material: etched dark-metal day strips, 2px embossed grooves, glossy squircle icons, and a bottom Notification Centre grabber handle.',
+      },
+      {
+        id: 'D',
+        kind: 'atmo',
+        name: 'D · Atmo HUD (Smoked Translucent Glass)',
+        note: 'SynCloudOS’s HUD chrome axis: smoked obsidian glass panels over a dimmed wallpaper, crisp 1px specular rims, and luminous blue active states.',
+      },
+      {
+        id: 'E',
+        kind: 'webos-pre',
+        name: 'E · Palm webOS 1–2 (Pre Synergy Dashboard)',
+        note: 'Classic Palm Pre curved black-glass card bezel, dark glossy dashboard rows, bottom ticker notification banner, and glowing gesture-area light-pipe.',
+      },
+      {
+        id: 'F',
+        kind: 'webos-onyx',
+        name: 'F · HP webOS 3 (TouchPad / Enyo Onyx)',
+        note: 'Enyo Onyx aesthetic: cool brushed-silver canvas, tactile paper-white bevelled cards, charcoal chrome header, webOS cyan-blue glow, and bottom gesture light-pipe.',
+      },
+    ];
+
+    const NEWS_ALERTS = [
+      { day: 'Today', app: 'NZ Herald', icon: 'nz-herald', when: 'now', clock: '9:41 am', text: 'Breaking: Reserve Bank cuts the official cash rate by 50 basis points to 2.25 per cent, the lowest level since 2021.' },
+      { day: 'Today', app: 'RNZ', icon: 'rnz', when: '12m', clock: '9:29 am', text: 'Health expert accuses NZ Food Safety of “very poor” performance over campylobacter rates.', repeats: 2 },
+      { day: 'Today', app: 'The Spinoff', icon: 'the-spinoff', when: '38m', clock: '9:03 am', byline: 'Toby Manhire', text: 'The week in politics: five things we learned from a chaotic Thursday at Parliament.' },
+      { day: 'Today', app: '1News', icon: '1news', when: '1h', clock: '8:41 am', text: 'Newsmakers: Rogernomics – the man who changed NZ’s economy forever' },
+      { day: 'Today', app: 'Stuff', icon: 'stuff', when: '2h', clock: '7:40 am', text: 'Watch: Hundreds spot orcas passing close to swimmers at popular Auckland beach' },
+      { day: 'Yesterday', app: 'The Post', icon: 'the-post', when: '21:14', clock: '9:14 pm', text: 'Wellington water: council confirms another $40m for pipe repairs after summer of leaks' },
+      { day: 'Yesterday', app: 'Te Ao News', icon: 'te-ao-news', when: '18:02', clock: '6:02 pm', text: 'Kapa haka groups gather in Rotorua ahead of next year’s national festival' },
+    ];
+
+    const SIDE_ALERTS = [
+      { day: 'Today', app: 'AT Mobile', icon: 'at-mobile', when: '8m', clock: '9:33 am', byline: 'Southern Line — Delays', text: 'Trains are running up to 15 minutes late due to a track fault near Newmarket. Allow extra travel time.' },
+      { day: 'Today', app: 'AT Mobile', icon: 'at-mobile', when: '1h', clock: '8:35 am', byline: 'Devonport Ferry', text: 'The 8:45 am sailing from Downtown to Devonport is cancelled due to a mechanical issue.', repeats: 2 },
+      { day: 'Yesterday', app: 'AT Mobile', icon: 'at-mobile', when: '17:20', clock: '5:20 pm', byline: 'Northern Busway', text: 'Heavy congestion approaching Harbour Bridge southbound. NX1 & NX2 services delayed.' },
+    ];
+
+    const SVG = {
+      wifi: '<svg viewBox="0 0 24 24"><path d="M12 21 0 9a17 17 0 0 1 24 0z"/></svg>',
+      batt: '<svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>',
+      search: '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
+      drop: '<svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5z"/></svg>',
+    };
+
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    }
+
+    function iconImg(name, cls) {
+      const img = el('img', cls);
+      img.src = '../icons/' + name + '.png';
+      img.alt = '';
+      return img;
+    }
+
+    function buildAtmoPhone(d) {
+      const sc = el('div', 'screen atmo-screen v' + d.id);
+
+      // 3D rolling cube notification banner
+      const stage = el('div', 'atmo-cube-stage');
+      stage.innerHTML = `
+        <div class="atmo-cube-void">
+          <div class="atmo-cube-rotor">
+            <div class="atmo-cube-bezel">
+              <img class="app-ic" src="../icons/1news.png" alt="">
+              <div class="atmo-cube-copy">
+                <div class="atmo-cube-kicker">1News · just now</div>
+                <div class="atmo-cube-title">Breaking news alert</div>
+                <div class="atmo-cube-msg">MetService upgrades orange heavy rain warning for Auckland &amp; Northland</div>
+              </div>
+              <button type="button" class="atmo-cube-close" aria-label="Dismiss banner"></button>
+            </div>
+          </div>
+        </div>`;
+      stage.querySelector('.atmo-cube-close').addEventListener('click', () => {
+        stage.classList.remove('is-open');
+        setTimeout(() => stage.classList.remove('is-live'), 420);
+      });
+
+      const status = el('div', 'statusbar');
+      status.innerHTML = `<span>9:41</span><span class="sb-icons">${SVG.wifi}${SVG.batt}</span>`;
+
+      const header = el('div', 'atmo-header');
+      header.innerHTML = `
+        <div class="atmo-head-row">
+          <h2 class="atmo-brand">Push Feed</h2>
+          <span class="atmo-status"><span class="atmo-dot"></span>Last alert now</span>
+        </div>
+        <div class="atmo-seg" role="tablist">
+          <button type="button" class="on" data-tab="news">News <span class="cnt">143</span></button>
+          <button type="button" data-tab="side">AT Mobile <span class="cnt">6</span></button>
+        </div>
+        <div class="atmo-controls">
+          <div class="atmo-search">${SVG.search}<span>Search alerts…</span></div>
+          <div class="atmo-filter">All apps ${SVG.drop}</div>
+        </div>`;
+
+      const scroll = el('div', 'scroll');
+
+      function draw(list) {
+        scroll.replaceChildren();
+        let day = null, group = null;
+        for (const a of list) {
+          if (a.day !== day) {
+            day = a.day;
+            scroll.append(el('div', 'atmo-day', day));
+            group = el('div', 'atmo-group');
+            scroll.append(group);
+          }
+          const row = el('article', 'atmo-row');
+          const main = el('div', 'atmo-row-main');
+          const ic = el('div', 'atmo-ic');
+          ic.append(iconImg(a.icon));
+          if (a.repeats) ic.append(el('span', 'atmo-badge', String(a.repeats)));
+
+          const bd = el('div', 'atmo-bd');
+          const top = el('div', 'atmo-top');
+          top.append(el('span', 'atmo-app', a.app), el('span', 'atmo-time', a.clock));
+          bd.append(top);
+          if (a.byline) bd.append(el('div', 'atmo-byline', a.byline));
+          bd.append(el('p', 'atmo-text', a.text));
+
+          const acts = el('div', 'atmo-acts');
+          acts.append(el('button', 'is-primary', 'Copy'), el('button', '', 'Share'));
+          acts.addEventListener('click', e => e.stopPropagation());
+
+          main.append(ic, bd);
+          row.append(main, acts);
+          row.addEventListener('click', () => row.classList.toggle('open'));
+          group.append(row);
+        }
+      }
+
+      header.querySelectorAll('.atmo-seg button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          header.querySelectorAll('.atmo-seg button').forEach(b => b.classList.toggle('on', b === btn));
+          draw(btn.dataset.tab === 'side' ? SIDE_ALERTS : NEWS_ALERTS);
+        });
+      });
+
+      draw(NEWS_ALERTS);
+      sc.append(stage, status, header, scroll);
+      if (d.linen) sc.insertAdjacentHTML('beforeend', '<div class="linen-handle" aria-hidden="true"><span></span></div>');
+
+      sc.triggerBanner = () => {
+        stage.classList.add('is-live');
+        requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.add('is-open')));
+        clearTimeout(sc._t);
+        sc._t = setTimeout(() => {
+          stage.classList.remove('is-open');
+          setTimeout(() => stage.classList.remove('is-live'), 420);
+        }, 4200);
+      };
+      return sc;
+    }
+
+    function buildWebosPrePhone(d) {
+      const sc = el('div', 'screen webos-screen v' + d.id);
+      const status = el('div', 'statusbar');
+      status.innerHTML = `<span>9:41 AM</span><span class="sb-icons">${SVG.wifi}${SVG.batt}</span>`;
+
+      const topBar = el('div', 'w-curved-top');
+      topBar.innerHTML = `
+        <div class="w-head">
+          <h2 class="w-brand">Push Feed</h2>
+          <span class="w-pill"><i></i>Last alert now</span>
+        </div>
+        <div class="w-tabs" role="tablist">
+          <button type="button" class="on" data-tab="news">News · 143</button>
+          <button type="button" data-tab="side">AT Mobile · 6</button>
+        </div>
+        <div class="w-controls">
+          <div class="w-search">${SVG.search}<span>Just type to filter…</span></div>
+          <div class="w-filter">All ${SVG.drop}</div>
+        </div>`;
+
+      const scroll = el('div', 'scroll');
+
+      function draw(list) {
+        scroll.replaceChildren();
+        let day = null;
+        for (const a of list) {
+          if (a.day !== day) { day = a.day; scroll.append(el('div', 'w-day', day)); }
+          const row = el('article', 'w-row');
+          const main = el('div', 'w-row-main');
+          const ic = el('div', 'w-ic');
+          ic.append(iconImg(a.icon));
+          if (a.repeats) ic.append(el('span', 'w-count', String(a.repeats)));
+          const bd = el('div', 'w-bd');
+          const top = el('div', 'w-top');
+          top.append(el('span', 'w-app', a.app), el('span', 'w-time', a.clock));
+          bd.append(top);
+          if (a.byline) bd.append(el('div', 'w-byline', a.byline));
+          bd.append(el('p', 'w-text', a.text));
+          const acts = el('div', 'w-acts');
+          acts.append(el('button', 'is-primary', 'Copy'), el('button', '', 'Share'));
+          acts.addEventListener('click', e => e.stopPropagation());
+          main.append(ic, bd);
+          row.append(main, acts);
+          row.addEventListener('click', () => row.classList.toggle('open'));
+          scroll.append(row);
+        }
+      }
+
+      topBar.querySelectorAll('.w-tabs button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          topBar.querySelectorAll('.w-tabs button').forEach(b => b.classList.toggle('on', b === btn));
+          draw(btn.dataset.tab === 'side' ? SIDE_ALERTS : NEWS_ALERTS);
+        });
+      });
+
+      const ticker = el('div', 'webos-ticker');
+      ticker.innerHTML = `<img src="../icons/1news.png" alt=""><div class="webos-ticker-text"><strong>1News</strong>MetService upgrades orange heavy rain warning for Auckland</div><button type="button" aria-label="Dismiss">×</button>`;
+      const gesture = el('div', 'webos-gesture');
+      gesture.innerHTML = '<div class="webos-lightpipe"></div>';
+      ticker.querySelector('button').addEventListener('click', () => {
+        ticker.classList.remove('is-open');
+        gesture.classList.remove('is-pulsing');
+      });
+
+      draw(NEWS_ALERTS);
+      sc.append(status, topBar, scroll, ticker, gesture);
+      sc.triggerBanner = () => {
+        ticker.classList.add('is-open');
+        gesture.classList.remove('is-pulsing');
+        void gesture.offsetWidth;
+        gesture.classList.add('is-pulsing');
+        clearTimeout(sc._t);
+        sc._t = setTimeout(() => {
+          ticker.classList.remove('is-open');
+          gesture.classList.remove('is-pulsing');
+        }, 4200);
+      };
+      return sc;
+    }
+
+    function buildWebosOnyxPhone(d) {
+      const sc = el('div', 'screen webos-screen v' + d.id);
+      const status = el('div', 'statusbar');
+      status.innerHTML = `<span>9:41 AM</span><span class="sb-icons">${SVG.wifi}${SVG.batt}</span>`;
+
+      const header = el('div', 'o-header');
+      header.innerHTML = `
+        <div class="o-head">
+          <h2 class="o-brand">Push Feed</h2>
+          <span class="o-pill"><i></i>Last alert now</span>
+        </div>
+        <div class="o-tabs" role="tablist">
+          <button type="button" class="on" data-tab="news">News · 143</button>
+          <button type="button" data-tab="side">AT Mobile · 6</button>
+        </div>
+        <div class="o-controls">
+          <div class="o-search">${SVG.search}<span>Search alerts…</span></div>
+          <div class="o-filter">All apps ${SVG.drop}</div>
+        </div>`;
+
+      const scroll = el('div', 'scroll');
+
+      function draw(list) {
+        scroll.replaceChildren();
+        let day = null;
+        for (const a of list) {
+          if (a.day !== day) { day = a.day; scroll.append(el('div', 'o-day', day)); }
+          const card = el('article', 'o-card');
+          const main = el('div', 'o-card-main');
+          const ic = el('div', 'o-ic');
+          ic.append(iconImg(a.icon));
+          if (a.repeats) ic.append(el('span', 'o-badge', String(a.repeats)));
+          const bd = el('div', 'o-bd');
+          const top = el('div', 'o-top');
+          top.append(el('span', 'o-app', a.app), el('span', 'o-time', a.clock));
+          bd.append(top);
+          if (a.byline) bd.append(el('div', 'o-byline', a.byline));
+          bd.append(el('p', 'o-text', a.text));
+          const acts = el('div', 'o-acts');
+          acts.append(el('button', 'is-primary', 'Copy'), el('button', '', 'Share'));
+          acts.addEventListener('click', e => e.stopPropagation());
+          main.append(ic, bd);
+          card.append(main, acts);
+          card.addEventListener('click', () => card.classList.toggle('open'));
+          scroll.append(card);
+        }
+      }
+
+      header.querySelectorAll('.o-tabs button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          header.querySelectorAll('.o-tabs button').forEach(b => b.classList.toggle('on', b === btn));
+          draw(btn.dataset.tab === 'side' ? SIDE_ALERTS : NEWS_ALERTS);
+        });
+      });
+
+      const ticker = el('div', 'webos-ticker');
+      ticker.innerHTML = `<img src="../icons/1news.png" alt=""><div class="webos-ticker-text"><strong>1News</strong>MetService upgrades orange heavy rain warning for Auckland</div><button type="button" aria-label="Dismiss">×</button>`;
+      const gesture = el('div', 'webos-gesture');
+      gesture.innerHTML = '<div class="webos-lightpipe"></div>';
+      ticker.querySelector('button').addEventListener('click', () => {
+        ticker.classList.remove('is-open');
+        gesture.classList.remove('is-pulsing');
+      });
+
+      draw(NEWS_ALERTS);
+      sc.append(status, header, scroll, ticker, gesture);
+      sc.triggerBanner = () => {
+        ticker.classList.add('is-open');
+        gesture.classList.remove('is-pulsing');
+        void gesture.offsetWidth;
+        gesture.classList.add('is-pulsing');
+        clearTimeout(sc._t);
+        sc._t = setTimeout(() => {
+          ticker.classList.remove('is-open');
+          gesture.classList.remove('is-pulsing');
+        }, 4200);
+      };
+      return sc;
+    }
+
+    const grid = document.getElementById('grid');
+    const screens = [];
+    for (const d of DRAFTS) {
+      const fig = el('figure');
+      const phone = el('div', 'phone');
+      const sc =
+        d.kind === 'atmo' ? buildAtmoPhone(d) :
+        d.kind === 'webos-pre' ? buildWebosPrePhone(d) :
+        buildWebosOnyxPhone(d);
+      screens.push(sc);
+      phone.append(sc);
+      const cap = el('figcaption');
+      cap.append(el('b', '', d.name), el('span', '', d.note));
+      fig.append(phone, cap);
+      grid.append(fig);
+    }
+
+    document.getElementById('btn-simulate').addEventListener('click', () => {
+      screens.forEach((sc, i) => setTimeout(() => sc.triggerBanner(), i * 90));
+    });
+
+    let allExpanded = false;
+    document.getElementById('btn-expand-all').addEventListener('click', event => {
+      allExpanded = !allExpanded;
+      document.querySelectorAll('.atmo-row, .w-row, .o-card').forEach(node => node.classList.toggle('open', allExpanded));
+      event.target.textContent = allExpanded ? 'Collapse all alerts' : 'Expand all alerts';
+    });
+  </script>
+</body>
+</html>
