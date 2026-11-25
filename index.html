@@ -52,10 +52,11 @@
   <link rel="preconnect" href="https://applesocial.s3.amazonaws.com" crossorigin>
 
   <!-- Roboto, Android's system font, for the Android themes; Google Sans
-       Flex for the Material You theme. -->
+       Flex for Material You; Open Sans as a Segoe UI fallback on non-Windows
+       devices for the Windows Phone theme. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Google+Sans+Flex:opsz,wght@6..144,400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Roboto:wght@400;500;700&family=Google+Sans+Flex:opsz,wght@6..144,400..700&display=swap">
 
   <!-- A different wallpaper on each visit. This runs before the page is
        drawn, so the chosen one is the only one downloaded and nothing
@@ -101,9 +102,10 @@
       var skinParam = new URLSearchParams(location.search).get('skin');
       var skin = null;
       if (skinParam === 'material' || skinParam === 'android') skin = 'material';
+      else if (skinParam === 'wp' || skinParam === 'windows' || skinParam === 'windowsphone' || skinParam === 'windows-phone' || skinParam === 'metro') skin = 'wp';
       else if (['ios', 'nougat', 'marshmallow'].includes(skinParam)) skin = skinParam;
       if (!skin) { try { skin = localStorage.getItem('pushFeedSkin'); } catch (e) { /* fine */ } }
-      if (['material', 'nougat', 'marshmallow'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
+      if (['material', 'nougat', 'marshmallow', 'wp'].includes(skin)) document.documentElement.classList.add('skin-' + skin);
     })();
   </script>
 
@@ -1364,8 +1366,8 @@
     .header-tools { flex: 1; min-width: 0; }
     html:not(.display-mode) .status { min-width: 0; flex: 0 1 auto; }
     html:not(.display-mode) #status-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .theme-slider { position: relative; flex: 0 0 94px; height: 28px; margin-left: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--control); isolation: isolate; }
-    .theme-thumb { position: absolute; inset: 3px auto 3px 3px; width: calc((100% - 6px) / 4); border-radius: 50%; background: var(--control-on); transform: translateX(calc(var(--theme-index, 0) * 100%)); transition: transform .18s ease; z-index: 0; box-shadow: 0 0 0 1px var(--text-soft), 0 1px 3px #0002; }
+    .theme-slider { position: relative; flex: 0 0 116px; height: 28px; margin-left: auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 3px; border-radius: 999px; background: var(--control); isolation: isolate; }
+    .theme-thumb { position: absolute; inset: 3px auto 3px 3px; width: calc((100% - 6px) / 5); border-radius: 50%; background: var(--control-on); transform: translateX(calc(var(--theme-index, 0) * 100%)); transition: transform .18s ease; z-index: 0; box-shadow: 0 0 0 1px var(--text-soft), 0 1px 3px #0002; }
     .theme-slider label { position: relative; z-index: 1; display: grid; place-items: center; min-width: 0; cursor: pointer; }
     .theme-slider input { position: absolute; inset: 0; margin: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
     .theme-slider label span { width: 10px; height: 10px; border-radius: 3px; box-shadow: inset 0 0 0 1px #ffffff40, 0 0 0 1px #0002; }
@@ -1373,6 +1375,14 @@
     .theme-slider label:nth-of-type(2) span { background: #b9a9dc; border-radius: 50%; }
     .theme-slider label:nth-of-type(3) span { background: #f5f5f5; border-radius: 1px; box-shadow: inset 0 0 0 1.5px #9e9e9e; }
     .theme-slider label:nth-of-type(4) span { background: linear-gradient(#37474f 40%, #fafafa 40%); border-radius: 1px; }
+    .theme-slider label:nth-of-type(5) span {
+      background:
+        linear-gradient(90deg, transparent 4.5px, #000 4.5px 5.5px, transparent 5.5px),
+        linear-gradient(transparent 4.5px, #000 4.5px 5.5px, transparent 5.5px),
+        #1ba1e2;
+      border-radius: 0;
+      box-shadow: 0 0 0 1px #0004;
+    }
     .theme-slider label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 1px; border-radius: 50%; }
     .display-mode .theme-slider { display: none; }
     @media (prefers-reduced-motion: reduce) { .theme-thumb { transition: none; } }
@@ -1599,7 +1609,366 @@
     .skin-marshmallow:not(.display-mode) .l-sub { overflow-wrap: anywhere; }
     .skin-nougat:not(.display-mode) .day-heading:first-child { margin-top: 0; }
     @media (prefers-reduced-motion: reduce) {
-      :is(.skin-nougat, .skin-marshmallow):not(.display-mode) .l-expand svg { transition: none; }
+      :is(.skin-nougat, .skin-marshmallow, .skin-wp):not(.display-mode) .l-expand svg { transition: none; }
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       9. WINDOWS PHONE SKIN (html.skin-wp): Metro / WP 8.1 Action Center.
+       Pure OLED black, zero border-radius, crisp Segoe UI typography,
+       lowercase Pivot tabs, flat square publisher tiles, and outlined
+       Metro action buttons when expanded.
+       ════════════════════════════════════════════════════════════════════ */
+    html.skin-wp:not(.display-mode) {
+      --wp-accent: #1ba1e2;
+      --bg: #000000;
+      --card: #000000;
+      --control: #1a1a1a;
+      --control-on: #1ba1e2;
+      --text: #ffffff;
+      --text-soft: #999999;
+      --hairline: #1f1f1f;
+      --ok: #339933;
+      --warn: #f09609;
+      --bad: #e51400;
+      --focus: #1ba1e2;
+      --tooltip-bg: #1f1f1f;
+      --tooltip-text: #ffffff;
+      --font: "Segoe WP", "Segoe UI", "Open Sans", system-ui, sans-serif;
+      --font-display: "Segoe WP Light", "Segoe UI Light", "Segoe UI", "Open Sans", system-ui, sans-serif;
+      color-scheme: dark;
+    }
+    .skin-wp:not(.display-mode) body {
+      background: #000000;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: 0;
+    }
+    .skin-wp:not(.display-mode) .wall,
+    .skin-wp:not(.display-mode) body::before,
+    .skin-wp:not(.display-mode) #slideshow-toggle { display: none; }
+
+    /* Header & status bar */
+    .skin-wp:not(.display-mode) .site-header { padding: 18px 0 2px; text-shadow: none; }
+    .skin-wp:not(.display-mode) .status {
+      padding: 0;
+      gap: 7px;
+      border-radius: 0;
+      background: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #a6a6a6;
+    }
+    .skin-wp:not(.display-mode) .dot { width: 7px; height: 7px; border-radius: 0; }
+    .skin-wp:not(.display-mode) .dot.is-ok { box-shadow: none; }
+    .skin-wp:not(.display-mode) .theme-slider {
+      border-radius: 0;
+      background: #000;
+      box-shadow: inset 0 0 0 1px #333;
+    }
+    .skin-wp:not(.display-mode) .theme-thumb {
+      border-radius: 0;
+      background: #1f1f1f;
+      box-shadow: inset 0 0 0 1.5px var(--wp-accent);
+    }
+    .skin-wp:not(.display-mode) .theme-slider label:has(input:focus-visible) { border-radius: 0; }
+
+    /* Sticky toolbar: opaque black, crisp bottom hairline when pinned */
+    .skin-wp:not(.display-mode) .toolbar {
+      padding: 8px 0 14px;
+      margin-bottom: 0;
+    }
+    .skin-wp:not(.display-mode) .toolbar::before {
+      background: #000000;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+      border-bottom: 1px solid #262626;
+    }
+
+    /* Pivot tabs: huge, light-weight lowercase headings */
+    .skin-wp:not(.display-mode) .tabs {
+      gap: 22px;
+      padding: 0;
+      margin-bottom: 14px;
+      border-radius: 0;
+      background: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .skin-wp:not(.display-mode) .tabs::-webkit-scrollbar { display: none; }
+    .skin-wp:not(.display-mode) .tabs button {
+      flex: none;
+      padding: 0 0 2px;
+      border-radius: 0;
+      font-family: var(--font-display);
+      font-size: 34px;
+      font-weight: 300;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      text-transform: lowercase;
+      color: #666666;
+      transition: color 0.15s;
+    }
+    .skin-wp:not(.display-mode) .tabs button:hover { color: #b3b3b3; }
+    .skin-wp:not(.display-mode) .tabs button[aria-selected="true"] {
+      font-weight: 300;
+      color: #ffffff;
+      background: none;
+      box-shadow: none;
+    }
+    .skin-wp:not(.display-mode) .tabs .count {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0;
+      margin-left: 6px;
+      color: #555555;
+      vertical-align: 2px;
+    }
+    .skin-wp:not(.display-mode) .tabs button[aria-selected="true"] .count { color: var(--wp-accent); }
+
+    /* Metro TextBox & ListPicker */
+    .skin-wp:not(.display-mode) .controls { gap: 8px; }
+    .skin-wp:not(.display-mode) .controls input,
+    .skin-wp:not(.display-mode) .controls select {
+      height: 38px;
+      border-radius: 0;
+      background-color: #000000;
+      border: 2px solid rgba(255, 255, 255, 0.55);
+      color: #ffffff;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .skin-wp:not(.display-mode) .controls input {
+      padding: 0 10px 0 34px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23999999' stroke-width='2'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E");
+      background-position: 10px center;
+    }
+    .skin-wp:not(.display-mode) .controls input::placeholder { color: #808080; }
+    .skin-wp:not(.display-mode) .controls select {
+      font-size: 14px;
+      padding: 0 28px 0 10px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23999999' stroke-width='2'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+      background-position: right 10px center;
+    }
+    .skin-wp:not(.display-mode) .controls select option { background: #141414; color: #ffffff; }
+    .skin-wp:not(.display-mode) .controls input:focus,
+    .skin-wp:not(.display-mode) .controls select:focus {
+      outline: none;
+      border-color: var(--wp-accent);
+    }
+
+    /* Metro lowercase accent day headers */
+    .skin-wp:not(.display-mode) .day-heading {
+      margin: 22px 0 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #222222;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      text-transform: lowercase;
+      color: var(--wp-accent);
+      text-shadow: none;
+    }
+    .skin-wp:not(.display-mode) main > .day-heading:first-child { margin-top: 8px; }
+
+    /* Action Center notification items */
+    .skin-wp:not(.display-mode) .stack,
+    .skin-wp:not(.display-mode) .stack.has-repeats { margin-bottom: 0; }
+    .skin-wp:not(.display-mode) .stack.has-repeats::after { display: none; }
+    .skin-wp:not(.display-mode) .stack.is-new { animation: wp-arrive 0.35s cubic-bezier(.1, .9, .2, 1); }
+    @keyframes wp-arrive {
+      from { opacity: 0; transform: translateX(18px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skin-wp:not(.display-mode) .stack.is-new { animation: none; }
+    }
+
+    .skin-wp:not(.display-mode) .wp-item {
+      position: relative;
+      padding: 13px 0 14px;
+      border-bottom: 1px solid #1f1f1f;
+      cursor: pointer;
+    }
+    .skin-wp:not(.display-mode) .wp-item:hover,
+    .skin-wp:not(.display-mode) .wp-item:focus-within { z-index: 2; }
+    .skin-wp:not(.display-mode) .stack:has(+ .day-heading) .wp-item,
+    .skin-wp:not(.display-mode) .stack:last-child .wp-item { border-bottom-color: transparent; }
+
+    .skin-wp:not(.display-mode) .wp-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    /* Square Live Tile icon (reusing circle() glyph markup, flat & 0px radius) */
+    .skin-wp:not(.display-mode) .l-circle {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      margin-top: 2px;
+      border-radius: 0;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+    }
+    .skin-wp:not(.display-mode) .l-circle .l-g {
+      width: var(--size, 19px);
+      height: var(--size, 19px);
+      background: #ffffff;
+      -webkit-mask: var(--src) center / contain no-repeat;
+      mask: var(--src) center / contain no-repeat;
+    }
+    .skin-wp:not(.display-mode) .l-circle.l-colour { background: #ffffff; box-shadow: none; }
+    .skin-wp:not(.display-mode) .l-circle.l-colour img { width: 22px; height: 22px; display: block; }
+    .skin-wp:not(.display-mode) .l-circle img.l-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .skin-wp:not(.display-mode) .l-circle .l-initials { color: #ffffff; font-size: 14px; font-weight: 600; }
+
+    .skin-wp:not(.display-mode) .wp-body { flex: 1; min-width: 0; }
+    .skin-wp:not(.display-mode) .wp-top {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 20px;
+    }
+    .skin-wp:not(.display-mode) .wp-app {
+      flex: 1;
+      min-width: 0;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #a6a6a6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .skin-wp:not(.display-mode) .wp-count {
+      flex: none;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: var(--wp-accent);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .skin-wp:not(.display-mode) .when {
+      font-size: 12px;
+      color: #8c8c8c;
+      line-height: 18px;
+      border-radius: 0;
+    }
+    .skin-wp:not(.display-mode) .when:hover,
+    .skin-wp:not(.display-mode) .when:focus { color: #ffffff; }
+    .skin-wp:not(.display-mode) .when::after {
+      border-radius: 0;
+      border: 1px solid #444444;
+      background: #141414;
+      color: #ffffff;
+      box-shadow: none;
+    }
+    .skin-wp:not(.display-mode) .l-expand {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      margin: -2px -4px -2px 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: #777777;
+      cursor: pointer;
+    }
+    .skin-wp:not(.display-mode) .l-expand svg { width: 16px; height: 16px; fill: currentColor; transition: transform .18s ease; }
+    .skin-wp:not(.display-mode) .l-expand[aria-expanded="true"] { color: var(--wp-accent); }
+    .skin-wp:not(.display-mode) .l-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .skin-wp:not(.display-mode) .l-expand:focus-visible { outline: 2px solid var(--wp-accent); outline-offset: 1px; }
+
+    .skin-wp:not(.display-mode) .wp-byline {
+      margin-top: 2px;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
+      color: #ffffff;
+      overflow-wrap: anywhere;
+    }
+    .skin-wp:not(.display-mode) .wp-text {
+      margin: 2px 0 0;
+      font-size: 15px;
+      line-height: 21px;
+      font-weight: 400;
+      color: #f5f5f5;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      overflow: hidden;
+    }
+    .skin-wp:not(.display-mode) .wp-byline + .wp-text {
+      margin-top: 2px;
+      font-size: 14px;
+      line-height: 20px;
+      color: #bdbdbd;
+    }
+    .skin-wp:not(.display-mode) .wp-item.l-open .wp-text {
+      -webkit-line-clamp: unset;
+      line-clamp: none;
+    }
+
+    /* Outlined Metro action buttons (copy / share) */
+    .skin-wp:not(.display-mode) .l-acts { display: none; }
+    .skin-wp:not(.display-mode) .wp-item.l-open .l-acts {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0 2px 50px;
+    }
+    .skin-wp:not(.display-mode) .l-acts button {
+      height: 34px;
+      padding: 0 14px;
+      border: 2px solid rgba(255, 255, 255, 0.78);
+      border-radius: 0;
+      background: transparent;
+      color: #ffffff;
+      font: 600 13px var(--font);
+      text-transform: lowercase;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .skin-wp:not(.display-mode) .l-acts button:hover,
+    .skin-wp:not(.display-mode) .l-acts button:focus-visible {
+      background: var(--wp-accent);
+      border-color: var(--wp-accent);
+      outline: none;
+    }
+
+    .skin-wp:not(.display-mode) .theme-toast {
+      border-radius: 0;
+      background: var(--wp-accent);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .skin-wp:not(.display-mode) footer { color: #777777; }
+
+    @media (max-width: 420px) {
+      .skin-wp:not(.display-mode) .tabs button { font-size: 28px; }
     }
   </style>
 </head>
@@ -1641,6 +2010,7 @@
             <label title="Material"><input type="radio" name="theme" value="material" aria-label="Material"><span aria-hidden="true"></span></label>
             <label title="Nougat"><input type="radio" name="theme" value="nougat" aria-label="Nougat"><span aria-hidden="true"></span></label>
             <label title="Marshmallow"><input type="radio" name="theme" value="marshmallow" aria-label="Marshmallow"><span aria-hidden="true"></span></label>
+            <label title="Windows Phone"><input type="radio" name="theme" value="wp" aria-label="Windows Phone"><span aria-hidden="true"></span></label>
           </div>
 
           <!-- Wallpaper slideshow on/off. -->
@@ -2660,12 +3030,55 @@
       sync();
     }
 
+    function buildWindowsPhone(item) {
+      const p = publisher(item.app);
+      const n = make('article', 'wp-item' + (item.isNew ? ' is-new' : '') + (expandedIds.has(item.id) ? ' l-open' : ''));
+      n.style.setProperty('--accent', p.colour);
+
+      const row = make('div', 'wp-row');
+      const body = make('div', 'wp-body');
+      const top = make('div', 'wp-top');
+
+      const t = make('time', 'when', notificationTime(item.time));
+      t.dataset.time = item.time;
+      t.dateTime = new Date(item.time).toISOString();
+      t.title = fullTime(item);
+      t.dataset.full = t.title;
+      t.tabIndex = 0;
+      t.setAttribute('aria-label', t.title);
+
+      top.append(make('span', 'wp-app', item.app));
+      if (item.repeats.length) top.append(make('span', 'wp-count', String(item.repeats.length + 1)));
+      top.append(t);
+
+      body.append(top);
+      if (item.byline) body.append(make('div', 'wp-byline', item.byline));
+      body.append(make('p', 'wp-text', item.headline));
+      row.append(circle(item, p), body);
+
+      const acts = make('div', 'l-acts');
+      const copyBtn = make('button', '', 'copy'), shareBtn = make('button', '', 'share');
+      copyBtn.type = shareBtn.type = 'button';
+      copyBtn.onclick = async e => { e.stopPropagation(); toast(await copyHeadline(item) === 'copied' ? 'Headline copied' : 'Couldn’t copy'); };
+      shareBtn.onclick = async e => { e.stopPropagation(); const res = await shareHeadline(item); if (res === 'copied') toast('Headline copied'); else if (res === 'failed') toast('Couldn’t share this headline'); };
+      acts.append(copyBtn, shareBtn);
+      n.append(row, acts);
+
+      wireLegacyExpansion(n, item, top);
+      return n;
+    }
+
     function buildLegacyCard(item) {
       const stack = make('div', 'stack' + (item.isNew ? ' is-new' : ''));
       stack.dataset.id = item.id;
       stack.dataset.app = item.app.toLowerCase();
       stack.dataset.time = item.time;
-      stack.append(currentSkin() === 'nougat' ? buildNougat(item) : buildMarshmallow(item));
+      const skin = currentSkin();
+      stack.append(
+        skin === 'nougat' ? buildNougat(item) :
+        skin === 'wp' ? buildWindowsPhone(item) :
+        buildMarshmallow(item)
+      );
       return stack;
     }
     let themeToastTimer;
@@ -2692,7 +3105,8 @@
     //           The alert text, cut to four lines until tapped
     // Hidden repeats show as a stacked card underneath plus a red badge.
     function buildCard(item) {
-      if (currentSkin() === 'nougat' || currentSkin() === 'marshmallow') return buildLegacyCard(item);
+      const skin = currentSkin();
+      if (skin === 'nougat' || skin === 'marshmallow' || skin === 'wp') return buildLegacyCard(item);
       const stack = make('div', 'stack' +
         (item.repeats.length ? ' has-repeats' : '') +
         (item.isNew ? ' is-new' : ''));
@@ -2907,10 +3321,12 @@
     // (The day heading above the card already says which day.)
     const hhmm = new Intl.DateTimeFormat('en-NZ', { ...tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
     function notificationTime(ms) {
-      if (currentSkin() === 'marshmallow') return clockTime(ms).toUpperCase();
+      const skin = currentSkin();
+      if (skin === 'marshmallow') return clockTime(ms).toUpperCase();
+      if (skin === 'wp') return clockTime(ms).toLowerCase();
       const mins = Math.floor(Math.max(0, Date.now() - ms) / 60000);
       if (mins < 1)  return 'now';
-      if (materialSkin() || currentSkin() === 'nougat') {   // Android's short form: "12m", "3h"
+      if (materialSkin() || skin === 'nougat') {   // Android's short form: "12m", "3h"
         if (mins < 60) return mins + 'm';
         if (mins < 4 * 60) return Math.floor(mins / 60) + 'h';
         return hhmm.format(ms);
@@ -3073,12 +3489,12 @@
     try { if (localStorage.getItem('pushFeedSlideshow') === 'on') setSlideshow(true); } catch (e) { /* ignore */ }
 
     /* ════════════════════════════════════════════════════════════════════
-       THEME SLIDER: iOS, Material, Nougat and Marshmallow. Saved in this
-       browser; ?skin=ios|material|nougat|marshmallow overrides it on load
-       (see the script in <head>).
+       THEME SLIDER: iOS, Material, Nougat, Marshmallow and Windows Phone.
+       Saved in this browser; ?skin=ios|material|nougat|marshmallow|wp
+       overrides it on load (see the script in <head>).
        ════════════════════════════════════════════════════════════════════ */
-    const THEMES = ['ios', 'material', 'nougat', 'marshmallow'];
-    const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow' };
+    const THEMES = ['ios', 'material', 'nougat', 'marshmallow', 'wp'];
+    const THEME_NAMES = { ios: 'iOS', material: 'Material', nougat: 'Nougat', marshmallow: 'Marshmallow', wp: 'Windows Phone' };
     const themeSlider = document.querySelector('.theme-slider');
     function currentSkin() {
       if (displayMode) return 'ios';
@@ -3090,7 +3506,7 @@
       themeSlider.style.setProperty('--theme-index', THEMES.indexOf(theme));
       themeSlider.querySelector('input[value="' + theme + '"]').checked = true;
       document.querySelector('meta[name="theme-color"]').content =
-        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f' })[theme];
+        ({ ios: '#000000', material: '#121316', nougat: '#e0e0e0', marshmallow: '#37474f', wp: '#000000' })[theme];
       document.querySelector('meta[name="color-scheme"]').content =
         theme === 'nougat' || theme === 'marshmallow' ? 'light' : 'dark';
     }
@@ -3139,7 +3555,7 @@
       side.replaceChildren(sideLabel, make('span', 'count', tabCount(el.tabSide)));
       news.setAttribute('aria-checked', String(!onSideTab));
       side.setAttribute('aria-checked', String(onSideTab));
-      el.search.placeholder = currentSkin() === 'marshmallow' ? 'Search ' + name : 'Search alerts…';
+      el.search.placeholder = currentSkin() === 'marshmallow' ? 'Search ' + name : currentSkin() === 'wp' ? 'search alerts' : 'Search alerts…';
     }
     function openFeedMenu(open) {
       feedBar.menu.hidden = !open;
